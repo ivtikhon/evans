@@ -15,6 +15,8 @@
 ;; File systems
 ;;   - file system requires a logical volume (in terms of LVM), so file systems do not
 ;;     exist separately of logical volumes
+;;
+;; (c) Igor Tikhonin
 
 (define (domain EC2)
 	(:requirements :adl)

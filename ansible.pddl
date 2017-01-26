@@ -1,6 +1,7 @@
 ;; Ansible domain
 ;; Developed by Igor Tikhonin (igor.tikhonin@gmail.com) in 2016
 ;;
+;; (c) Igor Tikhonin
 
 (define (domain Ansible)
   (:requirements :adl)
