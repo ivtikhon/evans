@@ -1,0 +1,64 @@
+---
+variables:
+  tmp_dir: /tmp
+
+components:
+  - application: was_nd_855_app
+    state:
+      - installed:
+          do: command to run
+          check: command to run
+          relyon:
+            - file.was_nd_855_file.downloaded
+            - application.ibm_im_17_app.installed
+      - started:
+          do: command to run
+          check: command to run
+          relyon: installed
+      - stopped:
+          do: command to run
+          check: command to run
+          relyon: installed
+
+  - file: was_nd_855_file
+    state:
+      - downloaded:
+          do: command to run
+          check: command to run
+
+  - application: ibm_im_17_app
+    state: 
+      - installed:
+          do: command to run
+          check: command to run
+          relyon: file.ibm_im_17_file.downloaded
+
+  - file: ibm_im_17_file
+    state:
+      - downloaded:
+          do: command to run
+          check: command to run
+
+  - host: ewppsh05
+    state:
+      - started:
+          do: command to run
+          check: ssh ping
+      - running:
+          rely:
+            - started
+            - application.was_nd_855_app.started
+ 
+  - host: ewpapp05
+    state:
+      - started:
+          do: command to run
+          check: ssh ping
+      - running:
+          rely:
+            - started
+            - application.was_nd_855_app.started
+  
+goal:
+  - ewppsh05.running
+  - ewpapp05.running
