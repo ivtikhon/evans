@@ -6,12 +6,22 @@
 (define (domain Ansible)
   (:requirements :adl)
   
-  (:types file userid groupid string - object
+  (:types
+    file
+    command
+    application
   )
   
   (:predicates
+    ;; object states
     (file_exist ?f - file)
- ;   (file_ownership ?f - file ?u - userid ?g - groupid)
+    (file_copied ?src ?dest - file)
+    (command_executed ?cmd - command)
+    
+    (application_installed ?app - application)
+    
+    ;; directives
+    (run_command ?cmd - command)
   )
   
   ;; Copy a file
@@ -19,8 +29,18 @@
     :parameters (?src ?dest - file)
     :precondition (and
       (file_exist ?src)
-      (not (file_exist ?dest))
+      (not (file_copied ?src ?dest))
     )
-    :effect (file_exist ?dest)
+    :effect (and
+      (file_copied ?src ?dest)
+      (file_exist ?dest)
+    )
+  )
+  
+  ;; Run a command
+  (:action ansible_command
+    :parameters (?cmd - command)
+    :precondition (run_command ?cmd)
+    :effect (command_executed ?cmd)
   )
 )

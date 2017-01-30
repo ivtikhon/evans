@@ -1,15 +1,13 @@
 (define (problem AN1)
   (:domain Ansible)
   (:objects
-    test1 test2 test3 - file
- ;;   vagrant - userid
- ;;   users - groupid
+    ibm_im_pkg temp_file - file
+    ibm_im - application
   )
   (:init
-    (file_exist test1)
-    (file_exist test2)
+    (file_exist ibm_im_pkg)
  	)
 	(:goal
-		(file_exist test3)
+		(file_copied ibm_im_pkg temp_file)
 	)
 )

@@ -75,7 +75,7 @@
 		)
 		:effect (stopped-in ?inst1)
 	)
-	; attache a storage volume
+	; attach a storage volume
 	; storage volumes can be attached to one instance only
 	(:action attach-vol
 		:parameters (?inst1 - instance ?vol1 - volume)
