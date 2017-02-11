@@ -2,63 +2,117 @@
 variables:
   tmp_dir: /tmp
 
-components:
-  - application: was_nd_855_app
+infrastructure:
+  - host: psh05
+    housing:
+      - application: was_nd_855_app
+        state:
+          possible:
+            - installed:
+                do: command to run
+                check: command to run
+                depends:
+                  - application['ibm_im_17_app'].state.installed
+                  - file['was_nd_855_file'].state.downloaded
+                  - host.state.started
+          current: unknown
+        components:
+          - node: Dmgr
+            type: management
+            state:
+              possible:
+                - started:
+                    do: command to run
+                    check: command to run
+                    depends: application.state.installed
+                - stopped:
+                    do: command to run
+                    check: command to run
+                    depends: application.state.installed
+              current: unknown
+          - node: Node1
+            type: managed
+            state:
+              possible:
+                - started:
+                    do: command to run
+                    check: command to run
+                    depends: application.components.node['Dmgr'].state.started
+                - stopped:
+                    do: command to run
+                    check: command to run
+                    depends: application.components.node['Dmgr'].state.started
+              current: unknown
+            components:
+              - server: Server11
+                state:
+                  possible:
+                    - started:
+                        do: command to run
+                        check: command to run
+                        depends: 
+                          - node.state.started
+                          - node.components.server['Server13'].state.started
+                    - stopped:
+                        do: command to run
+                        check: command to run
+                        depends: node.state.started
+                  current: unknown
+              - server: Server13
+                state:
+                  possible:
+                    - started:
+                        do: command to run
+                        check: command to run
+                        depends: node.state.started
+                    - stopped:
+                        do: command to run
+                        check: command to run
+                        depends: node.state.started
+                  current: unknown
+              - server: Server13
+                sameas: Server12
+      - file: was_nd_855_file
+        state:
+          possible:
+            - downloaded:
+                do: command to run
+                check: command to run
+                depends: host.state.started
+          current: unknowns
+      - application: ibm_im_17_app
+        state:
+          possible:
+            - installed:
+                do: command to run
+                check: command to run
+                depends:
+                  - file['ibm_im_17_file'].state.downloaded
+                  - host.state.started
+          current: unknown
+      - file: ibm_im_17_file
+        state:
+          possible:
+            - downloaded:
+                do: command to run
+                check: command to run
+                depends: host.state.started
+          current: unknown
     state:
-      - installed:
-          do: command to run
-          check: command to run
-          relyon:
-            - file.was_nd_855_file.downloaded
-            - application.ibm_im_17_app.installed
-      - started:
-          do: command to run
-          check: command to run
-          relyon: installed
-      - stopped:
-          do: command to run
-          check: command to run
-          relyon: installed
-
-  - file: was_nd_855_file
-    state:
-      - downloaded:
-          do: command to run
-          check: command to run
-
-  - application: ibm_im_17_app
-    state: 
-      - installed:
-          do: command to run
-          check: command to run
-          relyon: file.ibm_im_17_file.downloaded
-
-  - file: ibm_im_17_file
-    state:
-      - downloaded:
-          do: command to run
-          check: command to run
-
-  - host: ewppsh05
-    state:
-      - started:
-          do: command to run
-          check: ssh ping
-      - running:
-          rely:
-            - started
-            - application.was_nd_855_app.started
+      possible:
+        - started:
+            do: command to power on
+            check: command to check
+        - stopped:
+            do: command to power off
+            check: command to check
+        - running:
+            depends:
+              - application['was_nd_855_app'].components.node['Dmgr'].state.started
+              - application['was_nd_855_app'].components.node['Node1'].components.server['Server11'].state.started
+              - application['was_nd_855_app'].components.node['Node1'].components.server['Server12'].state.started
+              - application['was_nd_855_app'].components.node['Node1'].components.server['Server13'].state.started
+      current: started
  
-  - host: ewpapp05
-    state:
-      - started:
-          do: command to run
-          check: ssh ping
-      - running:
-          rely:
-            - started
-            - application.was_nd_855_app.started
-  
 goal:
-  - ewppsh05.running
-  - ewpapp05.running
+  - host['psh05'].state.running
