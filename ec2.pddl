@@ -32,6 +32,7 @@
 ;		(installed-app ?app1 - application ?inst1 - instance)
 		;; volume states
 		(attached-vol ?vol1 - volume ?inst1 - instance) ;; 'not attached' is equal to 'detached'
+		(created-vol ?vol1 - volume)
 		;; file system states
 		(created-fs ?fs1 - filesystem ?vol1 - volume)
 ;		(mounted-fs ?fs1 - filesystem)  ;; 'not mounted' id equal to 'unmounted'
@@ -40,7 +41,8 @@
 		(requires-vol ?vol1 - volume ?obj1 - object) 
 	)
 
-	; create and start an instance
+	;; create and start an instance
+	;; instance is created if there is an object that requires it
 	(:action launch-in
 		:parameters (?inst1 - instance)
 		:precondition (and
@@ -54,6 +56,7 @@
 	)
 
 	;; start an instance
+	;; instance is started if there is an object that requires it
 	(:action start-in
 		:parameters (?inst1 - instance)
 		:precondition (and
@@ -78,13 +81,23 @@
 ;		:effect (stopped-in ?inst1)
 ;	)
 
+	;; create volume
+	(:action create-vol
+		:parameters (?vol1 - volume)
+		:precondition (and
+			(not (created-vol ?vol1))
+			(exists (?obj1 - object) (requires-vol ?vol1 ?obj1))
+		)
+		:effect (created-vol ?vol1)
+	)
+	
 	;; attach a storage volume to an instance
-	;; storage volume can be attached to one instance only
-	;; instance can be either running or stopped
+	;; storage volume can be attached to one instance only, where the instance can be either running or stopped
 	(:action attach-vol
-		:parameters (?inst1 - instance ?vol1 - volume)
+		:parameters (?vol1 - volume ?inst1 - instance)
 		:precondition (and 
 			(created-in ?inst1)
+			(created-vol ?vol1)
 			(requires-in ?inst1 ?vol1)
 			(not (exists (?instn - instance) (attached-vol ?vol1 ?instn)))
 		)
@@ -93,7 +106,7 @@
 
 ;	;; detach a volume
 ;	(:action detach-vol
-;		:parameters (?inst1 - instance ?vol1 - volume)
+;		:parameters (?vol1 - volume ?inst1 - instance )
 ;		:precondition (and 
 ;			(or (running-in ?inst1) (stopped-in ?inst1))
 ;			(attached-vol ?vol1 ?inst1)
@@ -110,6 +123,7 @@
 ;	)
 ;
 	;; create a file system
+	;; file system requires a running instance with a volume attached
 	(:action create-fs
 		:parameters (?fs1 - filesystem ?vol1 - volume)
 		:precondition (and
