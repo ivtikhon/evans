@@ -4,4 +4,4 @@
 
 ### How to run the FF planner:
 
-	../Metric-FF/ff -p $(pwd)/ -f prob.pddl -o ec2.pddl
+	../FF-v2.3/ff -p $(pwd)/ -f prob.pddl -o ec2.pddl
