@@ -8,7 +8,7 @@
 ;; Each instance has:
 ;;   - a default network interface eth0 and an associated with it private IP;
 ;;   - an internal DNS hostname that resolves to the private IP address of the instance;
-;; 
+;;
 ;; Applications:
 ;;   - require file systems, located either on system disks, or attached volumes
 ;;
@@ -20,16 +20,15 @@
 
 (define (domain EC2)
 	(:requirements :adl)
-	(:types instance volume filesystem)
-;	 application)
+	(:types instance volume filesystem application)
 	(:predicates
 		;; instance states
 		(running-in ?inst1 - instance) ;; 'not running' is equal to 'stopped'
 		(created-in ?inst1 - instance)
 		(terminated-in ?inst1 - instance) ;; terminated instance can't be re-created, so 'not created' is not equal to 'terminated'
-;		;; application states
+    ;; application states
 ;		(running-app ?app1 - application ?inst1 - instance) ;; 'not running' is equal to 'stopped'
-;		(installed-app ?app1 - application ?inst1 - instance)
+		(installed-app ?app1 - application ?inst1 - instance)
 		;; volume states
 		(attached-vol ?vol1 - volume ?inst1 - instance) ;; 'not attached' is equal to 'detached'
 		(created-vol ?vol1 - volume)
@@ -38,11 +37,13 @@
 ;		(mounted-fs ?fs1 - filesystem)  ;; 'not mounted' id equal to 'unmounted'
 		;; dependencies
 		(requires-in ?inst1 - instance ?obj1 - object)
-		(requires-vol ?vol1 - volume ?obj1 - object) 
+		(requires-vol ?vol1 - volume ?obj1 - object)
+		(requires-fs ?fs1 - filesystem ?obj1 - object)
 	)
 
 	;; create and start an instance
 	;; instance is created if there is an object that requires it
+	;; terminated instance can't be re-created
 	(:action launch-in
 		:parameters (?inst1 - instance)
 		:precondition (and
@@ -82,6 +83,7 @@
 ;	)
 
 	;; create volume
+	;; volume is created if there is an object that requires it
 	(:action create-vol
 		:parameters (?vol1 - volume)
 		:precondition (and
@@ -90,12 +92,12 @@
 		)
 		:effect (created-vol ?vol1)
 	)
-	
+
 	;; attach a storage volume to an instance
-	;; storage volume can be attached to one instance only, where the instance can be either running or stopped
+	;; storage volume can be attached to one instance only; the instance can be either running or stopped
 	(:action attach-vol
 		:parameters (?vol1 - volume ?inst1 - instance)
-		:precondition (and 
+		:precondition (and
 			(created-in ?inst1)
 			(created-vol ?vol1)
 			(requires-in ?inst1 ?vol1)
@@ -107,7 +109,7 @@
 ;	;; detach a volume
 ;	(:action detach-vol
 ;		:parameters (?vol1 - volume ?inst1 - instance )
-;		:precondition (and 
+;		:precondition (and
 ;			(or (running-in ?inst1) (stopped-in ?inst1))
 ;			(attached-vol ?vol1 ?inst1)
 ;			(forall (?appn - application)
@@ -116,7 +118,7 @@
 ;				)
 ;			)
 ;		)
-;		:effect (and 
+;		:effect (and
 ;			(detached-vol ?vol1 ?inst1)
 ;			(not (attached-vol ?vol1 ?inst1))
 ;		)
@@ -134,25 +136,26 @@
 		:effect (created-fs ?fs1 ?vol1)
 	)
 
-;	(:action install-app
-;		:parameters (?app1 - application ?inst1 - instance)
-;		:precondition (and
-;			(not (installed-app ?app1 ?inst1))
-;			(forall (?fs1 - filesystem)
-;				(imply (app-use-fs ?fs1 ?app1)
-;					(exists (?vol1 - volume) (and (fs-create-on-vol ?vol1 ?fs1) (attached-vol ?vol1 ?inst1) (created-fs ?fs1 ?vol1)))
-;				)
-;			)
-;		)
-;		:effect (installed-app ?app1 ?inst1)
-;	)
+	(:action install-app
+		:parameters (?app1 - application ?inst1 - instance)
+		:precondition (and
+			(not (installed-app ?app1 ?inst1))
+			(forall (?fs1 - filesystem)
+				(imply (requires-fs ?fs1 ?app1)
+					(exists (?vol1 - volume) (and (requires-vol ?vol1 ?fs1) (attached-vol ?vol1 ?inst1) (created-fs ?fs1 ?vol1)))
+				)
+			)
+		)
+		:effect (installed-app ?app1 ?inst1)
+	)
+
 ;	(:action start-app
 ;		:parameters (?app1 - application ?inst1 - instance)
 ;		:precondition (and
 ;			(running-in ?inst1)
 ;			(app-run-on-in ?inst1 ?app1)
 ;			(installed-app ?app1 ?inst1)
-;			(or (stopped-app ?app1 ?inst1) (not (running-app ?app1 ?inst1))) 
+;			(or (stopped-app ?app1 ?inst1) (not (running-app ?app1 ?inst1)))
 ;			(forall (?appn - application)
 ;				(forall (?instn - instance)
 ;					(imply (and (app-run-on-in ?instn ?appn) (startup-order-app ?appn ?app1))
@@ -168,7 +171,7 @@
 ;		)
 ;		:effect (and
 ;			(running-app ?app1 ?inst1)
-;			(not (stopped-app ?app1 ?inst1)) 
+;			(not (stopped-app ?app1 ?inst1))
 ;		)
 ;	)
 ;	(:action stop-app
