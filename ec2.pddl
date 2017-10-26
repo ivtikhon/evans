@@ -72,6 +72,20 @@
 		:effect (running-in ?inst1)
 	)
 
+  ;; stop an instance
+  (:action stop-in
+		:parameters (?inst1 - instance)
+		:precondition (and
+			(running-in ?inst1)
+			(forall (?appn - application)
+				(imply (requires-in ?inst1 ?appn)
+					(not (running-app ?appn ?inst1))
+				)
+			)
+		)
+		:effect (not (running-in ?inst1))
+	)
+
 	;; create volume
 	;; volume is created if there is an object that requires it
 	(:action create-vol
@@ -152,25 +166,21 @@
 		:effect (running-app ?app1 ?inst1)
 	)
 
-;	(:action stop-app
-;		:parameters (?app1 - application ?inst1 - instance)
-;		:precondition (and
-;			(running-in ?inst1)
-;			(running-app ?app1 ?inst1)
-;			(forall (?appn - application)
-;				(forall (?instn - instance)
-;					(imply (and (running-app ?appn ?instn) (startup-order-app ?appn ?app1))
-;						(stopped-app ?appn ?instn)
-;					)
-;				)
-;			)
-;		)
-;		:effect (and
-;			(stopped-app ?app1 ?inst1)
-;			(not (running-app ?app1 ?inst1))
-;		)
-;	)
-)
+	(:action stop-app
+		:parameters (?app1 - application ?inst1 - instance)
+		:precondition (and
+			(running-in ?inst1)
+			(running-app ?app1 ?inst1)
+			(forall (?appn - application)
+				(forall (?instn - instance)
+					(imply (and (running-app ?appn ?instn) (requires-app ?appn ?app1))
+						(not (running-app ?appn ?instn))
+					)
+				)
+			)
+		)
+		:effect (not (running-app ?app1 ?inst1))
+	)
 
 ;	;; detach a volume
 ;	(:action detach-vol
@@ -190,17 +200,4 @@
 ;		)
 ;	)
 ;
-
-;	;; stop an instance
-;	(:action stop-in
-;		:parameters (?inst1 - instance)
-;		:precondition (and
-;			(running-in ?inst1)
-;			(forall (?appn - application)
-;				(imply (running-app ?appn ?inst1)
-;					(stopped-app ?appn ?inst1)
-;				)
-;			)
-;		)
-;		:effect (stopped-in ?inst1)
-;	)
+)

@@ -7,6 +7,7 @@
 		app1 app2 app3 - application
 	)
 	(:init
+		; Dependencies
 		(requires-in inst1 vol1_50)
 		(requires-in inst1 vol2_50)
 		(requires-in inst2 vol3_50)
@@ -19,7 +20,7 @@
 		(requires-in inst1 app1)
 		(requires-in inst2 app2)
 		(requires-app app2 app1)
-
+		; Current state
 		(created-in inst1)
 			(attached-vol vol1_50 inst1)
 	)
