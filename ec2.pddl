@@ -123,9 +123,9 @@
           (imply (and
               (running-app ?appn ?inst1)
               (requires-vol ?vol1 ?fsn)
-              (requires-fs ?appn ?fsn)
+              (requires-fs ?fsn ?appn)
             )
-            (stopped-app ?appn ?inst1)
+            (not (running-app ?appn ?inst1))
           )
         )
       )
