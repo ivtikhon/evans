@@ -35,9 +35,9 @@
     (created-fs ?fs1 - filesystem ?vol1 - volume)
     (mounted-fs ?fs1 - filesystem ?inst1 - instance) ;; 'not mounted' id equal to 'unmounted'
     ;; dependencies
-    (requires-in ?inst1 - instance ?obj1 - object) ;; instance is required by object, i.e. object depends on running instance
-    (requires-vol ?vol1 - volume ?obj1 - object)  ;; volume is required by object
-    (requires-fs ?fs1 - filesystem ?obj1 - object)  ;; file system is required by object
+    (requires-in ?inst1 - instance ?obj1 - (either volume application)) ;; instance is required by object, i.e. object depends on running instance
+    (requires-vol ?vol1 - volume ?obj1 - filesystem)  ;; volume is required by object
+    (requires-fs ?fs1 - filesystem ?obj1 - application)  ;; file system is required by object
     (requires-app ?app1 - application ?obj1 - object)  ;; application is required by object
   )
 
