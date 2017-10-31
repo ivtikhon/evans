@@ -2,24 +2,29 @@
 ;; Amazon's EC2 is used as the infrastructure model.
 
 ;; Instances:
-;; Instances are launched in a non-default VPC.
-;; Instances are getting access to the internet through a NAT instance.
+;;  - launched in a non-default VPC
+;;  - getting access to the internet through a NAT instance
 ;; Each instance has:
-;;   - a default network interface eth0 and an associated with it private IP;
-;;   - an internal DNS hostname that resolves to the private IP address of the instance;
-;;
-;; Applications:
-;;   - require file systems, located either on system disks, or attached volumes
-;;
-;; File systems
-;;   - file system requires a logical volume (in terms of LVM), so file systems do not
-;;     exist separately of logical volumes
+;;  - a default network interface with a private IP;
+;;  - an internal DNS hostname that resolves to the private IP address of the instance;
+;;  - an internal (root) volume used by operating system only
+;; Dependencies:
+;; volume requires an instance to be attached to
+;; application requies:
+;;  - instance to run on
+;;  - directory to be installed to
+;; application may depend on another application, i.e. it might require another application
+;; directory requies a filesystem to be created at
+;; file requies a directory to be stored in
 ;;
 ;; (c) Igor Tikhonin
 
 (define (domain EC2)
   (:requirements :adl)
-  (:types instance volume filesystem application)
+  (:types
+    instance volume filesystem file application
+    directory url - object
+  )
   (:predicates
     ;; instance states
     (running-in ?inst1 - instance)  ;; 'not running' is equal to 'stopped'
@@ -34,11 +39,16 @@
     ;; file system states
     (created-fs ?fs1 - filesystem ?vol1 - volume)
     (mounted-fs ?fs1 - filesystem ?inst1 - instance) ;; 'not mounted' id equal to 'unmounted'
+    ;; file states
+  ;  (exists-file ?fl1 - file ?path - (either directory url))
+    ;; directory states
+    (exists-dir ?dir1 - directory ?fs1 - filesystem)
     ;; dependencies
     (requires-in ?inst1 - instance ?obj1 - object) ;; instance is required by object, i.e. object depends on running instance
     (requires-vol ?vol1 - volume ?obj1 - object)  ;; volume is required by object
     (requires-fs ?fs1 - filesystem ?obj1 - object)  ;; file system is required by object
     (requires-app ?app1 - application ?obj1 - object)  ;; application is required by object
+    (requires-dir ?dir1 - directory ?obj1 - object)  ;; directory is required by object
   )
 
   ;; create and start an instance
@@ -72,7 +82,8 @@
     :effect (running-in ?inst1)
   )
 
-  ;; stop an instance
+  ;; stop instance
+  ;; all running applications are to be stopped
   (:action stop-in
     :parameters (?inst1 - instance)
     :precondition (and
@@ -97,8 +108,9 @@
     :effect (created-vol ?vol1)
   )
 
-  ;; attach a storage volume to an instance
-  ;; storage volume can be attached to one instance only; the instance can be either running or stopped
+  ;; attach storage volume to instance
+  ;; storage volume can be attached to one instance only
+  ;; the instance can be either running or stopped
   (:action attach-vol
     :parameters (?vol1 - volume ?inst1 - instance)
     :precondition (and
@@ -110,7 +122,7 @@
     :effect (attached-vol ?vol1 ?inst1)
   )
 
-  ;; detach a volume
+  ;; detach volume
   ;; all file systems dependent on volume are to be unmounted
   ;; and all applications dependent on file systems are to be stopped
   (:action detach-vol
@@ -125,7 +137,7 @@
     :effect (not (attached-vol ?vol1 ?inst1))
   )
 
-  ;; create a file system
+  ;; create file system
   ;; file system requires a running instance with a volume attached
   (:action create-fs
     :parameters (?fs1 - filesystem ?vol1 - volume ?inst1 - instance)
@@ -139,7 +151,7 @@
     :effect (created-fs ?fs1 ?vol1)
   )
 
-  ;; mount a file system
+  ;; mount file system
   ;; file system requires a running instance with a volume attached
   ;; file system is supposed to be created in order to be mounted
   (:action mount-fs
@@ -152,6 +164,7 @@
   )
 
   ;; unmount file system
+  ;; all applications require this file system are to be stopped
   (:action unmount-fs
     :parameters (?fs1 - filesystem ?inst1 - instance)
     :precondition (and
@@ -159,21 +172,29 @@
       (running-in ?inst1)
       (exists (?vol1 - volume) (and (requires-vol ?vol1 ?fs1) (attached-vol ?vol1 ?inst1)))
       (forall (?appn - application)
-        (imply (and (requires-fs ?fs1 ?appn)(requires-in ?inst1 ?appn))(not (running-app ?appn ?inst1)))
+        (forall (?dir1 - directory)
+          (imply (and (requires-fs ?fs1 ?dir1)(requires-dir ?dir1 ?appn)(requires-in ?inst1 ?appn))(not (running-app ?appn ?inst1)))
+        )
       )
     )
     :effect (not (mounted-fs ?fs1 ?inst1))
   )
 
-  ;; install an application
-  ;; application requires an instance and file systems
+  ;; install application
+  ;; application requires an instance and directory(ies)
+  ;; all required file systems and directories are to be created first
   (:action install-app
     :parameters (?app1 - application ?inst1 - instance)
     :precondition (and
       (not (installed-app ?app1 ?inst1))
       (requires-in ?inst1 ?app1)
-      (forall (?fs1 - filesystem)
-        (imply (requires-fs ?fs1 ?app1) (mounted-fs ?fs1 ?inst1))
+      (running-in ?inst1)
+      (forall (?dir1 - directory)
+        (forall (?fs1 - filesystem)
+          (imply (and (requires-fs ?fs1 ?dir1)(requires-dir ?dir1 ?app1))
+            (and (mounted-fs ?fs1 ?inst1)(exists-dir ?dir1 ?fs1))
+          )
+        )
       )
     )
     :effect (installed-app ?app1 ?inst1)
@@ -181,7 +202,7 @@
 
   ;; start application
   ;; application requires an instance and file system(s)
-  ;; all required applications, if there are any, start first
+  ;; all required applications start first
   (:action start-app
     :parameters (?app1 - application ?inst1 - instance)
     :precondition (and
@@ -196,8 +217,12 @@
           )
         )
       )
-      (forall (?fs1 - filesystem)
-        (imply (requires-fs ?fs1 ?app1) (mounted-fs ?fs1 ?inst1))
+      (forall (?dir1 - directory)
+        (forall (?fs1 - filesystem)
+          (imply (and (requires-fs ?fs1 ?dir1)(requires-dir ?dir1 ?app1))
+            (and (mounted-fs ?fs1 ?inst1)(exists-dir ?dir1 ?fs1))
+          )
+        )
       )
     )
     :effect (running-app ?app1 ?inst1)
@@ -220,4 +245,23 @@
     )
     :effect (not (running-app ?app1 ?inst1))
   )
+
+  (:action create-dir
+    :parameters (?dir1 - directory ?fs1 - filesystem ?inst1 - instance)
+    :precondition (and
+      (requires-fs ?fs1 ?dir1)
+      (running-in ?inst1)
+      (mounted-fs ?fs1 ?inst1)
+    )
+    :effect (exists-dir ?dir1 ?fs1)
+  )
+;  (:action copy-file
+;    :parameters (?fl1 - file ?src - (either directory url) ?inst1 - instance ?dest - directory)
+;    :precondition (and
+;      (running-in ?inst1)
+;      (exist-file ?fl1 ?src)
+;      (exists (?fs1 - filesystem)(requires-fs ?fs1 ?src))
+;    )
+;    :effect (exists-file ?fl1 ?inst1 ?dest)
+;  )
 )
