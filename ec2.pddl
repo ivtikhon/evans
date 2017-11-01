@@ -22,8 +22,7 @@
 (define (domain EC2)
   (:requirements :adl)
   (:types
-    instance volume filesystem file application
-    directory url - object
+    instance volume filesystem application directory url file - object
   )
   (:predicates
     ;; instance states
@@ -40,7 +39,7 @@
     (created-fs ?fs1 - filesystem ?vol1 - volume)
     (mounted-fs ?fs1 - filesystem ?inst1 - instance) ;; 'not mounted' id equal to 'unmounted'
     ;; file states
-  ;  (exists-file ?fl1 - file ?path - (either directory url))
+    (exists-file ?fl1 - file ?path - (either directory url))
     ;; directory states
     (exists-dir ?dir1 - directory ?fs1 - filesystem)
     ;; dependencies
@@ -229,7 +228,7 @@
   )
 
   ;; stop application
-  ;; all dependent applications, if there are any, stop first
+  ;; all dependent applications stop first
   (:action stop-app
     :parameters (?app1 - application ?inst1 - instance)
     :precondition (and
@@ -255,13 +254,21 @@
     )
     :effect (exists-dir ?dir1 ?fs1)
   )
-;  (:action copy-file
-;    :parameters (?fl1 - file ?src - (either directory url) ?inst1 - instance ?dest - directory)
-;    :precondition (and
-;      (running-in ?inst1)
-;      (exist-file ?fl1 ?src)
-;      (exists (?fs1 - filesystem)(requires-fs ?fs1 ?src))
-;    )
-;    :effect (exists-file ?fl1 ?inst1 ?dest)
-;  )
+
+  (:action copy-file
+    :parameters (?fl1 - file ?src - (either directory url) ?inst1 - instance ?dest - directory)
+    :precondition (and
+      (running-in ?inst1)
+      (exists-file ?fl1 ?src)
+      (exists (?fs1 - filesystem)
+        (and
+          (requires-fs ?fs1 ?dest)
+          (requires-in ?inst1 ?fs1)
+          (mounted-fs ?fs1 ?inst1)
+          (exists-dir ?dest ?fs1)
+        )
+      )
+    )
+    :effect (exists-file ?fl1 ?dest)
+  )
 )

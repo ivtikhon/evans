@@ -7,6 +7,7 @@
     dir1_fs1 dir2_fs2 dir3_fs3 - directory
     url1 url2 url3 - url
 		app1 app2 app3 - application
+    app1_fl1 - file
 	)
 	(:init
     ; Object properties
