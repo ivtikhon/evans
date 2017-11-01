@@ -260,12 +260,9 @@
     :precondition (and
       (running-in ?inst1)
       (exists-file ?fl1 ?src)
-      (exists (?fs1 - filesystem)
-        (and
-          (requires-fs ?fs1 ?dest)
-          (requires-in ?inst1 ?fs1)
-          (mounted-fs ?fs1 ?inst1)
-          (exists-dir ?dest ?fs1)
+      (forall (?fs1 - filesystem)
+        (imply (and (requires-fs ?fs1 ?dest)(requires-in ?inst1 ?fs1))
+          (and (mounted-fs ?fs1 ?inst1)(exists-dir ?dest ?fs1))
         )
       )
     )
