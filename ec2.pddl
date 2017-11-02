@@ -256,13 +256,18 @@
   )
 
   (:action copy-file
-    :parameters (?fl1 - file ?src - (either directory url) ?inst1 - instance ?dest - directory)
+    :parameters (?fl1 - file ?src - (either directory url) ?dest - directory ?inst1 - instance)
     :precondition (and
       (running-in ?inst1)
       (exists-file ?fl1 ?src)
-      (forall (?fs1 - filesystem)
-        (imply (and (requires-fs ?fs1 ?dest)(requires-in ?inst1 ?fs1))
-          (and (mounted-fs ?fs1 ?inst1)(exists-dir ?dest ?fs1))
+      (exists (?fs1 - filesystem)
+        (exists (?vol1 - volume)
+          (and
+            (requires-fs ?fs1 ?dest)
+            (requires-in ?inst1 ?vol1)
+            (mounted-fs ?fs1 ?inst1)
+            (exists-dir ?dest ?fs1)
+          )
         )
       )
     )
