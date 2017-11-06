@@ -1,0 +1,36 @@
+---
+domain: EC2
+  element:
+    - instance:
+        state: [running, created, terminated]
+    - volume:
+        state:
+          - created
+          - attached:
+              requires: domain[?element == 'instance'][?state == 'running']
+          - detached
+    - filesystem:
+        state:
+          - created:
+              requires:
+                - domain[?element == 'volume'][?state == 'attached']
+                - domain[?element == 'instance'][?state == 'running']
+          - mounted:
+              requires:
+                - domain[?element == 'filesystem'][?state == 'created']
+                - domain[?element == 'volume'][?state == 'attached']
+                - domain[?element == 'instance'][?state == 'running']
+    - application:
+        states:
+          - running:
+              requires:
+                - domain[?element == 'instance'][?state == 'running']
+                - domain[?element == 'application'][?state == 'installed']
+          - installed:
+              requires:
+    - directory:
+        states: [exists]
+    - url:
+        states: [exists]
+    - file:
+        states: [exits]
