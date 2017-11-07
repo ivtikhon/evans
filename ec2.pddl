@@ -48,6 +48,7 @@
     (requires-fs ?fs1 - filesystem ?obj1 - object)  ;; file system is required by object
     (requires-app ?app1 - application ?obj1 - object)  ;; application is required by object
     (requires-dir ?dir1 - directory ?obj1 - object)  ;; directory is required by object
+    (requires-fl ?fl1 - file ?obj1 - object) ;; file is required by object
   )
 
   ;; create and start an instance
@@ -200,7 +201,7 @@
   )
 
   ;; start application
-  ;; application requires an instance and file system(s)
+  ;; application requires an instance, file system(s), and directory(ies)
   ;; all required applications start first
   (:action start-app
     :parameters (?app1 - application ?inst1 - instance)
@@ -220,6 +221,13 @@
         (forall (?fs1 - filesystem)
           (imply (and (requires-fs ?fs1 ?dir1)(requires-dir ?dir1 ?app1))
             (and (mounted-fs ?fs1 ?inst1)(exists-dir ?dir1 ?fs1))
+          )
+        )
+      )
+      (forall (?fl1 - file)
+        (forall (?dir1 - directory)
+          (imply (and (requires-fl ?fl1 ?app1)(requires-dir ?dir1 ?fl1))
+            (exists-file ?fl1 ?dir1)
           )
         )
       )
@@ -258,6 +266,7 @@
   (:action copy-file
     :parameters (?fl1 - file ?src - (either directory url) ?dest - directory ?inst1 - instance)
     :precondition (and
+      (exists (?obj1 - object) (requires-fl ?fl1 ?obj1))
       (running-in ?inst1)
       (exists-file ?fl1 ?src)
       (exists (?fs1 - filesystem)
