@@ -226,7 +226,7 @@
       )
       (forall (?fl1 - file)
         (forall (?dir1 - directory)
-          (imply (and (requires-fl ?fl1 ?app1)(requires-dir ?dir1 ?fl1))
+          (imply (and (requires-dir ?dir1 ?fl1)(requires-fl ?fl1 ?app1))
             (exists-file ?fl1 ?dir1)
           )
         )

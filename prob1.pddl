@@ -38,7 +38,7 @@
   (:goal
     (and
       (running-app app1 inst1)
-      (exists-file fl1 dir1_fs1)
+;      (exists-file fl1 dir1_fs1)
     )
   )
 )

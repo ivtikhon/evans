@@ -1,13 +1,21 @@
 ---
 domain: EC2
-  element:
+  types:
     - instance:
-        state: [running, created, terminated]
+        states:
+          - created
+          - running
+          - terminated
     - volume:
-        state:
+        states:
           - created
           - attached:
-              requires: domain[?element == 'instance'][?state == 'running']
+              requires:
+                - objects[?type == 'instance'][?state == 'running']
+                # volume requies a instance to be attached to
+                # volume can't be attached to more than one instance
+                - objects[$this][?state == 'created']
+                - objects[$this][?state != 'mounted']
           - detached
     - filesystem:
         state:
@@ -15,6 +23,8 @@ domain: EC2
               requires:
                 - domain[?element == 'volume'][?state == 'attached']
                 - domain[?element == 'instance'][?state == 'running']
+                # file system can span across multiple volumes
+                # file system can be mounted to one instance only (as it's not shared)
           - mounted:
               requires:
                 - domain[?element == 'filesystem'][?state == 'created']
@@ -29,8 +39,18 @@ domain: EC2
           - installed:
               requires:
     - directory:
-        states: [exists]
+        states:
+          - exists:
+              requires:
+                - domain[?element == 'filesystem'][?state == 'mounted']
+                - domain[?element == 'instance'][?state == 'running']
     - url:
-        states: [exists]
+        states:
+          - exists
     - file:
-        states: [exits]
+        states:
+          - exits:
+              requires:
+                - domain[?element == 'filesystem'][?state == 'mounted']
+                - domain[?element == 'instance'][?state == 'running']
+                - domain[?element == 'directory'][?state == 'exists']
