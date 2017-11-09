@@ -4,4 +4,5 @@
 
 ### How to run the FF planner:
 
+  cd evans
 	../Metric-FF/ff -p $(pwd)/ -f prob1.pddl -o ec2.pddl

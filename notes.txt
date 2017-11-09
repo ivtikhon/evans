@@ -1,0 +1,59 @@
+## This is my notebook
+## I am writing my thoughts here the way they come to mind, i.e. not exactly ordered
+## (c) Igor Tikhonin, ivtikhon@gmail.com
+
+# Types of predicates
+  - object state: object in some particular state, e.g. file system is created;
+  - object dependencies: one object depends on another object, e.g. application
+    requires file system;
+  - (not sure) action trigger: order to perform some action, e.g. shut down instance
+
+# Dependency management
+  Mantri http://mantrijs.com/     <--- take a look
+
+# Dependencies might be strong, for example, if an application depends on
+  several other applications, we may want to start all these applications first;
+  and dependencies might be not that strong, for example, we don't want to
+  stop all dependent applications, if this particular application is going down.
+
+ # I need to find a method to define chains of dependencies, for example, if a file
+  requires a directory to be stored in, the dependency file -> directory should
+  imply that the destination directory exists, and its underlying file system exists
+  and mounted, and volume where the file systems is located, exists too and attached.
+
+# Maybe it is not enough just to define dependencies, but rather dependencies and
+  desired states, for example, to install an application, a running instance of a certain
+  type is required with a file system of a specified size mounted to a desired directory;
+  and to start this application, another application is supposed to be running on
+  another instance and respond to a relevant network port.
+
+# There are dependencies that can be expressed on the type level, for example
+  a file needs a directory for any operation, open/close/read/write, so every file
+  existentially requires a directory; and there are dependencies that exist
+  on the object level only, for example, to start the application A, we need the
+  application B up and running.
+
+# Dependencies are executed in actions, for example, before copying a file, we
+  need to make sure that the source/destination directory(ies) exist, so the
+  action 'copy file' can be executed only after all dependencies are resolved. Thus,
+  here is a question: can we have an action to resolve dependencies?
+
+# Basically, every action should have dependency check as precondition, for example
+  application can't start until all applications it depends on have started, and
+  all file systems are created and mounted, and necessary files have copied; i.e.
+  until all dependencies have their status changed.
+
+# State can be simple, e.g. application is running, and it can be complex, e.g
+  application is running on an instance. The same file can exists in multiple directories.
+  The same application can be installed and started on multiple instances.
+
+# Dependency can be "attached" to some state, e.g. in order to install an application
+  a file is required and, say, some temporary storage space is necessary too. But,
+  at the same time, to start this app, the installation file is not needed. So, the "installed"
+  application state implies "exists" file state; and the "running" application state
+  implies something else.
+
+# Maybe I can define dependencies with desired states and attributes indicating if those
+  dependencies were resolved, e.g. an object requires an instance "running":
+  (requires-in-running ?inst1 - instance ?obj1 - object)
+  (satisfied-in-running ?inst1 - instance ?obj1 - object)
