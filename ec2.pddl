@@ -43,10 +43,7 @@
     ;; directory states
     (exists-dir ?dir1 - directory ?fs1 - filesystem)
     ;; dependencies
-    (requirement-satisfied ?obj1 ?obj2 - object)  ;; depependency resolved fpr the pair of objects, when obj2 depends on obj1
-;    (requires-in ?inst1 - instance ?obj1 - object) ;; instance is required by object, i.e. object depends on running instance
-    (requires-in-running ?inst1 - instance ?obj1 - object)
-    (requires-in-created ?inst1 - instance ?obj1 - object)
+    (requires-in ?inst1 - instance ?obj1 - object) ;; instance is required by object, i.e. object depends on running instance
     (requires-vol ?vol1 - volume ?obj1 - object)  ;; volume is required by object
     (requires-fs ?fs1 - filesystem ?obj1 - object)  ;; file system is required by object
     (requires-app ?app1 - application ?obj1 - object)  ;; application is required by object
@@ -65,21 +62,11 @@
         (not (created-in ?inst1))
         (not (terminated-in ?inst1))
       )
-      (exists (?obj1 - object)
-        (and
-          (or (requires-in-created ?inst1 ?obj1)(requires-in-running ?inst1 ?obj1))
-          (not (requirement-satisfied ?inst1 ?obj1))
-        )
-      )
+      (exists (?obj1 - object)(requires-in ?inst1 ?obj1))
     )
     :effect (and
       (created-in ?inst1)
       (running-in ?inst1)
-      (forall (?objn - object)
-        (when (or (requires-in-created ?inst1 ?objn)(requires-in-running ?inst1 ?objn))
-          (requirement-satisfied ?inst1 ?objn)
-        )
-      )
     )
   )
 
@@ -90,37 +77,25 @@
     :precondition (and
       (created-in ?inst1)
       (not (running-in ?inst1))
-      (exists (?obj1 - object)
-        (and
-          (requires-in-running ?inst1 ?obj1)
-          (not (requirement-satisfied ?inst1 ?obj1))
-        )
-      )
+      (exists (?obj1 - object)(requires-in ?inst1 ?obj1))
     )
-    :effect (and
-      (running-in ?inst1)
-      (forall (?objn - object)
-        (when (requires-in-running ?inst1 ?objn)
-          (requirement-satisfied ?inst1 ?objn)
-        )
-      )
-    )
+    :effect (running-in ?inst1)
   )
 
-;  ;; stop instance
-;  ;; all running applications are to be stopped
-;  (:action stop-in
-;    :parameters (?inst1 - instance)
-;    :precondition (and
-;      (running-in ?inst1)
-;      (forall (?appn - application)
-;        (imply (requires-in ?inst1 ?appn)
-;          (not (running-app ?appn ?inst1))
-;        )
-;      )
-;    )
-;    :effect (not (running-in ?inst1))
-;  )
+  ;; stop instance
+  ;; all running applications are to be stopped
+  (:action stop-in
+    :parameters (?inst1 - instance)
+    :precondition (and
+      (running-in ?inst1)
+      (forall (?appn - application)
+        (imply (requires-in ?inst1 ?appn)
+          (not (running-app ?appn ?inst1))
+        )
+      )
+    )
+    :effect (not (running-in ?inst1))
+  )
 
   ;; create volume
   ;; volume is created if there is an object that requires it
@@ -141,7 +116,7 @@
     :precondition (and
       (created-in ?inst1)
       (created-vol ?vol1)
-      (requires-in-running ?inst1 ?vol1)
+      (requires-in ?inst1 ?vol1)
       (not (exists (?instn - instance) (attached-vol ?vol1 ?instn)))
     )
     :effect (attached-vol ?vol1 ?inst1)
@@ -169,7 +144,7 @@
     :precondition (and
       (not (created-fs ?fs1 ?vol1))
       (requires-vol ?vol1 ?fs1)
-      (requires-in-running ?inst1 ?vol1)
+      (requires-in ?inst1 ?vol1)
       (running-in ?inst1)
       (attached-vol ?vol1 ?inst1)
     )
@@ -198,7 +173,7 @@
       (exists (?vol1 - volume) (and (requires-vol ?vol1 ?fs1) (attached-vol ?vol1 ?inst1)))
       (forall (?appn - application)
         (forall (?dir1 - directory)
-          (imply (and (requires-fs ?fs1 ?dir1)(requires-dir ?dir1 ?appn)(requires-in-running ?inst1 ?appn))(not (running-app ?appn ?inst1)))
+          (imply (and (requires-fs ?fs1 ?dir1)(requires-dir ?dir1 ?appn)(requires-in ?inst1 ?appn))(not (running-app ?appn ?inst1)))
         )
       )
     )
@@ -212,7 +187,7 @@
     :parameters (?app1 - application ?inst1 - instance)
     :precondition (and
       (not (installed-app ?app1 ?inst1))
-      (requires-in-running ?inst1 ?app1)
+      (requires-in ?inst1 ?app1)
       (running-in ?inst1)
       (forall (?dir1 - directory)
         (forall (?fs1 - filesystem)
@@ -232,12 +207,12 @@
     :parameters (?app1 - application ?inst1 - instance)
     :precondition (and
       (running-in ?inst1)
-      (requires-in-running ?inst1 ?app1)
+      (requires-in ?inst1 ?app1)
       (installed-app ?app1 ?inst1)
       (not (running-app ?app1 ?inst1))
       (forall (?appn - application)
         (forall (?instn - instance)
-          (imply (and (requires-in-running ?instn ?appn) (requires-app ?appn ?app1))
+          (imply (and (requires-in ?instn ?appn) (requires-app ?appn ?app1))
             (running-app ?appn ?instn)
           )
         )
@@ -298,7 +273,7 @@
         (exists (?vol1 - volume)
           (and
             (requires-fs ?fs1 ?dest)
-            (requires-in-running ?inst1 ?vol1)
+            (requires-in ?inst1 ?vol1)
             (mounted-fs ?fs1 ?inst1)
             (exists-dir ?dest ?fs1)
           )
