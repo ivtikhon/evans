@@ -1,35 +1,18 @@
-;; This code was developed by Igor Tikhonin (ivtikhon@gmail.com) in 2014-2017.
+;; This code was developed by Igor Tikhonin (ivtikhon@gmail.com) in 2017.
 ;; Amazon's EC2 is used as the infrastructure model.
-
-;; Instances:
-;;  - launched in a non-default VPC
-;;  - getting access to the internet through a NAT instance
-;; Each instance has:
-;;  - a default network interface with a private IP;
-;;  - an internal DNS hostname that resolves to the private IP address of the instance;
-;;  - an internal (root) volume used by operating system only
-;; Dependencies:
-;; volume requires an instance to be attached to
-;; application requires:
-;;  - instance to run on
-;;  - directory to be installed to
-;; application may depend on another application, i.e. it might require another application
-;; directory requires a filesystem to be created at
-;; file requires a directory to be stored in
-;;
 ;; (c) Igor Tikhonin
 
 (define (domain EC2)
   (:requirements :adl)
   (:types
-    instance volume filesystem application directory url file state
+    vpc instance volume filesystem application directory url file state
   )
   (:constants
-    created running terminated exits installed - state
+    created running terminated exits installed attached - state
   )
   (:predicates
-    (has-state ?obj1 - object ?st1 - state)
-    (requires ?obj1 - object ?st1 - state ?obj2 - object ?st2 - state) ;; for obj1 to get to state st1, obj2 requies to be in st2
+    (has-state ?obj1 - object ?st1 - state ?obj2 - object) ;; current state of an object with regards to another object
+    (requires ?obj1 - object ?st1 - state ?obj2 ?obj3 - object ?st2 - state ?obj4 - object) ;; for obj1 to get to state st1, obj2 requies to be in st2
   )
 
   ;; create and start an instance
@@ -48,9 +31,7 @@
       )
       (forall (?objn - object)
         (forall (?stn - state)
-          (imply
-            (requires ?inst1 running ?objn ?stn) (has-state ?objn ?stn)
-          )
+          (imply (requires ?inst1 running ?objn ?stn) (has-state ?objn ?stn))
         )
       )
     )
@@ -62,27 +43,23 @@
 
   ;; start an instance
   ;; instance is started if there is an object that requires it
-;  (:action start-in
-;    :parameters (?inst1 - instance)
-;    :precondition (and
-;      (has-state ?inst1 created)
-;      (not (has-state ?inst1 running))
-;      (not (has-state ?inst1 terminated))
-;      (exists (?obj1 - object)
-;        (exist (?st1 - state)
-;          (requires ?obj1 ?st1 ?inst1 running)
-;        )
-;      )
-;      (forall (?objn - object)
-;        (forall (?stn - state)
-;          (imply
-;            (requires ?inst1 running ?objn ?stn) (has-state ?objn ?stn)
-;          )
-;        )
-;      )
-;    )
-;    :effect (has-state ?inst1 running)
-;  )
+  (:action start-in
+    :parameters (?inst1 - instance)
+    :precondition (and
+      (not (has-state ?inst1 running))
+      (has-state ?inst1 created)
+      (not (has-state ?inst1 terminated))
+      (exists (?obj1 - object)
+        (exists (?st1 - state)(requires ?obj1 ?st1 ?inst1 running))
+      )
+      (forall (?objn - object)
+        (forall (?stn - state)
+          (imply (requires ?inst1 running ?objn ?stn) (has-state ?objn ?stn))
+        )
+      )
+    )
+    :effect (has-state ?inst1 running)
+  )
 
 ;  ;; stop instance
 ;  ;; all running applications are to be stopped
@@ -99,22 +76,18 @@
 ;    :effect (not (running-in ?inst1))
 ;  )
 
-  ;; create volume
+  ;; create storage volume
   ;; volume is created if there is an object that requires it
   (:action create-vol
     :parameters (?vol1 - volume)
     :precondition (and
       (not (has-state ?vol1 created))
       (exists (?obj1 - object)
-        (exists (?st1 - state)
-          (requires ?obj1 ?st1 ?vol1 created)
-        )
+        (exists (?st1 - state)(requires ?obj1 ?st1 ?vol1 created))
       )
       (forall (?objn - object)
         (forall (?stn - state)
-          (imply
-            (requires ?vol1 created ?objn ?stn) (has-state ?objn ?stn)
-          )
+          (imply (requires ?vol1 created ?objn ?stn) (has-state ?objn ?stn))
         )
       )
     )
@@ -123,17 +96,14 @@
 
   ;; attach storage volume to instance
   ;; storage volume can be attached to one instance only
-  ;; the instance can be either running or stopped
   (:action attach-vol
     :parameters (?vol1 - volume ?inst1 - instance)
     :precondition (and
       (has-state ?inst1 created)
       (has-state ?vol1 created)
-      (requires ?vol1 attached ?inst1 running)
-      (requires ?vol1 attached ?vol1 created)
-      (not (exists (?instn - instance) (attached-vol ?vol1 ?instn)))
+      (not (has-state ?vol1 attached))
     )
-    :effect (attached-vol ?vol1 ?inst1)
+    :effect (has-state ?vol1 attached)
   )
 
 ;  ;; detach volume

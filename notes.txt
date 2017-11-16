@@ -57,3 +57,22 @@
   dependencies were resolved, e.g. an object requires an instance "running":
   (requires-in-running ?inst1 - instance ?obj1 - object)
   (satisfied-in-running ?inst1 - instance ?obj1 - object)
+
+# It is not clear how to express complex object state if I use predicates like this:
+  (requires ?obj1 - object ?st1 - state ?obj2 - object ?st2 - state). Maybe I should
+  use complex objects, e.g. instead of just declaring an application object which can exists
+  on multiple instances, I can have many application_on_particular_instance objects. In
+  this case, complex objects can have (many) simple states attached. This approach implies
+  using (and operating with) unique objects.
+
+# There are objects which can't just have simple state and which can't be split into multiple objects
+  to become unique and hold a simple state; e.g. shared file system has to have the state 'mounted'
+  to more than one instance; or file located in some repository can have the state 'copied' to many
+  locations.
+  Dependency chain:
+      app1 - application - running --> requires --> ins1 - instance - running AND
+          --> fs1 - local filesystem - mounted on inst1 - instance AND
+          --> nfs1 - shared filesystem - mounted on inst1 - instance AND
+          --> fl1 - file - accessible on url1 - url
+  Complex state definition format:
+    (has-complex-state ?obj1 - object ?st1 - state ?obj2 - object) ;; obj1 has some state with regards to obj2

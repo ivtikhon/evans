@@ -1,6 +1,6 @@
 ---
 domain: EC2
-  types:
+  classes:
     - instance:
         states:
           - created
@@ -11,11 +11,10 @@ domain: EC2
           - created
           - attached:
               requires:
-                - objects[?type == 'instance'][?state == 'running']
-                # volume requies a instance to be attached to
-                # volume can't be attached to more than one instance
-                - objects[$this][?state == 'created']
-                - objects[$this][?state != 'mounted']
+                - domain[?classes == 'instance'][?state == 'created']
+                # to attach volume, an instance is to be created
+                # volume has to be created too
+                - domain[?objects == $this][?state == 'created']
           - detached
     - filesystem:
         state:
