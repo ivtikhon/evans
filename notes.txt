@@ -75,4 +75,17 @@
           --> nfs1 - shared filesystem - mounted on inst1 - instance AND
           --> fl1 - file - accessible on url1 - url
   Complex state definition format:
-    (has-complex-state ?obj1 - object ?st1 - state ?obj2 - object) ;; obj1 has some state with regards to obj2
+    (has-state ?obj1 - object ?st1 - state ?obj2 - object) ;; obj1 has some state with regards to obj2
+
+# What if I add dependent objects to actions as parameters?
+
+# Object A depends on object B: (requires ?a ?b); simple state dependency:
+  state-chain (?a - object ?sta - state ?b - object ?stb - state)  <--- to get to the state STA
+  object A requires object B to be in the state STB;
+
+# Let's think about objects in general. Say, an application is an object. It could have states: running/not running,
+  installed/not installed, deployed/not deployed  (deployed might mean - copied, installed). These states work fine
+  for one copy of the application. What if I want to install this application on more than one instance?
+  What is the proper way to define complex application state? Should it have the state like
+  'installed on instance(s) A(B,C,D)'. Or I should define multiple copies of the same application to
+  run on particular instances?
