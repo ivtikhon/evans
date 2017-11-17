@@ -1,5 +1,6 @@
 ## This is my notebook
-## I am writing my thoughts here the way they come to mind, i.e. not exactly ordered
+## I am writing my thoughts here the way they come to mind, i.e. not exactly ordered,
+## but somewhat chronological
 ## (c) Igor Tikhonin, ivtikhon@gmail.com
 
 # Types of predicates
@@ -9,7 +10,7 @@
   - (not sure) action trigger: order to perform some action, e.g. shut down instance
 
 # Dependency management
-  Mantri http://mantrijs.com/     <--- take a look
+  Mantri http://mantrijs.com/     <--- take a look (not done yet...)
 
 # Dependencies might be strong, for example, if an application depends on
   several other applications, we may want to start all these applications first;
@@ -89,3 +90,8 @@
   What is the proper way to define complex application state? Should it have the state like
   'installed on instance(s) A(B,C,D)'. Or I should define multiple copies of the same application to
   run on particular instances?
+
+# So, I can define complex state like this: (has-state ?obj1 - object ?st1 - state ?obj2 - object), that is
+  obj1 has some state with regards to obj2, e.g. application app1 has state installed_on instance inst1:
+  (has-state app1 installed_on inst1); NFS share nfs1 has state mounted_on instance inst1:
+  (has-state nfs1 mounted_on inst1)
