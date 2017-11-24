@@ -95,3 +95,13 @@
   obj1 has some state with regards to obj2, e.g. application app1 has state installed_on instance inst1:
   (has-state app1 installed_on inst1); NFS share nfs1 has state mounted_on instance inst1:
   (has-state nfs1 mounted_on inst1)
+
+# I want to express this: if there is a dependency between two objects, such as, to achieve the state AA for
+  the object A with regards to the object B, the object B has to be in his state BB with regards to any other objects C,
+  the dependency has to be resolved first.
+
+# Instance can have a simple state: running (not running or stopped), created, terminated.
+  File can have only complex states: exists (does not exist) somewhere, created/copied somewhere, deleted from somewhere.
+  So location is necessary part of the file's state.
+  NFS share's state is attached (not attached) to multiple instances.
+  Volume can be attached to one instance only, i.e. volumes have simple states: attached (not attached)

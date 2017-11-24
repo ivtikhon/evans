@@ -8,18 +8,18 @@
     vpc instance volume filesystem application directory url file state
   )
   (:constants
-    created running terminated exits installed attached - state
+    created running terminated_at running_on exits_on installed_on attached_to - state
   )
   (:predicates
     (has-state ?obj1 - object ?st1 - state ?obj2 - object) ;; current state of an object with regards to another object
-    (requires ?obj1 - object ?st1 - state ?obj2 ?obj3 - object ?st2 - state ?obj4 - object) ;; for obj1 to get to state st1, obj2 requies to be in st2
+    (requires ?obj1 - object ?st1 - state ?obj2 - object ?st2 - state) ;; for obj1 to get to state st1, obj2 requies to be in st2
   )
 
   ;; create and start an instance
   ;; instance is created if there is an object that requires it
   ;; terminated instance can't be re-created
   (:action launch-in
-    :parameters (?inst1 - instance)
+    :parameters (?inst1 - instance ?vpc1 - vpc)
     :precondition (and
       (not (has-state ?inst1 running))
       (not (has-state ?inst1 created))
