@@ -8,28 +8,31 @@ domain: EC2
           - created
           - running
           - terminated
+        actions:
+          - launch
+          - start
+          - stop
     - volume:
         states:
-          - created:
-              requires:
-                - classes['instance'].states['created']
-              method:
-                create(self, instance)
-          - attached:
-              requires:
-                - self.states['created']
-                - instance.state['created']
-              method:
-                attach(self, instance)
-    - filesystem:
-        state:
-          - created
-          - mounted
-  # List of actions applicable to the classes above
-  methods:
-    - create-instance:
-    - create-volume:
-    - create-filesystem:
+          created: 'created'
+          attached: 'attached'
+        actions:
+          - create:
+              effect:
+                add_state: ${self.states['created']}
+          - attach:
+              effect:
+                add_state: state.attached
+          - detach:
+              remove_state: 'attached'
+
+        dependencies:
+          - instance.states['created']
+
+
  # Here we define object and their dependencies
   objects:
-    - inst1
+    - instance:
+      - inst1
+    - volume:
+        - vol1

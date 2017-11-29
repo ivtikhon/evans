@@ -1,19 +1,13 @@
-class Instance(object):
-    STATES = {
-        'created': 'created',
-        'running': 'running',
-        'terminated': 'terminated'
-    }
-    ACTIONS = {
-        'launch': 'smth',
-        'start': 'smth'
-    }
+class Domain(object):
+    """ Upper class """
+
+class Instance(Domain):
+    STATES = ['created', 'running']
+    ACTIONS = ['launch', 'start', 'stop']
 
     def _init_(self):
-        self.state = []
         self.dependencies = []
-
-    def launch(self)
+        # launch:
         # parameters
             # none
         # precondition
@@ -22,3 +16,7 @@ class Instance(object):
             # has the relevant state before the instance is launched
         # effect
             # created and running
+
+class Volume(Domain):
+    STATES = ['created', 'attached']
+    ACTIONS = ['create', 'attach']
