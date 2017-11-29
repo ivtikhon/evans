@@ -105,3 +105,7 @@
   So location is necessary part of the file's state.
   NFS share's state is attached (not attached) to multiple instances.
   Volume can be attached to one instance only, i.e. volumes have simple states: attached (not attached)
+
+# For each object I should create a list of dependencies. Dependencies that exists for all object of a class, should be
+  defined on the class level and then clarified on the object level. For example, any file requires a directory, so the
+  directory class should be listed as dependency for the file class.
