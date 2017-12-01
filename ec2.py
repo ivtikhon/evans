@@ -1,11 +1,15 @@
 class Domain(object):
     """ Upper class """
+    STATES = {}
 
 class Instance(Domain):
-    STATES = ['created', 'running']
+    STATES = {
+        'created': 'Instance_created',
+        'running': 'Instance_running'
+    }
     ACTIONS = ['launch', 'start', 'stop']
 
-    def _init_(self):
+    def __init__(self):
         self.dependencies = []
         # launch:
         # parameters
@@ -18,5 +22,17 @@ class Instance(Domain):
             # created and running
 
 class Volume(Domain):
-    STATES = ['created', 'attached']
+    STATES = {
+        'created': 'Volume_created',
+        'attached': 'Volume_attached'
+    }
     ACTIONS = ['create', 'attach']
+
+    def __init__(self):
+        self.dependencies = {
+            'created': None,
+            'attached': [Instance.STATES['created'], Volume.STATES['created']]
+        }
+
+vol = Volume()
+print (vol.__dict__)
