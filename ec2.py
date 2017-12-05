@@ -1,6 +1,6 @@
 class Domain(object):
     """ Upper class """
-    STATES = {}
+    pass
 
 class Instance(Domain):
     STATES = {
@@ -31,7 +31,7 @@ class Volume(Domain):
     def __init__(self):
         self.dependencies = {
             'created': None,
-            'attached': [Instance.STATES['created'], Volume.STATES['created']]
+            'attached': [Instance.STATES['created'], Volume.STATES['created']]    # Maybe I should create references to objects here instead of state names
         }
 
 vol = Volume()

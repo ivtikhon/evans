@@ -153,6 +153,7 @@
   (:action mount-fs
     :parameters (?fs1 - filesystem ?inst1 - instance)
     :precondition (and
+      (exists (?obj1 - object) (requires-fs-mounted ?fs1 ?obj1))
       (exists (?vol1 - volume) (and (created-fs ?fs1 ?vol1) (attached-vol ?vol1 ?inst1)))
       (running-in ?inst1)
     )
@@ -259,23 +260,19 @@
     :effect (exists-dir ?dir1 ?fs1)
   )
 
-;  (:action copy-file
-;    :parameters (?fl1 - file ?src - (either directory url) ?dest - directory ?inst1 - instance)
-;    :precondition (and
-;      (exists (?obj1 - object) (requires-fl-exist ?fl1 ?obj1))
-;      (running-in ?inst1)
-;      (exists-file ?fl1 ?src)
-;      (exists (?fs1 - filesystem)
-;        (exists (?vol1 - volume)
-;          (and
-;            (requires-fs-mounted ?fs1 ?dest)
-;            (requires-in-running ?inst1 ?vol1)
-;            (mounted-fs ?fs1 ?inst1)
-;            (exists-dir ?dest ?fs1)
-;          )
-;        )
-;      )
-;    )
-;    :effect (exists-file ?fl1 ?dest)
-;  )
+  (:action copy-file
+    :parameters (?fl1 - file ?src - (either directory url) ?dest - directory ?inst1 - instance)
+    :precondition (and
+      (exists (?obj1 - object) (requires-fl-exist ?fl1 ?obj1))
+      (running-in ?inst1)
+      (exists-file ?fl1 ?src)
+      (exists (?fs1 - filesystem)
+        (and
+          (mounted-fs ?fs1 ?inst1)
+          (exists-dir ?dest ?fs1)
+        )
+      )
+    )
+    :effect (exists-file ?fl1 ?dest)
+  )
 )
