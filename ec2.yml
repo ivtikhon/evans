@@ -19,10 +19,12 @@ domain: EC2
           attached: 'attached'
         actions:
           - create:
-              parameters:
               effect:
                 add_state: volume.states.created
           - attach:
+              precondition:
+                - ${self}.states['created']
+                - instance.states.created
               effect:
                 add_state: 'attached'
           - detach:
