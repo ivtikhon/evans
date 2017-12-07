@@ -5,7 +5,8 @@ class Domain(object):
 class Instance(Domain):
     STATES = {
         'created': 'Instance_created',
-        'running': 'Instance_running'
+        'running': 'Instance_running',
+        'terminated': 'Instance_terminated'
     }
     ACTIONS = ['launch', 'start', 'stop']
 
@@ -28,11 +29,23 @@ class Volume(Domain):
     }
     ACTIONS = ['create', 'attach']
 
-    def __init__(self):
+    def __init__(self, inst1 = None):
+        """Create initial object structure.
+
+        Volume requires an instance in the created state to be attached to.
+        """
         self.dependencies = {
             'created': None,
-            'attached': [Instance.STATES['created'], Volume.STATES['created']]    # Maybe I should create references to objects here instead of state names
+            'attached': [{self: 'created'}]
         }
+        reference = 'Instance' if inst1 == None else inst1
+        self.dependencies['attached'].append({reference: 'created'})
+        self.state = None
 
-vol = Volume()
-print (vol.__dict__)
+    def print_dependencies(self):
+        for k, v in self.dependencies.items():
+            print (k, v)
+
+inst1 = Instance()
+vol1 = Volume(inst1)
+vol1.print_dependencies()

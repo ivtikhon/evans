@@ -12,17 +12,19 @@ domain: EC2
           - launch
           - start
           - stop
+          - terminate
     - volume:
         states:
           created: 'created'
           attached: 'attached'
         actions:
           - create:
+              parameters:
               effect:
-                add_state: ${self.states['created']}
+                add_state: volume.states.created
           - attach:
               effect:
-                add_state: state.attached
+                add_state: 'attached'
           - detach:
               remove_state: 'attached'
 

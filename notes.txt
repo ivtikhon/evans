@@ -103,7 +103,7 @@
 # Instance can have a simple state: running (not running or stopped), created, terminated.
   File can have only complex states: exists (does not exist) somewhere, created/copied somewhere, deleted from somewhere.
   So location is necessary part of the file's state.
-  NFS share's state is attached (not attached) to multiple instances.
+  NFS share's state is attached to multiple instances.
   Volume can be attached to one instance only, i.e. volumes have simple states: attached (not attached)
 
 # For each object I should create a list of dependencies. Dependencies that exists for all object of a class, should be
@@ -112,3 +112,6 @@
 
 # So, in classes dependency patterns should be defined; objects of classes should elaborate the patterns by assigning
   real objects to the pattern structures.
+
+# There are implicit (internal) dependencies, e.g. an application can't be started unless it is installed, and there are
+  explicit (external) dependencies, e.g. the same application can't start until another application is running.
