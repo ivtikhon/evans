@@ -106,14 +106,16 @@
 
   ;; attach storage volume to instance
   ;; storage volume can be attached to one instance only
-  ;; the instance can be either running or stopped
+  ;; the instance has to be created (either running or stopped)
+  ;; there shouild exist an object that requires volume to be attached
   (:action attach-vol
     :parameters (?vol1 - volume ?inst1 - instance)
     :precondition (and
       (created-in ?inst1)
       (created-vol ?vol1)
-      (requires-in-created ?inst1 ?vol1)
       (not (exists (?instn - instance) (attached-vol ?vol1 ?instn)))
+      (requires-in-created ?inst1 ?vol1)
+      (exists (?obj1 - object) (requires-vol-attached ?vol1 ?obj1))
     )
     :effect (attached-vol ?vol1 ?inst1)
   )
@@ -140,7 +142,6 @@
     :precondition (and
       (not (created-fs ?fs1 ?vol1))
       (requires-vol-attached ?vol1 ?fs1)
-      (requires-in-created ?inst1 ?vol1)
       (running-in ?inst1)
       (attached-vol ?vol1 ?inst1)
     )

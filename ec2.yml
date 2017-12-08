@@ -18,21 +18,26 @@ domain: EC2
           created: 'created'
           attached: 'attached'
         actions:
-          - create:
-              effect:
-                add_state: volume.states.created
-          - attach:
-              precondition:
-                - ${self}.states['created']
-                - instance.states.created
-              effect:
-                add_state: 'attached'
-          - detach:
+          create:
+            effect:
+              add_state: volume.states.created
+          attach:
+            precondition:
+              - ${self}.states['created']
+              - instance.states.created
+              # and exists object that requires volume attached
+            effect:
+              add_state: 'attached'
+          detach:
+            effect:
               remove_state: 'attached'
 
-        dependencies:
-          - instance.states['created']
-
+    - filesystem:
+        states:
+          created:
+          mounted:
+        actions:
+          create:
 
  # Here we define object and their dependencies
   objects:

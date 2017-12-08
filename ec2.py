@@ -42,6 +42,15 @@ class Volume(Domain):
         self.dependencies['attached'].append({reference: 'created'})
         self.state = None
 
+        self.action = {
+            create: {
+                parameters: self, Instance
+                precondition:
+                effect:
+            }
+            attach: {}
+        }
+
     def print_dependencies(self):
         for k, v in self.dependencies.items():
             print (k, v)

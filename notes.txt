@@ -110,8 +110,11 @@
   defined on the class level and then clarified on the object level. For example, any file requires a directory, so the
   directory class should be listed as dependency for the file class.
 
-# So, in classes dependency patterns should be defined; objects of classes should elaborate the patterns by assigning
+# So, dependency patterns should be defined in classes; objects of classes should elaborate the patterns by assigning
   real objects to the pattern structures.
 
 # There are implicit (internal) dependencies, e.g. an application can't be started unless it is installed, and there are
-  explicit (external) dependencies, e.g. the same application can't start until another application is running.
+  explicit (external) dependencies, e.g. the satme application can't start until another application is running.
+
+# Question: we define dependencies to build a system. What if we already have the system build and now we want to
+  modify it, e.g. there are two application, one depends on another, and we want to stop one?
