@@ -3,19 +3,12 @@
 ## but somewhat chronological
 ## (c) Igor Tikhonin, ivtikhon@gmail.com
 
+### 2017 ###
 # Types of predicates
   - object state: object in some particular state, e.g. file system is created;
   - object dependencies: one object depends on another object, e.g. application
     requires file system;
   - (not sure) action trigger: order to perform some action, e.g. shut down instance
-
-# Dependency management
-  Mantri http://mantrijs.com/     <--- take a look (not done yet...)
-
-# Dependencies might be strong, for example, if an application depends on
-  several other applications, we may want to start all these applications first;
-  and dependencies might be not that strong, for example, we don't want to
-  stop all dependent applications, if this particular application is going down.
 
  # I need to find a method to define chains of dependencies, for example, if a file
   requires a directory to be stored in, the dependency file -> directory should
@@ -34,15 +27,9 @@
   on the object level only, for example, to start the application A, we need the
   application B up and running.
 
-# Dependencies are executed in actions, for example, before copying a file, we
+# Dependencies exist in actions, for example, before copying a file, we
   need to make sure that the source/destination directory(ies) exist, so the
-  action 'copy file' can be executed only after all dependencies are resolved. Thus,
-  here is a question: can we have an action to resolve dependencies?
-
-# Basically, every action should have dependency check as precondition, for example
-  application can't start until all applications it depends on have started, and
-  all file systems are created and mounted, and necessary files have copied; i.e.
-  until all dependencies have their status changed.
+  action 'copy file' can be executed only after all dependencies are resolved.
 
 # State can be simple, e.g. application is running, and it can be complex, e.g
   application is running on an instance. The same file can exists in multiple directories.
@@ -66,10 +53,10 @@
   this case, complex objects can have (many) simple states attached. This approach implies
   using (and operating with) unique objects.
 
-# There are objects which can't just have simple state and which can't be split into multiple objects
-  to become unique and hold a simple state; e.g. shared file system has to have the state 'mounted'
-  to more than one instance; or file located in some repository can have the state 'copied' to many
-  locations.
+# There are objects which can't just have simple state and which can't be split
+  into multiple objects to become unique and hold a simple state; e.g. shared file
+  system has to have the state 'mounted' to more than one instance; or file located
+  in some repository can have the state 'copied' to many locations.
   Dependency chain:
       app1 - application - running --> requires --> ins1 - instance - running AND
           --> fs1 - local filesystem - mounted on inst1 - instance AND
@@ -78,44 +65,58 @@
   Complex state definition format:
     (has-state ?obj1 - object ?st1 - state ?obj2 - object) ;; obj1 has some state with regards to obj2
 
-# What if I add dependent objects to actions as parameters?
-
 # Object A depends on object B: (requires ?a ?b); simple state dependency:
   state-chain (?a - object ?sta - state ?b - object ?stb - state)  <--- to get to the state STA
   object A requires object B to be in the state STB;
 
-# Let's think about objects in general. Say, an application is an object. It could have states: running/not running,
-  installed/not installed, deployed/not deployed  (deployed might mean - copied, installed). These states work fine
-  for one copy of the application. What if I want to install this application on more than one instance?
-  What is the proper way to define complex application state? Should it have the state like
-  'installed on instance(s) A(B,C,D)'. Or I should define multiple copies of the same application to
-  run on particular instances?
+# Let's think about objects in general. Say, an application is an object. It could
+  have states: running/not running, installed/not installed, deployed/not deployed
+  (deployed might mean - copied, installed). These states work fine for one copy
+  of the application. What if I want to install this application on more than one
+  instance? What is the proper way to define complex application state? Should it
+  have the state like 'installed on instance(s) A(B,C,D)'. Or I should define multiple
+  copies of the same application to run on particular instances?
 
-# So, I can define complex state like this: (has-state ?obj1 - object ?st1 - state ?obj2 - object), that is
-  obj1 has some state with regards to obj2, e.g. application app1 has state installed_on instance inst1:
-  (has-state app1 installed_on inst1); NFS share nfs1 has state mounted_on instance inst1:
-  (has-state nfs1 mounted_on inst1)
+# So, I can define complex state like this: (has-state ?obj1 - object ?st1 - state ?obj2 - object),
+  that is obj1 has some state with regards to obj2, e.g. application app1 has state
+  installed_on instance inst1: (has-state app1 installed_on inst1); NFS share nfs1
+  has state mounted_on instance inst1: (has-state nfs1 mounted_on inst1)
 
-# I want to express this: if there is a dependency between two objects, such as, to achieve the state AA for
-  the object A with regards to the object B, the object B has to be in his state BB with regards to any other objects C,
-  the dependency has to be resolved first.
+# I want to express this: if there is a dependency between two objects, such as,
+  to achieve the state AA for the object A with regards to the object B, the object
+  B has to be in his state BB with regards to any other objects C, the dependency
+  has to be resolved first.
 
-# Instance can have a simple state: running (not running or stopped), created, terminated.
-  File can have only complex states: exists (does not exist) somewhere, created/copied somewhere, deleted from somewhere.
-  So location is necessary part of the file's state.
+# Instance can have a simple state: running (not running or stopped), created,
+  terminated. File can have only complex states: exists (does not exist) somewhere,
+  created/copied somewhere, deleted from somewhere. So location is necessary part
+  of the file's state.
   NFS share's state is attached to multiple instances.
-  Volume can be attached to one instance only, i.e. volumes have simple states: attached (not attached)
+  Volume can be attached to one instance only, i.e. volumes have simple states:
+  created, attached (not attached)
 
-# For each object I should create a list of dependencies. Dependencies that exists for all object of a class, should be
-  defined on the class level and then clarified on the object level. For example, any file requires a directory, so the
-  directory class should be listed as dependency for the file class.
+# For each object I should create a list of dependencies. Dependencies that exists
+  for all object of a class, should be defined on the class level and then clarified
+  on the object level. For example, any file requires a directory, so the directory
+  class should be listed as dependency for the file class.
 
-# So, dependency patterns should be defined in classes; objects of classes should elaborate the patterns by assigning
-  real objects to the pattern structures.
+# So, dependency patterns should be defined in classes; objects of classes should
+  elaborate the patterns by assigning real objects to the pattern structures.
 
-# There are implicit (internal) dependencies, e.g. an application can't be started unless it is installed, and there are
-  explicit (external) dependencies, e.g. the satme application can't start until another application is running.
+# There are implicit (internal, predefined) dependencies, e.g. an application can't
+  be started unless it is installed, and there are explicit (external, yet to be
+  defined) dependencies, e.g. the satme application can't start until another
+  application is running.
 
-# Question: we define dependencies to build a system. What if we already have the system build and now we want to
-  modify it, e.g. there are two application, one depends on another, and we want to stop one? Apparently the defined
-  dependencies can be used in the reverse order.
+# Question: we define dependencies to build a system;  what if we already have the
+  system built and now we want to modify it, e.g. there are two applications, one
+  depends on another, and we want to stop one? Apparently the defined dependencies
+  can be used in the reverse order, and the depended application should be stopped
+  too. This actually means that dependecies have some direction (i.e. they are oriented),
+  and the direction of each dependency defines "normal" (default, designed) behaviour
+  of the system.
+
+# Dependencies might be strong, for example, if an application depends on
+  several other applications, we may want to start all these applications first;
+  and dependencies might be not that strong, for example, we don't want to
+  stop all dependent applications, if this particular application is going down.
