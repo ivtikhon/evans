@@ -44,9 +44,9 @@ class Volume(Domain):
 
         self.action = {
             create: {
-                parameters: self, Instance
-                precondition:
-                effect:
+                parameters: self
+                precondition: #not created
+                effect: self.state.append('created')
             }
             attach: {}
         }

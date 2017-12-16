@@ -53,7 +53,7 @@
   )
 
   ;; create and start an instance
-  ;; instance is created if there is an object that requires it
+  ;; instance is created if there is an object that requires it (external dependency)
   ;; terminated instance can't be re-created
   (:action launch-in
     :parameters (?inst1 - instance)
@@ -61,7 +61,7 @@
       (not (running-in ?inst1))
       (not (created-in ?inst1))
       (not (terminated-in ?inst1))
-      (exists (?obj1 - object)(requires-in-running ?inst1 ?obj1))
+      (exists (?obj1 - object)(or (requires-in-running ?inst1 ?obj1) (requires-in-created ?inst1 ?obj1)))
     )
     :effect (and
       (created-in ?inst1)
@@ -70,7 +70,7 @@
   )
 
   ;; start an instance
-  ;; instance is started if there is an object that requires it
+  ;; instance is started if there is an object that requires it running (external dependency)
   (:action start-in
     :parameters (?inst1 - instance)
     :precondition (and
@@ -97,7 +97,6 @@
 ;  )
 
   ;; create volume
-  ;; volume is created if there is an object that requires it
   (:action create-vol
     :parameters (?vol1 - volume)
     :precondition (not (created-vol ?vol1))
@@ -105,16 +104,15 @@
   )
 
   ;; attach storage volume to instance
-  ;; storage volume can be attached to one instance only
+  ;; storage volume can be attached to one instance only (AWS specific)
   ;; the instance has to be created (either running or stopped)
-  ;; there shouild exist an object that requires volume to be attached
+  ;; there shouild exist an object that requires volume to be attached (external dependency)
   (:action attach-vol
     :parameters (?vol1 - volume ?inst1 - instance)
     :precondition (and
       (created-in ?inst1)
       (created-vol ?vol1)
       (not (exists (?instn - instance) (attached-vol ?vol1 ?instn)))
-      (requires-in-created ?inst1 ?vol1)
       (exists (?obj1 - object) (requires-vol-attached ?vol1 ?obj1))
     )
     :effect (attached-vol ?vol1 ?inst1)
@@ -137,6 +135,7 @@
 ;
   ;; create file system
   ;; file system requires a running instance with a volume attached
+  ;; the volume is to be attached to the right instance (external dependency)
   (:action create-fs
     :parameters (?fs1 - filesystem ?vol1 - volume ?inst1 - instance)
     :precondition (and

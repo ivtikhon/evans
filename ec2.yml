@@ -15,22 +15,39 @@ domain: EC2
           - terminate
     - volume:
         states:
-          created: 'created'
-          attached: 'attached'
+          - created # just created, nothing else
+          - attached_to # instance
         actions:
           create:
-            effect:
-              add_state: volume.states.created
+            parameters:
+              volume: self
+            dependencies: # not created
+              - not 'created' in ${self}['statelist']
+            statelist:
+              # add state: created
+
           attach:
-            precondition:
-              - ${self}.states['created']
-              - instance.states.created
-              # and exists object that requires volume attached
-            effect:
-              add_state: 'attached'
+            parameters: # volume, instance
+              volume: self
+              instance: inst
+            dependencies:
+              - 'created' in ${self}['statelist']
+              - 'created' in ${inst}['statelist']
+              # volume is created
+              # instance is created
+              # external depencency requiring the volume attached to this instance
+            statelist: # add attached_to instance
+              add: 'attached_to ${inst}'
+
           detach:
-            effect:
-              remove_state: 'attached'
+            parameters:
+              # volume
+              # instance
+            precondition:
+              # all the objects dependent on the volume know that the volume is to be detached;
+              #   i.e. all the reverse conditions are satisfied
+            effect: # not attached_to any instance
+              # remove_state: ${this}.states['attached_to']
 
     - filesystem:
         states:

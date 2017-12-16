@@ -119,3 +119,6 @@
 # Question: we define dependencies to build a system. What if we already have the system build and now we want to
   modify it, e.g. there are two application, one depends on another, and we want to stop one? Apparently the defined
   dependencies can be used in the reverse order.
+
+# To be able to define reverse conditions, we obviously have to define direct conditions and applicable actions, and
+  actions applicable for reverse conditions.
