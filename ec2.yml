@@ -25,6 +25,7 @@ domain: EC2
               - not 'created' in ${self}['statelist']
             statelist:
               # add state: created
+              add: 'created'
 
           attach:
             parameters: # volume, instance
