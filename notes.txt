@@ -4,6 +4,10 @@
 ## (c) Igor Tikhonin, ivtikhon@gmail.com
 
 ### 2017 ###
+# Hypothesis: if we define objects, a set of operations on objects, dependencies among
+  objects, and some goal, this will be sufficient for a classical planner to build
+  a plan to achieve the goal.
+
 # Types of predicates
   - object state: object in some particular state, e.g. file system is created;
   - object dependencies: one object depends on another object, e.g. application
@@ -105,18 +109,29 @@
 
 # There are implicit (internal, predefined) dependencies, e.g. an application can't
   be started unless it is installed, and there are explicit (external, yet to be
-  defined) dependencies, e.g. the satme application can't start until another
+  defined) dependencies, e.g. the same application can't start until another
   application is running.
 
 # Question: we define dependencies to build a system;  what if we already have the
   system built and now we want to modify it, e.g. there are two applications, one
   depends on another, and we want to stop one? Apparently the defined dependencies
   can be used in the reverse order, and the depended application should be stopped
-  too. This actually means that dependecies have some direction (i.e. they are oriented),
-  and the direction of each dependency defines "normal" (default, designed) behaviour
+  too. This actually means that dependencies have some direction (i.e. they are oriented),
+  and the direction of each dependency defines "normal" (default, designed) behavior
   of the system.
 
 # Dependencies might be strong, for example, if an application depends on
   several other applications, we may want to start all these applications first;
   and dependencies might be not that strong, for example, we don't want to
   stop all dependent applications, if this particular application is going down.
+
+# To be able to define reverse conditions, we obviously have to define direct
+  conditions and applicable actions, and actions applicable for reverse conditions.
+
+# I want to define only high level dependencies. But I also want the tool to emphasize
+  implicit (embedded, defined internally) dependencies.
+
+# Maybe we can maintain two lists: list of states and list of external dependencies.
+
+# There might be not only dependencies, but restrictions also, i.e. the overall model
+  can be extended with restrictions.

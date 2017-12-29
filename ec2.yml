@@ -15,8 +15,14 @@ domain: EC2
           - terminate
     - volume:
         states:
-          - created # just created, nothing else
-          - attached_to # instance
+          created: # volume created
+            attributes:
+              - volume
+          attached_to: # volume attached to instance
+            attributes:
+              - volume
+              - instance
+
         actions:
           create:
             parameters:
@@ -24,7 +30,6 @@ domain: EC2
             dependencies: # not created
               - not 'created' in ${self}['statelist']
             statelist:
-              # add state: created
               add: 'created'
 
           attach:
@@ -36,19 +41,21 @@ domain: EC2
               - 'created' in ${inst}['statelist']
               # volume is created
               # instance is created
-              # external depencency requiring the volume attached to this instance
+              # external depencency requiring the volume to be attached to a particular instance
+              #   so, here should be a list of objects the volume depends on with the object states,
+              #   necessary to achieve the attached state of the volume
             statelist: # add attached_to instance
               add: 'attached_to ${inst}'
 
-          detach:
-            parameters:
-              # volume
-              # instance
-            precondition:
-              # all the objects dependent on the volume know that the volume is to be detached;
-              #   i.e. all the reverse conditions are satisfied
-            effect: # not attached_to any instance
-              # remove_state: ${this}.states['attached_to']
+          # detach:
+          #   parameters:
+          #     # volume
+          #     # instance
+          #   dependencies:
+          #     # all the objects dependent on the volume know that the volume is to be detached;
+          #     #   i.e. all the reverse conditions are satisfied
+          #   statelist: # not attached_to any instance
+          #     # remove_state: ${this}.states['attached_to']
 
     - filesystem:
         states:
