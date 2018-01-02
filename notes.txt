@@ -135,3 +135,9 @@
 
 # There might be not only dependencies, but restrictions also, i.e. the overall model
   can be extended with restrictions.
+
+### 2018 ###
+# Current challenges:
+  - YAML syntax: main structure and variables.
+  - Planning fundamentals.
+  - Use cases.
