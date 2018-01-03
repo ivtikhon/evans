@@ -141,3 +141,6 @@
   - YAML syntax: main structure and variables.
   - Planning fundamentals.
   - Use cases.
+
+# Dependencies and restrictions reduce the state variables search space. So the right
+  combination of restrictions increases overall performance. 
