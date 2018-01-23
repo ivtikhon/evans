@@ -143,4 +143,16 @@
   - Use cases.
 
 # Dependencies and restrictions reduce the state variables search space. So the right
-  combination of restrictions increases overall performance. 
+  combination of restrictions increases overall performance.
+
+# Domain and problem definition elements:
+  - objects, arrays or lists of objects
+  - types of objects or classes
+  - relations or dependencies among classes and objects;
+    - basically, if there are dependencies among classes, they should be inherited
+      by objects as class representatives
+    - objects extend the class level dependencies
+  - set of object states
+  - initial state of all objects
+  - actions
+  - goal (desired state of the system)
