@@ -152,6 +152,8 @@
     - basically, if there are dependencies among classes, they should be inherited
       by objects as class representatives
     - objects extend the class level dependencies
+    - relations among objects are expressed like this:
+      * object A requires object B in state ST1 in order to get into state ST2 (which is expressed in action template)
   - set of object states
   - initial state of all objects
   - actions
