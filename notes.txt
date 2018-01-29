@@ -154,6 +154,7 @@
     - objects extend the class level dependencies
     - relations among objects are expressed like this:
       * object A requires object B in state ST1 in order to get into state ST2 (which is expressed in action template)
+      * dependencies either inherited from classes, or injected into action templates externally
   - set of object states
   - initial state of all objects
   - actions
