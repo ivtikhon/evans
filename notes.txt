@@ -158,4 +158,7 @@
   - set of object states
   - initial state of all objects
   - actions
+    - actions have parameters and preconditions, of course
+    - "injected" preconditions are predefined on the class level or defined for objects
+    - action effect or result state defines the object state expressed in the form of relation
   - goal (desired state of the system)
