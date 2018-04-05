@@ -162,3 +162,14 @@
     - "injected" preconditions are predefined on the class level or defined for objects
     - action effect or result state defines the object state expressed in the form of relation
   - goal (desired state of the system)
+
+# YAML description
+variables:
+  var1: [val1, val2, val3]
+  var2: [val4, val5, val6]
+init:
+  var1: val1
+  var2: val4
+operators:
+  move:
+goal:

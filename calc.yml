@@ -1,0 +1,45 @@
+---
+classes:
+  button:
+    attributes:
+      position: [0-17]  # this should come from the class frame
+      pressed: [yes, no]
+      value: [0-9,+,-,/,*,=,Clear, Erase]
+    operations:
+      draw:
+
+  display:
+    attributes:
+      position: 0
+    operations:
+      draw:
+
+  frame:
+    operations:
+      draw:
+
+  stack:
+    attributes:
+      char array[MAXLENGTH]     # array of symbols
+      unsigned int position   # current position in the array
+    operations:
+      push:
+        when:
+          # digit button is pressed
+      pop:
+        when:
+          # erase button is pressed
+      read:
+
+  calc:
+    # oprations are done on 2 stacks
+    # result is stored into 1st stack
+    # to perform operations, values are read from stacks and converted to float
+    attributes:
+      stack: {first, second}
+      operation: [+,-,/,*]
+    operations:
+      calculate:
+        when:
+          # both stacks are not empty
+          # and '=' or any operational button is pressed
