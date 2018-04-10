@@ -1,27 +1,66 @@
 ---
+# when mouse button is clicked and the mouse pointer
+# coordinates corresponds to any of the calc buttons,
+# or if a keyboard key is pressed corresponging to
+# any calc button, then:
+#
+# when a digit button is pressed
+# its value is pushed to the current stack (one of two)
+# and also showed in the right position of the display
+# (or the current stack content is simply showed every
+# time when a digit button is pressed)
+#
+# when an operation button (+,-,/,*) is pressed, then:
+# - if the current operation value is not empty,
+#   execute the early entered operation, store the result
+#   to the current stack and display the result
+# - switch the current stack to another one
+#
+# when the equal sign is pressed,
+# execute the current operation, store the result to
+# the current stack, swithch the stack
+
+# probably, I should distinguish between functions and operations
+# assuming the latter participate in planning
+#
+# for all buttons I should define listeners
+
 classes:
   button:
     attributes:
       position: [0-17]  # this should come from the class frame
-      pressed: [yes, no]
+      status: [pressed, reseased]
       value: [0-9,+,-,/,*,=,Clear, Erase]
     operations:
       draw:
+        # draw button with its value and status, pressed - not pressed
+        when: pressed / unpressed / redraw command obtained
+      get_value:
+        when: # by request
 
   display:
     attributes:
       position: 0
     operations:
       draw:
+        # draw its frame and also content of stack
 
   frame:
+    vars:
+      left_corner: [x,y]
+      dimensions: [width, height]
     operations:
       draw:
+        # draw the calculator's frame, display and buttons
+        # respond to mouse click within the frame borders
 
   stack:
-    attributes:
+    vars:
       char array[MAXLENGTH]     # array of symbols
       unsigned int position   # current position in the array
+      # it is not clear at the moment if I should distinguish
+      # between attributes (state variables) and just variables
+      #
     operations:
       push:
         when:
@@ -31,15 +70,20 @@ classes:
           # erase button is pressed
       read:
 
-  calc:
+  processor:
     # oprations are done on 2 stacks
     # result is stored into 1st stack
-    # to perform operations, values are read from stacks and converted to float
+    # to perform operations, values are read from stacks and converted into float
     attributes:
-      stack: {first, second}
-      operation: [+,-,/,*]
+      curren_stack: [first, second]
+      current_operation: [+,-,/,*]
     operations:
       calculate:
         when:
           # both stacks are not empty
+
           # and '=' or any operational button is pressed
+
+
+# we define attributes in classes
+# and these attributes correspond to FDR state variables
