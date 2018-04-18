@@ -173,3 +173,9 @@ init:
 operators:
   move:
 goal:
+
+# class, state, attributes, class functions (interfaces);
+  - all classes implicitly inherit the Plan class, where the functions setGoal
+    createPlan are declared
+  - simple way to run planning is to define some objects, add them to a list and
+    run setGoal and createPlan
