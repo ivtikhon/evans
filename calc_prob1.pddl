@@ -9,6 +9,8 @@
   (:init
 ;    (key_isdigit key1)
     (key_isop key1)
+    (alu_op_stored alu1)
+    (alu_reg_stored alu1)
   )
   (:goal
     (and

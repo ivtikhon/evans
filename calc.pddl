@@ -12,6 +12,7 @@
     (stack_changed ?s - stack)
     (stack_point ?s - stack)
     (stack_lastkey_point ?s - stack)
+    (stack_read ?s - stack)
 
     ;; key
     (key_isdigit ?k - key)
@@ -27,6 +28,7 @@
 
     ;; alu keeps last operation and register
     (alu_op_stored ?a - alu)
+    (alu_op_executed ?a - alu)
     (alu_reg_stored ?a - alu)
   )
 
@@ -77,25 +79,49 @@
     )
   )
 
+  ;; copy value from register to stack
+  (:action stack_from_register
+    :parameters (?s - stack ?k - key ?a - alu)
+    :precondition (and
+      (alu_op_executed ?a)
+      (or (key_isop ?k) (key_iseq ?k))
+      (stack_read ?s)
+      (not (key_processed ?k))
+    )
+    :effect (and
+      (key_processed ?k)
+      (not (stack_read ?s))
+      (stack_changed ?s)
+    )
+  )
+
+  ;; store current operation
   (:action alu_store_op
     :parameters (?a - alu ?k - key)
     :precondition (and
       (not (alu_op_stored ?a))
       (key_isop ?k)
     )
-    :effect (and
-      (alu_op_stored ?a)
-    )
+    :effect (alu_op_stored ?a)
   )
 
-
-;  (:action alu_exec_op
-;    :parameters (?a - alu ?s - stack ?k - key)
-;    :precondition (and
-;      (not (alu_op_stored ?a))
-;      (key_isop ?k)
-;    )
-;    :effect (and ()))
+  ; execute stored operation with register and stack
+  ; and store result to register
+  ; if key is operation, store it
+  (:action alu_exec_op
+    :parameters (?a - alu ?s - stack ?k - key)
+    :precondition (and
+      (or (key_isop ?k) (key_iseq ?k))
+      (alu_op_stored ?a)
+      (alu_reg_stored ?a)
+      (not (alu_op_executed ?a))
+    )
+    :effect (and
+      (alu_op_executed ?a)
+      (stack_read ?s)
+      (when (key_iseq ?k) (not (alu_op_stored ?a)))
+    )
+  )
 
   (:action display_stack
     :parameters (?d - display ?s - stack ?k - key)
