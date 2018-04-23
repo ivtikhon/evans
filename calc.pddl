@@ -32,8 +32,9 @@
     (alu_reg_stored ?a - alu)
   )
 
+  ;; need to add empty stack indicator
   (:action stack_push
-    :parameters (?s - stack ?k - key)
+    :parameters (?s - stack ?k - key ?a - alu)
     :precondition (and
       (not (stack_changed ?s))
       (not (key_processed ?k))
@@ -92,10 +93,11 @@
       (key_processed ?k)
       (not (stack_read ?s))
       (stack_changed ?s)
+      (not (alu_reg_stored ?a))
     )
   )
 
-  ;; store current operation
+  ;; store current operation to alu for later execution
   (:action alu_store_op
     :parameters (?a - alu ?k - key)
     :precondition (and
@@ -107,7 +109,7 @@
 
   ; execute stored operation with register and stack
   ; and store result to register
-  ; if key is operation, store it
+  ; if key is an operation, store it to alu
   (:action alu_exec_op
     :parameters (?a - alu ?s - stack ?k - key)
     :precondition (and
