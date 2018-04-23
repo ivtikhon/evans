@@ -3,8 +3,7 @@
 (define (domain CALC)
   (:requirements :adl)
   (:types
-    stack key
-    ;; alu display
+    stack key display alu
   )
   (:predicates
     ;; stack
@@ -20,6 +19,12 @@
     (key_isclear ?k - key)
     (key_iserase ?k - key)
     (key_processed ?k - key)
+
+    ;; display
+    (display_updated ?d - display)
+
+    ;; alu
+    (alu_op_stored ?a - alu)
   )
 
   (:action stack_push
@@ -38,6 +43,7 @@
   )
 
   (:action stack_pop
+    :parameters (?s - stack ?k - key)
     :precondition (and
       (not (stack_changed ?s))
       (not (key_processed ?k))
@@ -48,4 +54,29 @@
       (key_processed ?k)
       (when (stack_lastkey_point ?s) (not (stack_lastkey_point ?s)))
     )
+  )
+
+  (:action alu_store_op
+    :parameters (?a - alu ?k - key)
+    :precondition (and
+      (not (alu_op_stored ?a))
+      (key_isop ?k)
+    )
+    :effect (and
+      (alu_op_stored ?a)
+      (key_processed ?k)
+    )
+  )
+
+  (:action display_stack
+    :parameters (?d - display ?s - stack ?k - key)
+    :precondition (and
+      (not (display_updated ?d))
+      (key_processed ?k)
+    )
+    :effect (and
+      (display_updated ?d)
+      (when (stack_changed ?s)(not (stack_changed ?s)))
+    )
+  )
 )
