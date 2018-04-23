@@ -1,4 +1,6 @@
 ;;
+;; Simple calculator in PDDL
+;; Develped by Igor Tikhonin (ivtikhon@gmail.com) in 2018
 ;;
 (define (domain CALC)
   (:requirements :adl)
@@ -23,8 +25,9 @@
     ;; display
     (display_updated ?d - display)
 
-    ;; alu
+    ;; alu keeps last operation and register
     (alu_op_stored ?a - alu)
+    (alu_reg_stored ?a - alu)
   )
 
   (:action stack_push
@@ -56,6 +59,24 @@
     )
   )
 
+  ;; copy stack to register and empty stack
+  (:action stack_to_register
+    :parameters (?s - stack ?k - key ?a - alu)
+    :precondition (and
+      (not (key_processed ?k))
+      (key_isop ?k)
+      (not (alu_reg_stored ?a))
+      (alu_op_stored ?a)
+    )
+    :effect (and
+      (alu_reg_stored ?a)
+      (stack_changed ?s)
+      (not (stack_point ?s))
+      (not (stack_lastkey_point ?s))
+      (key_processed ?k)
+    )
+  )
+
   (:action alu_store_op
     :parameters (?a - alu ?k - key)
     :precondition (and
@@ -64,9 +85,17 @@
     )
     :effect (and
       (alu_op_stored ?a)
-      (key_processed ?k)
     )
   )
+
+
+;  (:action alu_exec_op
+;    :parameters (?a - alu ?s - stack ?k - key)
+;    :precondition (and
+;      (not (alu_op_stored ?a))
+;      (key_isop ?k)
+;    )
+;    :effect (and ()))
 
   (:action display_stack
     :parameters (?d - display ?s - stack ?k - key)
