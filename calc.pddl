@@ -12,7 +12,7 @@
     (stack_changed ?s - stack)
     (stack_point ?s - stack)
     (stack_lastkey_point ?s - stack)
-    (stack_read ?s - stack)
+    (stack_tobe_cleaned ?s - stack)
 
     ;; key
     (key_isdigit ?k - key)
@@ -32,18 +32,35 @@
     (alu_reg_stored ?a - alu)
   )
 
-  ;; need to add empty stack indicator
+  ;; clean stack after operation was inserted
+  (:action stack_clean
+    :parameters (?s - stack ?k - key)
+    :precondition (and
+      (not (key_processed ?k))
+      (or (key_isdigit ?k) (key_ispoint ?k))
+      (stack_tobe_cleaned ?s)
+    )
+    :effect (and
+      (not (stack_tobe_cleaned ?s))
+      (not (stack_point ?s))
+      (not (stack_lastkey_point ?s))
+;      (stack_changed ?s)
+    )
+  )
+  ;; push digit or decimal point to stack
+  ;; ignore extra decimal points
   (:action stack_push
-    :parameters (?s - stack ?k - key ?a - alu)
+    :parameters (?s - stack ?k - key)
     :precondition (and
       (not (stack_changed ?s))
       (not (key_processed ?k))
       (or (key_isdigit ?k) (key_ispoint ?k))
+      (not (stack_tobe_cleaned ?s))
     )
     :effect (and
       (stack_changed ?s)
       (key_processed ?k)
-      (when (key_ispoint ?k) (stack_lastkey_point ?s))
+      (when (key_ispoint ?k) (and (stack_point ?s) (stack_lastkey_point ?s))
       (when (not (key_ispoint ?k)) (not (stack_lastkey_point ?s)))
     )
   )
@@ -58,11 +75,15 @@
     :effect (and
       (stack_changed ?s)
       (key_processed ?k)
-      (when (stack_lastkey_point ?s) (not (stack_lastkey_point ?s)))
+      (when (stack_lastkey_point ?s) (and
+          (not (stack_lastkey_point ?s))
+          (not (stack_point))
+        )
+      )
     )
   )
 
-  ;; copy stack to register and empty stack
+  ;; copy stack to register and mark stack to be cleaned next cycle
   (:action stack_to_register
     :parameters (?s - stack ?k - key ?a - alu)
     :precondition (and
@@ -73,27 +94,25 @@
     )
     :effect (and
       (alu_reg_stored ?a)
-      (stack_changed ?s)
-      (not (stack_point ?s))
-      (not (stack_lastkey_point ?s))
+  ;    (stack_changed ?s)
       (key_processed ?k)
+      (stack_tobe_cleaned ?s)
     )
   )
 
-  ;; copy value from register to stack
+  ;; copy value from register to stack and mark stack to be cleaned next cycle
   (:action stack_from_register
     :parameters (?s - stack ?k - key ?a - alu)
     :precondition (and
       (alu_op_executed ?a)
       (or (key_isop ?k) (key_iseq ?k))
-      (stack_read ?s)
       (not (key_processed ?k))
     )
     :effect (and
       (key_processed ?k)
-      (not (stack_read ?s))
       (stack_changed ?s)
       (not (alu_reg_stored ?a))
+      (stack_tobe_cleaned ?s)
     )
   )
 
@@ -103,8 +122,12 @@
     :precondition (and
       (not (alu_op_stored ?a))
       (key_isop ?k)
+      (not (alu_reg_stored ?a))
+      (not (key_processed ?k))
     )
-    :effect (alu_op_stored ?a)
+    :effect (and
+      (alu_op_stored ?a)
+    )
   )
 
   ; execute stored operation with register and stack
@@ -120,7 +143,6 @@
     )
     :effect (and
       (alu_op_executed ?a)
-      (stack_read ?s)
       (when (key_iseq ?k) (not (alu_op_stored ?a)))
     )
   )
@@ -130,10 +152,11 @@
     :precondition (and
       (not (display_updated ?d))
       (key_processed ?k)
+      (stack_changed ?s)
     )
     :effect (and
       (display_updated ?d)
-      (when (stack_changed ?s)(not (stack_changed ?s)))
+;      (not (stack_changed ?s))
     )
   )
 )

@@ -43,20 +43,6 @@
 # anyway, I need to find a way to trigger planning operators
 
 classes:
-  button:
-    attributes:
-      position: [x, y]
-      size: [length, width]
-      value: [0-9,+,-,/,*,=,Clear, Erase]
-    states:
-      status: [pressed, reseased]
-    operations:
-      draw:
-        # draw button with its value and status, pressed - not pressed
-        when: pressed / unpressed / redraw command obtained
-      get_value:
-        when: # by request
-
   display:
     attributes:
       position: 0
@@ -64,21 +50,12 @@ classes:
       draw:
         # draw its frame and also content of stack
 
-  frame:
-    vars:
-      position: [x,y]
-      size: [width, height]
-      keyboard: button[BUTTONS_TOTAL]
-      disp: display('0')
-    operations:
-      draw:
-        # draw the calculator's frame, display and buttons
-        # respond to mouse click within the frame borders
-
   stack:
-    vars:
-      char array[MAXLENGTH]     # array of symbols
-      unsigned int position     # current position in the array
+    data:
+      array: ['0']     # array of symbols
+      position: 0     # current position in the array
+    attributes:
+
       boolean positive  # content of the stack is positive (true) or negative (false)
       boolean integer # content of the stack is integer (true) or fload (false)
                       # this implies that there is a decimal dot symbol in the stack
@@ -97,17 +74,3 @@ classes:
           # convert from string to float and return
       store:
           # convert from float and store to array as string
-
-  processor:
-    # oprations are done on 2 stacks
-    # result is stored into 1st stack
-    # to perform operations, values are read from stacks and converted into float
-    attributes:
-      curren_stack: [first, second]
-      current_operation: [+,-,/,*]
-    operations:
-      calculate:
-        when:
-          # both stacks are not empty
-
-          # and '=' or any operational button is pressed

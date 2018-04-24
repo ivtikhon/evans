@@ -179,3 +179,6 @@ goal:
     createPlan are declared
   - simple way to run planning is to define some objects, add them to a list and
     run setGoal and createPlan
+
+# important feature of the compiler should be to show all possible combinations of
+  input parameters, so developers can evaluate all plans which can be generated
