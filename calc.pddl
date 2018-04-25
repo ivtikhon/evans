@@ -10,7 +10,7 @@
   (:predicates
     ;; stack
     (stack_changed ?s - stack)
-    (stack_point ?s - stack)
+    (stack_dec_point ?s - stack)
     (stack_lastkey_point ?s - stack)
     (stack_tobe_cleaned ?s - stack)
 
@@ -42,11 +42,12 @@
     )
     :effect (and
       (not (stack_tobe_cleaned ?s))
-      (not (stack_point ?s))
+      (not (stack_dec_point ?s))
       (not (stack_lastkey_point ?s))
 ;      (stack_changed ?s)
     )
   )
+
   ;; push digit or decimal point to stack
   ;; ignore extra decimal points
   (:action stack_push
@@ -60,7 +61,7 @@
     :effect (and
       (stack_changed ?s)
       (key_processed ?k)
-      (when (key_ispoint ?k) (and (stack_point ?s) (stack_lastkey_point ?s))
+      (when (key_ispoint ?k) (and (stack_dec_point ?s) (stack_lastkey_point ?s)))
       (when (not (key_ispoint ?k)) (not (stack_lastkey_point ?s)))
     )
   )
@@ -77,7 +78,7 @@
       (key_processed ?k)
       (when (stack_lastkey_point ?s) (and
           (not (stack_lastkey_point ?s))
-          (not (stack_point))
+          (not (stack_dec_point ?s))
         )
       )
     )
