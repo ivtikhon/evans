@@ -52,21 +52,32 @@ classes:
 
   stack:
     data:
-      array: ['0']     # array of symbols
-      position: 0     # current position in the array
+      array: dictionary
+    functions:
+      append:
+        parameters:
+          k: key
+        body:
+          array.append(k.getValue()) # TODO find an appropriate syntax to call data functions
     attributes:
-
-      boolean positive  # content of the stack is positive (true) or negative (false)
-      boolean integer # content of the stack is integer (true) or fload (false)
-                      # this implies that there is a decimal dot symbol in the stack
-      # reference to the button events (the fact that a button is pressed)
-      # reference to the pressed button value
-      # i.e. the stack class should have access to the keyboard class
-      # or maybe these two classes should have shared data space
-    operations:
+      last_key: [digit, point]  # TODO find an appropriate syntax to access states
+      dec_point: boolean
+      changed: boolean
+      tobe_cleaned: boolean
+    operators:
       push:
+        parameters:
+          k: key
         when:
-          # digit button is pressed
+          - not k.processed
+          - k.isDigit or k.isPoints
+          - not changed
+          - not tobe_cleaned
+        effect:
+          - changed
+          - k.processed
+          - if k.isPoint -> last_key.point and dec_point else -> last_key.digit
+        execute: append(k)
       pop:
         when:
           # erase button is pressed

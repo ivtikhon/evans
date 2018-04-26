@@ -1,6 +1,6 @@
 ;;
 ;; Simple calculator in PDDL
-;; Develped by Igor Tikhonin (ivtikhon@gmail.com) in 2018
+;; Developed by Igor Tikhonin (ivtikhon@gmail.com) in 2018
 ;;
 (define (domain CALC)
   (:requirements :adl)
@@ -10,9 +10,9 @@
   (:predicates
     ;; stack
     (stack_changed ?s - stack)
-    (stack_dec_point ?s - stack)
-    (stack_lastkey_point ?s - stack)
-    (stack_tobe_cleaned ?s - stack)
+    (stack_dec_point ?s - stack)  ;; there is a decimal point in the stack
+    (stack_lastkey_point ?s - stack)  ;; if 'erase' comes, we need to know whether the previous key was a decimal point
+    (stack_tobe_cleaned ?s - stack)  ;; clean stack next cycle
 
     ;; key
     (key_isdigit ?k - key)
@@ -32,7 +32,7 @@
     (alu_reg_stored ?a - alu)
   )
 
-  ;; clean stack after operation was inserted
+  ;; clean stack after operation was stored
   (:action stack_clean
     :parameters (?s - stack ?k - key)
     :precondition (and
@@ -157,7 +157,7 @@
     )
     :effect (and
       (display_updated ?d)
-;      (not (stack_changed ?s))
+      (not (stack_changed ?s))
     )
   )
 )
