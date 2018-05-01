@@ -43,44 +43,38 @@
 # anyway, I need to find a way to trigger planning operators
 
 classes:
-  display:
-    attributes:
-      position: 0
-    operations:
-      draw:
-        # draw its frame and also content of stack
-
   stack:
-    data:
-      array: dictionary
+    data: # we should separate data along with methods working with data on the one side,
+          # and planning domain state variables and operators on the other
+      dict: dictionary
     functions:
       append:
         parameters:
           k: key
-        body:
-          array.append(k.getValue()) # TODO find an appropriate syntax to call data functions
-    attributes:
-      last_key: [digit, point]  # TODO find an appropriate syntax to access states
+        execute:
+          dict.append(k.value) # TODO find an appropriate syntax to call data functions
+    attributes: # FDR state variables
+      last_key: ['digit', 'point'] # TODO find an appropriate syntax for FDR variables
       dec_point: boolean
       changed: boolean
       tobe_cleaned: boolean
-    operators:
+    predicates:
+      isLastKeyDigit: last_key == 'digit'
+      isLastKeyPoint: last_key == 'point'
+    operators: # actions in PDDL terms
       push:
         parameters:
           k: key
         when:
           - not k.processed
-          - k.isDigit or k.isPoints
+          - k.isDigit or k.isPoint
           - not changed
           - not tobe_cleaned
         effect:
-          - changed
-          - k.processed
-          - if k.isPoint -> last_key.point and dec_point else -> last_key.digit
-        execute: append(k)
-      pop:
-        when:
-          # erase button is pressed
+          - changed = True # TODO find an appropriate syntax for variable assignment
+          - k.processed = True
+          - if k.isPoint then last_key = 'point' and dec_point = True else last_key = 'digit'
+        execute: append(k)  # data processing
       read:
           # convert from string to float and return
       store:

@@ -182,3 +182,11 @@ goal:
 
 # important feature of the compiler should be to show all possible combinations of
   input parameters, so developers can evaluate all plans which can be generated
+
+# I need to define the language features in YAML format so it can be converted
+  to relevant syntax easily
+
+# There should be created a site with detailed description of the language
+  with ability for registered users to request adding new features or modifying
+  existing ones; some voting system should be implemented allowing users to vote
+  for specific features
