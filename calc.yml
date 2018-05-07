@@ -4,61 +4,42 @@
 # or if a keyboard key is pressed corresponging to
 # any calc button, then:
 #
-# when a digit button is pressed
-# its value is pushed to the current stack (one of two)
-# and also showed in the right position of the display
-# (or the current stack content is simply showed every
-# time when a digit button is pressed)
+# 1) when a digit or digital point button is pressed
+# its value is pushed to stack and display is regreshed;
 #
-# when an operation button (+,-,/,*) is pressed, then:
-# - if the current operation value is not empty,
-#   execute the early entered operation, store the result
-#   to the current stack and display the result
-# - switch the current stack to another one
-#
-# when the equal sign is pressed,
-# execute the current operation, store the result to
-# the current stack, swithch the stack
-
-# attributes are defined in classes
-# and these attributes correspond to FDR state variables
-
-# probably, I should distinguish between data processing functions and planning operations
-# assuming the latter participate in planning
-# it is not clear, though how to "call" data functions
-# the planning operators should be called by planner by "implicitly" declaring
-# the planner class along with its (planning) methods
-# maybe I should have a common space visible for all objects
-# participating in planning, so operators can be triggered by assigning
-# corresponging values to triggering variables
-# this also related to dependecy injection
-# in other words for all planning events there should be common space where all operators and
-# their respective preconditions are visible
-#
-# or maybe this should be just list of objects with their (planning) operators
-# and each object has references to related data in other objects
-#
-# what if I define topics and objects will sunbscribe to topics and listen to events
-# or maybe some kind of integration classes can be defined
-# anyway, I need to find a way to trigger planning operators
+# 2) when an operation button (+,-,/,*) is pressed, then:
+# - if the early entered operation value is empty
+#   store the operation to the early entered operation variable;
+#   else, do the same as for '=' sign and then store the operation
+#   to the early entered operation variable;
+# 3) when the '=' sign is pressed,
+#   execute the early entered operation with stack and register,
+#   store the result to register and copy it to stack; clear
+#   early entered operation
 
 classes:
   stack:
-    data: # we should separate data along with methods working with data on the one side,
-          # and planning domain state variables and operators on the other
+    data: # data and state variables have to be separated
+          # I can't think of any better implementation model for now (as of May, 2018);
+          # so, we have hybrid classes, where user data along with data methods  coexists
+          # with state variables with their respective operators;
+          # state variables are initialized as usual before the planning starts,
+          # i.e. data variables are used to initialize the state variables before planning;
+          # on the other hand, data variables themselves are modified from planning
+          # operators during plan execution phase, i.e. after plan has been created;
       dict: dictionary
-    functions:
+    methods:
       append:
         parameters:
           k: key
-        execute:
+        body:
           dict.append(k.value) # TODO find an appropriate syntax to call data functions
     attributes: # FDR state variables
       last_key: ['digit', 'point'] # TODO find an appropriate syntax for FDR variables
       dec_point: boolean
       changed: boolean
       tobe_cleaned: boolean
-    predicates:
+    predicates: # predicates seem to be useful for simple state inquires
       isLastKeyDigit: last_key == 'digit'
       isLastKeyPoint: last_key == 'point'
     operators: # actions in PDDL terms
@@ -74,7 +55,7 @@ classes:
           - changed = True # TODO find an appropriate syntax for variable assignment
           - k.processed = True
           - if k.isPoint then last_key = 'point' and dec_point = True else last_key = 'digit'
-        execute: append(k)  # data processing
+        execute: append(k)  # data processing is done here;
       read:
           # convert from string to float and return
       store:
