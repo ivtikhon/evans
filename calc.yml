@@ -27,36 +27,38 @@ classes:
           # i.e. data variables are used to initialize the state variables before planning;
           # on the other hand, data variables themselves are modified from planning
           # operators during plan execution phase, i.e. after plan has been created;
-      dict: dictionary
-    methods:
-      append:
-        parameters:
-          k: key
-        body:
-          dict.append(k.value) # TODO find an appropriate syntax to call data functions
-    attributes: # FDR state variables
-      last_key: ['digit', 'point'] # TODO find an appropriate syntax for FDR variables
-      dec_point: boolean
-      changed: boolean
-      tobe_cleaned: boolean
-    predicates: # predicates seem to be useful for simple state inquires
-      isLastKeyDigit: last_key == 'digit'
-      isLastKeyPoint: last_key == 'point'
-    operators: # actions in PDDL terms
-      push:
-        parameters:
-          k: key
-        when:
-          - not k.processed
-          - k.isDigit or k.isPoint
-          - not changed
-          - not tobe_cleaned
-        effect:
-          - changed = True # TODO find an appropriate syntax for variable assignment
-          - k.processed = True
-          - if k.isPoint then last_key = 'point' and dec_point = True else last_key = 'digit'
-        execute: append(k)  # data processing is done here;
-      read:
+      vars:
+        dict: dictionary
+      methods:
+        push:
+          parameters:
+            k: key
+          body:
+            dict.append(k.value) # TODO find an appropriate syntax to call data functions
+    fdr:
+      vars: # FDR state variables
+        last_key: ['digit', 'point'] # TODO find an appropriate syntax for FDR variables
+        dec_point: boolean
+        changed: boolean
+        tobe_cleaned: boolean
+      predicates: # predicates seem to be useful for simple state inquires
+        isLastKeyDigit: last_key == 'digit'
+        isLastKeyPoint: last_key == 'point'
+      operators: # actions in PDDL terms
+        push:
+          parameters:
+            k: key
+          when:
+            - not k.processed
+            - k.isDigit or k.isPoint
+            - not changed
+            - not tobe_cleaned
+          effect:
+            - changed = True # TODO find an appropriate syntax for variable assignment
+            - k.processed = True
+            - if k.isPoint then last_key = 'point' and dec_point = True else last_key = 'digit'
+          execute: data.push(k)  # data processing is done here; maybe this section of fdr operator should have exclusive access to data section
+        read:
           # convert from string to float and return
-      store:
+        store:
           # convert from float and store to array as string
