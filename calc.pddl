@@ -50,6 +50,7 @@
 
   ;; push digit or decimal point to stack
   ;; ignore extra decimal points
+  ;; TODO write ignore extra point action
   (:action stack_push
     :parameters (?s - stack ?k - key)
     :precondition (and

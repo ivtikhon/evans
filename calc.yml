@@ -22,27 +22,28 @@ classes:
     data: # data and state variables have to be separated
           # I can't think of any better implementation model for now (as of May, 2018);
           # so, we have hybrid classes, where user data along with data methods  coexists
-          # with state variables with their respective operators;
-          # state variables are initialized as usual before the planning starts,
-          # i.e. data variables are used to initialize the state variables before planning;
+          # with state variables and their respective operators;
+          # data variables are used to initialize the state variables before planning;
           # on the other hand, data variables themselves are modified from planning
-          # operators during plan execution phase, i.e. after plan has been created;
+          # operators during the plan execution phase;
       vars:
         dict: dictionary
-      methods:
+      methods:  # the actual methods should be written in Python for now;
+                # after plan is created, the interpreter will generate code and then execute it;
+                # later, when the Evans syntax is designed, the translation phase won't be necessary;
         push:
           parameters:
             k: key
-          body:
-            dict.append(k.value) # TODO find an appropriate syntax to call data functions
-    fdr:
-      vars: # FDR state variables
-        last_key: ['digit', 'point'] # TODO find an appropriate syntax for FDR variables
-        dec_point: boolean
+          body: |
+            dict.append(k.getValue())
+    state:
+      vars:
+        last_key: ['digit', 'point'] # FDR state variable with explisitly listed values
+        dec_point: boolean # boolean FDR state variable
         changed: boolean
         tobe_cleaned: boolean
       predicates: # predicates seem to be useful for simple state inquires
-        isLastKeyDigit: last_key == 'digit'
+        isLastKeyDigit: last_key == 'digit' # TODO: find a template engine to work with logical expressions
         isLastKeyPoint: last_key == 'point'
       operators: # actions in PDDL terms
         push:
@@ -54,10 +55,10 @@ classes:
             - not changed
             - not tobe_cleaned
           effect:
-            - changed = True # TODO find an appropriate syntax for variable assignment
+            - changed = True
             - k.processed = True
             - if k.isPoint then last_key = 'point' and dec_point = True else last_key = 'digit'
-          execute: data.push(k)  # data processing is done here; maybe this section of fdr operator should have exclusive access to data section
+          execute: push(k)  # data processing is done here; the execute section of operator has direct access to data methods
         read:
           # convert from string to float and return
         store:
