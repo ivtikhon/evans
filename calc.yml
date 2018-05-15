@@ -27,7 +27,7 @@ classes:
           # on the other hand, data variables themselves are modified from planning
           # operators during the plan execution phase;
       vars:
-        dict: List
+        s: List
       methods:  # the actual methods should be written in some language (e.g. Python or JS) for now;
                 # after plan is created, the interpreter will generate code and then execute it;
                 # later, when the Evans syntax is designed, the translation phase won't be necessary;
@@ -36,13 +36,13 @@ classes:
           parameters:
             k: Key # can be data or hybrid types
           body: |
-            dict.append(k.getValue())
+            s.append(k.getValue())
 
-        read:
-          body: dict.toString()
+        getValue:
+          body: s.toString()
 
         clean:
-          body: dict.erase()
+          body: s.erase()
     state:
       vars:
         last_key: ['digit', 'point', 'undef'] # state variable with explisitly listed values (inline enum)
@@ -72,8 +72,8 @@ classes:
                 - dec_point = True
               else:
                   last_key = 'digit'
-          exec: |
-            push(k)  # data processing is done here; the exec section of operator has direct access to data methods
+          exec:
+            push: k # data methods can be called here
 
         stack_to_register:
           parameters:
@@ -88,8 +88,8 @@ classes:
             - a.reg_stored = True
             - k.processed = True
             - tobe_cleaned = True
-          exec: |
-            a.store(read.toInt())
+          exec:
+            - a.store: this # current object can be addressed as 'this' (like in C++)
 
         clean:
           parameters:
@@ -102,5 +102,30 @@ classes:
             - tobe_cleaned = False
             - dec_point = False
             - last_key = 'undef'
-          exec: |
-            erase()
+          exec:
+            clean:
+
+  Alu:
+    data:
+      vars:
+        reg: Int
+      methods:
+        store:
+          parameters:
+            s: Stack
+          body: |
+            reg = s.get().toInt()
+    state:
+      vars:
+        reg_stored: Boolean
+      predicates:
+      operators:
+
+  Key:
+    data:
+      vars:
+      methods:
+    state:
+      vars:
+      predicates:
+      operators:
