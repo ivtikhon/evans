@@ -19,9 +19,8 @@
 
 classes:
   Stack:
-    data: # data and state variables have to be separated
-          # I can't think of any better implementation model for now (as of May, 2018);
-          # so, we have hybrid classes, where user data along with data methods  coexists
+    data: # data and state variables have are separate for now;
+          # so, there are hybrid classes, where user data along with data methods coexists
           # with state variables and their respective operators;
           # data variables are used to initialize the state variables before planning;
           # on the other hand, data variables themselves are modified from planning
@@ -56,12 +55,13 @@ classes:
         push:
           parameters: # we don't use global variables, so the variable scope is limitied
                       # by parameters and variables defined in classes;
-                      # there are no plans to support PDDL operators 'forall' and 'exists' for now;
+                      # it is not clear how to implement PDDL operators 'forall' and 'exists';
+                      # TODO: think about using lists in state operators
             k: Key # can be state or hybrid types
           when:
             - not changed
             - not k.processed
-            - k.isDigit or k.isPoint
+            - k.isDigit or (k.isPoint and not dec_point)
             - not tobe_cleaned
           effect:
             - changed = True
@@ -74,22 +74,6 @@ classes:
                   last_key = 'digit'
           exec:
             push: k # data methods can be called here
-
-        stack_to_register:
-          parameters:
-            k: Key
-            a: Alu
-          when:
-            - not k.processed
-            - k.isOp
-            - not a.reg_stored
-            - a.op_stored
-          effect:
-            - a.reg_stored = True
-            - k.processed = True
-            - tobe_cleaned = True
-          exec:
-            - a.store: this # current object can be addressed as 'this' (like in C++)
 
         clean:
           parameters:
@@ -118,8 +102,24 @@ classes:
     state:
       vars:
         reg_stored: Boolean
+        op_stored: Boolean
       predicates:
       operators:
+        stack_to_register:
+          parameters:
+            k: Key
+            s: Stack
+          when:
+            - not k.processed
+            - k.isOp
+            - not reg_stored
+            - op_stored
+          effect:
+            - reg_stored = True
+            - k.processed = True
+            - s.tobe_cleaned = True
+          exec:
+            store: s
 
   Key:
     data:

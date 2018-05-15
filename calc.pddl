@@ -56,7 +56,7 @@
     :precondition (and
       (not (stack_changed ?s))
       (not (key_processed ?k))
-      (or (key_isdigit ?k) (key_ispoint ?k))
+      (or (key_isdigit ?k) (and (key_ispoint ?k) (not (stack_dec_point ?s))))
       (not (stack_tobe_cleaned ?s))
     )
     :effect (and
