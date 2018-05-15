@@ -18,7 +18,7 @@
 #   early entered operation
 
 classes:
-  stack:
+  Stack:
     data: # data and state variables have to be separated
           # I can't think of any better implementation model for now (as of May, 2018);
           # so, we have hybrid classes, where user data along with data methods  coexists
@@ -27,39 +27,80 @@ classes:
           # on the other hand, data variables themselves are modified from planning
           # operators during the plan execution phase;
       vars:
-        dict: dictionary
-      methods:  # the actual methods should be written in Python for now;
+        dict: List
+      methods:  # the actual methods should be written in some language (e.g. Python or JS) for now;
                 # after plan is created, the interpreter will generate code and then execute it;
                 # later, when the Evans syntax is designed, the translation phase won't be necessary;
+                # TODO: think about calling data methods implicitly from operators if names and parameters match;
         push:
           parameters:
-            k: key
+            k: Key # can be data or hybrid types
           body: |
             dict.append(k.getValue())
+
+        read:
+          body: dict.toString()
+
+        clean:
+          body: dict.erase()
     state:
       vars:
-        last_key: ['digit', 'point'] # FDR state variable with explisitly listed values
-        dec_point: boolean # boolean FDR state variable
-        changed: boolean
-        tobe_cleaned: boolean
+        last_key: ['digit', 'point', 'undef'] # state variable with explisitly listed values (inline enum)
+        dec_point: Boolean
+        changed: Boolean
+        tobe_cleaned: Boolean
       predicates: # predicates seem to be useful for simple state inquires
-        isLastKeyDigit: last_key == 'digit' # TODO: find a template engine to work with logical expressions
-        isLastKeyPoint: last_key == 'point'
+        isLastKeyDigit: (last_key == 'digit') # TODO: find a template engine to work with logical expressions
+        isLastKeyPoint: (last_key == 'point')
       operators: # actions in PDDL terms
         push:
-          parameters:
-            k: key
+          parameters: # we don't use global variables, so the variable scope is limitied
+                      # by parameters and variables defined in classes;
+                      # there are no plans to support PDDL operators 'forall' and 'exists' for now;
+            k: Key # can be state or hybrid types
           when:
+            - not changed
             - not k.processed
             - k.isDigit or k.isPoint
-            - not changed
             - not tobe_cleaned
           effect:
             - changed = True
             - k.processed = True
-            - if k.isPoint then last_key = 'point' and dec_point = True else last_key = 'digit'
-          execute: push(k)  # data processing is done here; the execute section of operator has direct access to data methods
-        read:
-          # convert from string to float and return
-        store:
-          # convert from float and store to array as string
+            - if: k.isPoint
+              then:
+                - last_key = 'point'
+                - dec_point = True
+              else:
+                  last_key = 'digit'
+          exec: |
+            push(k)  # data processing is done here; the exec section of operator has direct access to data methods
+
+        stack_to_register:
+          parameters:
+            k: Key
+            a: Alu
+          when:
+            - not k.processed
+            - k.isOp
+            - not a.reg_stored
+            - a.op_stored
+          effect:
+            - a.reg_stored = True
+            - k.processed = True
+            - tobe_cleaned = True
+          exec: |
+            a.store(read.toInt())
+
+        clean:
+          parameters:
+            k: Key
+          when:
+            - not k.processed
+            - k.isDigit or k.isPoint
+            - tobe_cleaned
+          effect:
+            - tobe_cleaned = False
+            - dec_point = False
+            - last_key = 'undef'
+          exec: |
+            erase()
