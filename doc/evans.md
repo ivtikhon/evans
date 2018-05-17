@@ -47,7 +47,6 @@ classes:
 #### Data
 * String
 * Int
-* Dict
 
 #### State
 * Boolean
