@@ -31,11 +31,17 @@ classes:
                 # after plan is created, the interpreter will generate code and then execute it;
                 # later, when the Evans syntax is designed, the translation phase won't be necessary;
                 # TODO: think about calling data methods implicitly from operators if names and parameters match;
-        push:
+        pushKey:
           parameters:
             k: Key # can be data or hybrid types
           body: |
             s.append(k.getValue())
+
+        pushReg:
+          parameters:
+            a: Alu
+          body: |
+            s.append(a.getReg().toStr().toList())
 
         getValue:
           body: s.toString()
@@ -73,7 +79,7 @@ classes:
               else:
                   last_key = 'digit'
           exec:
-            push: k # data methods can be called here
+            pushKey: k # data methods can be called from here; assignments, conditionals, loops, etc. are not supported for now;
 
         clean:
           parameters:
@@ -89,16 +95,39 @@ classes:
           exec:
             clean:
 
+        stack_from_register:
+          parameters:
+            k: Key
+            a: Alu
+          when:
+            - a.isOpExecuted
+            - k.isOp or k.isEq
+            - not k.processed
+          effect:
+            - k.processed = True
+            - changed = True
+            - a.reg_stored = False
+            - tobe_cleaned = True
+          exec:
+            clean:
+            pushReg: a
+
   Alu:
     data:
       vars:
         reg: Int
+        op: Char
       methods:
-        store:
+        storeReg:
           parameters:
             s: Stack
           body: |
-            reg = s.get().toInt()
+            reg = s.getValue().toFloat()
+        storeOp:
+          parameters:
+            k: Key
+          body: |
+            op = k.getValue()
     state:
       vars:
         reg_stored: Boolean
@@ -119,7 +148,20 @@ classes:
             - k.processed = True
             - s.tobe_cleaned = True
           exec:
-            store: s
+            storeReg: s
+
+        store_op:
+          parameters:
+            k: Key
+          when:
+            - not op_stored
+            - k.isOp
+            - not reg_stored
+            - not k.processed
+          effect:
+            - op_stored = True
+          exec:
+            storeOp: k
 
   Key:
     data:
