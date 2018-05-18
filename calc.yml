@@ -41,7 +41,8 @@ classes:
           parameters:
             a: Alu
           body: |
-            s.append(a.getReg().toStr().toList())
+            s.append(a.getReg().toStr().toList()) # the syntax is not real for now;
+                                                  # I'll get back to this on the later stages
 
         getValue:
           body: s.toString()
@@ -50,8 +51,9 @@ classes:
           body: s.erase()
     state:
       vars:
-        last_key: ['digit', 'point', 'undef'] # state variable with explisitly listed values (inline enum)
-        dec_point: Boolean
+        last_key: ['digit', 'point', 'undef'] # state variable with explisitly listed values (inline enum);
+                                              # 'undef' is the default value for inline enum
+        dec_point: Boolean # False is the default value for Boolean type
         changed: Boolean
         tobe_cleaned: Boolean
       predicates: # predicates seem to be useful for simple state inquires
@@ -59,7 +61,7 @@ classes:
         isLastKeyPoint: (last_key == 'point')
       operators: # actions in PDDL terms
         push:
-          parameters: # we don't use global variables, so the variable scope is limitied
+          parameters: # global variables are not supported, i.e. the variable scope is limitied
                       # by parameters and variables defined in classes;
                       # it is not clear how to implement PDDL operators 'forall' and 'exists';
                       # TODO: think about using lists in state operators
@@ -79,7 +81,8 @@ classes:
               else:
                   last_key = 'digit'
           exec:
-            pushKey: k # data methods can be called from here; assignments, conditionals, loops, etc. are not supported for now;
+            pushKey: k  # data methods can be called from here;
+                        # assignments, conditionals, loops, etc. are not supported for now;
 
         clean:
           parameters:
@@ -93,7 +96,7 @@ classes:
             - dec_point = False
             - last_key = 'undef'
           exec:
-            clean:
+            clean:  # data method call with no parameters
 
         stack_from_register:
           parameters:
@@ -115,7 +118,7 @@ classes:
   Alu:
     data:
       vars:
-        reg: Int
+        reg: Float
         op: Char
       methods:
         storeReg:
@@ -131,8 +134,11 @@ classes:
     state:
       vars:
         reg_stored: Boolean
-        op_stored: Boolean
+        operation: ['executed', 'stored', 'undef']
       predicates:
+        isOpExecuted: operation == 'executed'
+        isOpStored: operation == 'stored'
+        isRegStored: reg_stored == True
       operators:
         stack_to_register:
           parameters:
@@ -142,7 +148,7 @@ classes:
             - not k.processed
             - k.isOp
             - not reg_stored
-            - op_stored
+            - isOpStored
           effect:
             - reg_stored = True
             - k.processed = True
@@ -154,14 +160,29 @@ classes:
           parameters:
             k: Key
           when:
-            - not op_stored
+            - not isOpStored
             - k.isOp
             - not reg_stored
             - not k.processed
           effect:
-            - op_stored = True
+            - operation = 'stored'
           exec:
             storeOp: k
+
+        exec_op:
+          parameters:
+            k: Key
+            s: Stack
+          when:
+            - isOpStored
+            - k.isOp or k.isEq
+            - isRegStored
+            - not k.processed
+            - not isOpExecuted
+          effect:
+            - operation = 'executed'
+          exec:
+            execOp: s
 
   Key:
     data:
