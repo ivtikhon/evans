@@ -32,6 +32,16 @@
     (alu_reg_stored ?a - alu)
   )
 
+  (:action key_no_op
+    :parameters (?k - key ?s - stack)
+    :precondition (and
+      (not (key_processed ?k))
+      (key_ispoint ?k)
+      (stack_dec_point ?s)
+    )
+    :effect (key_processed ?k)
+  )
+
   ;; clean stack after operation was stored
   (:action stack_clean
     :parameters (?s - stack ?k - key)

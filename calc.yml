@@ -57,8 +57,9 @@ classes:
         changed: Boolean
         tobe_cleaned: Boolean
       predicates: # predicates seem to be useful for simple state inquires
-        isLastKeyDigit: (last_key == 'digit') # TODO: find a template engine to work with logical expressions
-        isLastKeyPoint: (last_key == 'point')
+        isLastKeyDigit: last_key == 'digit' # TODO: find a template engine to work with logical expressions
+        isLastKeyPoint: last_key == 'point'
+        isDecPoint: dec_point == True
       operators: # actions in PDDL terms
         push:
           parameters: # global variables are not supported, i.e. the variable scope is limitied
@@ -78,8 +79,7 @@ classes:
               then:
                 - last_key = 'point'
                 - dec_point = True
-              else:
-                  last_key = 'digit'
+              else: last_key = 'digit'
           exec:
             pushKey: k  # data methods can be called from here;
                         # assignments, conditionals, loops, etc. are not supported for now;
@@ -131,13 +131,27 @@ classes:
             k: Key
           body: |
             op = k.getValue()
+        execOp:
+          parameters:
+            s: Stack
+          body: |
+            st1 = s.getValue().toFloat()
+            if op == '+':
+              reg = st1 + reg
+            elif op == '-':
+              reg = st1 + reg
+            elif op == '*':
+              reg = st1 * reg
+            elif op == '/':
+              reg = st1 / reg
     state:
       vars:
         reg_stored: Boolean
-        operation: ['executed', 'stored', 'undef']
+        op_executed: Boolean
+        op_stored: Boolean
       predicates:
-        isOpExecuted: operation == 'executed'
-        isOpStored: operation == 'stored'
+        isOpExecuted: op_executed == True
+        isOpStored: op_stored == True
         isRegStored: reg_stored == True
       operators:
         stack_to_register:
@@ -164,10 +178,8 @@ classes:
             - k.isOp
             - not reg_stored
             - not k.processed
-          effect:
-            - operation = 'stored'
-          exec:
-            storeOp: k
+          effect: op_stored = True
+          exec: storeOp: k
 
         exec_op:
           parameters:
@@ -180,15 +192,34 @@ classes:
             - not k.processed
             - not isOpExecuted
           effect:
-            - operation = 'executed'
+            - op_executed = True
+            - if: k.isEq
+              then: op_stored = False
           exec:
             execOp: s
 
   Key:
     data:
       vars:
+        k: Char
       methods:
     state:
       vars:
+        k_val: ['digit', 'point', 'op', 'eq', 'clear', 'erase', 'undef']
+        processed: Boolean
       predicates:
+        isOp: k_val == 'op'
+        isDigit: k_val == 'digit'
+        isPoint: k_val == 'point'
+        isEq: k_val == 'eq'
+        isClear: k_val == 'clear'
+        isErase: k_val == 'erase'
       operators:
+        no_op:
+          parameters:
+            s: Stack
+          when:
+            - not processed
+            - isPoint
+            - s.isDecPoint
+          effect: processed
