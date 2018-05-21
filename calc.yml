@@ -179,7 +179,8 @@ classes:
             - not reg_stored
             - not k.processed
           effect: op_stored = True
-          exec: storeOp: k
+          exec:
+            storeOp: k
 
         exec_op:
           parameters:
