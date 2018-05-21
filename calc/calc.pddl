@@ -1,6 +1,6 @@
 ;;
 ;; Simple calculator in PDDL
-;; Developed by Igor Tikhonin (ivtikhon@gmail.com) in 2018
+;; Developed by Igor Tikhonin in 2018
 ;;
 (define (domain CALC)
   (:requirements :adl)

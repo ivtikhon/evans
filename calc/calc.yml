@@ -1,4 +1,8 @@
 ---
+# Simple calculator in Evans YAML
+# Developed by Igor Tikhonin in 2018
+#
+# Model description:
 # when mouse button is clicked and the mouse pointer
 # coordinates corresponds to any of the calc buttons,
 # or if a keyboard key is pressed corresponging to

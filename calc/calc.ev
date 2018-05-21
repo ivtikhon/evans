@@ -1,4 +1,5 @@
 # First attempt to write something in Evans
+# Developed by Igor Tikhonin in 2018
 
 class Stack {
   data:

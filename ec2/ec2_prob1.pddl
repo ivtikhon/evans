@@ -1,3 +1,6 @@
+; EC2 problem definition file
+; Developed by Igor Tikhonin in 2014-2017
+
 (define (problem EC2-test)
   (:domain EC2)
   (:objects

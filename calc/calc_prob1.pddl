@@ -1,4 +1,7 @@
-(define (problem CALC-test)
+; Calculator problem definition
+; Developed by Igor Tikhonin in 2018
+
+(define (problem Calculator)
   (:domain CALC)
   (:objects
     stack1 - stack
