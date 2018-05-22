@@ -6,27 +6,33 @@
 import sys, getopt
 import yaml
 
-def parse_opt (argv):
-   inputfile = ''
-   outputfile = ''
-   try:
-      opts, args = getopt.getopt(argv,"hi:o:",["ifile=","ofile="])
-   except getopt.GetoptError:
-      print ('test.py -i <inputfile> -o <outputfile>')
-      sys.exit(2)
-   for opt, arg in opts:
-      if opt == '-h':
-         print ('test.py -i <inputfile> -o <outputfile>')
-         sys.exit()
-      elif opt in ("-i", "--ifile"):
-         inputfile = arg
-      elif opt in ("-o", "--ofile"):
-         outputfile = arg
-   print ('Input file is "', inputfile)
-   print ('Output file is "', outputfile)
+def usage ():
+    print ('evyml2pddl.py [-o <outputfile>] input_file.yml')
 
-with open("example.yaml", 'r') as stream:
+def main (argv):
     try:
-        print(yaml.load(stream))
-    except yaml.YAMLError as exc:
-        print(exc)
+        opts, args = getopt.getopt(sys.argv[1:], "ho:", ["help", "output="])
+    except getopt.GetoptError:
+        usage()
+        sys.exit(2)
+    output = None
+    for o, a in opts:
+        if o in ("-h", "--help"):
+            usage()
+            sys.exit()
+        elif o in ("-o", "--output"):
+            output = a
+    if output == None:
+        print ('Output: stdout')
+    else:
+        print ('Output: ' + output)
+    print ('Input: ' + args)
+
+if __name__ == "__main__":
+    main()
+
+# with open("example.yaml", 'r') as stream:
+#     try:
+#         print(yaml.load(stream))
+#     except yaml.YAMLError as exc:
+#         print(exc)
