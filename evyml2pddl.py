@@ -9,6 +9,11 @@ import yaml
 def usage ():
     print ('evyml2pddl.py [-h | --help] [-o <outputfile> | --output=<outputfile>] input_file.yml')
 
+def error_exit(msg):
+    print(msg)
+    sys.exit()
+
+
 def main (argv):
 # Parse options
     try:
@@ -32,9 +37,16 @@ def main (argv):
 # Read YAML file
     with open(input, 'r') as stream:
         try:
-            print(yaml.dump(yaml.load(stream)))
+            struct = yaml.load(stream)
+            if 'classes' in struct:
+                for cl_nm, cl_def in struct['classes'].items():
+                    if 'state' in cl_def:
+                        print(cl_def['state'])
+            else:
+                error_exit("No 'classes' section found in source file.")
         except yaml.YAMLError as exc:
             print(exc)
+            sys.exit(2)
 
 
 if __name__ == "__main__":
