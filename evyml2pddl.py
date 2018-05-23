@@ -10,6 +10,7 @@ def usage ():
     print ('evyml2pddl.py [-h | --help] [-o <outputfile> | --output=<outputfile>] input_file.yml')
 
 def main (argv):
+# Parse options
     try:
         opts, args = getopt.getopt(argv, "ho:", ["help", "output="])
     except getopt.GetoptError:
@@ -28,17 +29,13 @@ def main (argv):
     else:
         usage()
         sys.exit()
-    print ('Input: ' + input)
-    if output == None:
-        print ('Output: stdout')
-    else:
-        print ('Output: ' + output)
+# Read YAML file
+    with open(input, 'r') as stream:
+        try:
+            print(yaml.dump(yaml.load(stream)))
+        except yaml.YAMLError as exc:
+            print(exc)
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-
-# with open("example.yaml", 'r') as stream:
-#     try:
-#         print(yaml.load(stream))
-#     except yaml.YAMLError as exc:
-#         print(exc)
