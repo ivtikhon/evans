@@ -45,14 +45,15 @@ classes:
           parameters:
             a: Alu
           body: |
-            s.append(a.getReg().toStr().toList()) # the syntax is not real for now;
-                                                  # I'll get back to this on the later stages
+            s.append(str(a.getReg()).split())
 
         getValue:
-          body: s.toString()
+          body: |
+            return ''.join(s)
 
         clean:
-          body: s.erase()
+          body: |
+            s.clear()
     state:
       vars:
         last_key: ['digit', 'point', 'undef'] # state variable with explisitly listed values (inline enum);
@@ -61,9 +62,10 @@ classes:
         changed: Boolean
         tobe_cleaned: Boolean
       predicates: # predicates seem to be useful for simple state inquires
-        isLastKeyDigit: last_key == 'digit' # TODO: find a template engine to work with logical expressions
+        isLastKeyDigit: last_key == 'digit' # Logical expressions: any non-zero value is true; zero is false;
+                                            # supported operators: '==', '!=', and, or, not
         isLastKeyPoint: last_key == 'point'
-        isDecPoint: dec_point == True
+        isDecPoint: dec_point
       operators: # actions in PDDL terms
         push:
           parameters: # global variables are not supported, i.e. the variable scope is limitied
@@ -129,7 +131,7 @@ classes:
           parameters:
             s: Stack
           body: |
-            reg = s.getValue().toFloat()
+            reg = float(s.getValue())
         storeOp:
           parameters:
             k: Key
@@ -139,7 +141,7 @@ classes:
           parameters:
             s: Stack
           body: |
-            st1 = s.getValue().toFloat()
+            st1 = float(s.getValue())
             if op == '+':
               reg = st1 + reg
             elif op == '-':
@@ -208,6 +210,9 @@ classes:
       vars:
         k: Char
       methods:
+        getValue:
+          body: |
+            return k
     state:
       vars:
         k_val: ['digit', 'point', 'op', 'eq', 'clear', 'erase', 'undef']
