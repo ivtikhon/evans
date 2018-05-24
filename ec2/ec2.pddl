@@ -1,4 +1,4 @@
-;; This code was developed by Igor Tikhonin (ivtikhon@gmail.com) in 2014-2017.
+;; This PDDL code was developed by Igor Tikhonin (ivtikhon@gmail.com) in 2014-2018.
 ;; Amazon's EC2 is used as the infrastructure model.
 
 ;; Instances:
@@ -16,8 +16,6 @@
 ;; application may depend on another application, i.e. it might require another application
 ;; directory requires a filesystem to be created at
 ;; file requires a directory to be stored in
-;;
-;; (c) Igor Tikhonin
 
 (define (domain EC2)
   (:requirements :adl)
@@ -104,7 +102,7 @@
   )
 
   ;; attach storage volume to instance
-  ;; storage volume can be attached to one instance only (AWS specific)
+  ;; storage volume can be attached to one instance only
   ;; the instance has to be created (either running or stopped)
   ;; there shouild exist an object that requires volume to be attached (external dependency)
   (:action attach-vol

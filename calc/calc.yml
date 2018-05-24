@@ -23,8 +23,7 @@
 
 classes:
   Stack:
-    data: # data and state variables have are separate for now;
-          # so, there are hybrid classes, where user data along with data methods coexists
+    data: # in Evans, user data along with data methods coexists
           # with state variables and their respective operators;
           # data variables are used to initialize the state variables before planning;
           # on the other hand, data variables themselves are modified from planning
@@ -56,12 +55,14 @@ classes:
             s.clear()
     state:
       vars:
-        last_key: ['digit', 'point', 'undef'] # state variable with explisitly listed values (inline enum);
-                                              # 'undef' is the default value for inline enum
+        last_key: ['digit', 'point']  # state variable with explisitly listed values (inline enum);
+                                      # it is not clear what should be the default value for enum;
+                                      # TODO: read again what Helmert and Hoffmann say about FDR state variables
         dec_point: Boolean # False is the default value for Boolean type
         changed: Boolean
         tobe_cleaned: Boolean
       predicates: # predicates seem to be useful for simple state inquires
+                  # TODO: predicates in PDDL can have multiple arguments: think about how to implement it here
         isLastKeyDigit: last_key == 'digit' # Logical expressions: any non-zero value is true; zero is false;
                                             # supported operators: '==', '!=', and, or, not
         isLastKeyPoint: last_key == 'point'
@@ -70,8 +71,8 @@ classes:
         push:
           parameters: # global variables are not supported, i.e. the variable scope is limitied
                       # by parameters and variables defined in classes;
-                      # it is not clear how to implement PDDL operators 'forall' and 'exists';
-                      # TODO: think about using lists in state operators
+                      # TODO: it is not clear how to implement PDDL operators 'forall' and 'exists';
+                      # think about using lists in state operators
             k: Key # can be state or hybrid types
           when:
             - not changed
@@ -87,7 +88,7 @@ classes:
                 - dec_point = True
               else: last_key = 'digit'
           exec:
-            pushKey: k  # data methods can be called from here;
+            pushKey: k  # data methods are called from here;
                         # assignments, conditionals, loops, etc. are not supported for now;
 
         clean:
@@ -215,7 +216,7 @@ classes:
             return k
     state:
       vars:
-        k_val: ['digit', 'point', 'op', 'eq', 'clear', 'erase', 'undef']
+        k_val: ['digit', 'point', 'op', 'eq', 'clear', 'erase']
         processed: Boolean
       predicates:
         isOp: k_val == 'op'

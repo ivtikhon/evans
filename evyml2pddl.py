@@ -41,13 +41,16 @@ def main (argv):
             if 'classes' in struct:
                 for cl_nm, cl_def in struct['classes'].items():
                     if 'state' in cl_def:
-                        print(cl_def['state'])
+                        for st_nm, st_def in cl_def['state'].items():
+                            if st_nm == 'vars':
+                                for var_nm, var_def in st_def.items():
+                                    print (var_def)
+                                    print ('(' + '_'.join([cl_nm.lower(), var_nm]) + ' ?p - ' + cl_nm + ')')
             else:
                 error_exit("No 'classes' section found in source file.")
         except yaml.YAMLError as exc:
             print(exc)
             sys.exit(2)
-
 
 if __name__ == "__main__":
     main(sys.argv[1:])
