@@ -59,10 +59,24 @@ def main (argv):
                                     predicates.append('(' + '_'.join([cl_nm.lower(), var_nm, var_state]) + ' ?p - ' + cl_nm + ')')
                             else:
                                 error_exit("SYNTAX ERROR: class " + cl_nm +
-                                    ", state variable type " + var_nm + " can be either Boolean or list")
+                                    ", state variable " + var_nm + " expected to be either Boolean type or list")
+                    elif st_nm == 'operators':
+                        for op_nm, op_def in st_def.items():
+                            actions.append('(:action ' + cl_nm.lower() + '_' + op_nm)
+                            actions.append(':parameters (?this - ' + cl_nm.lower())
+                            if 'parameters' in op_def:
+                                if not isinstance(op_def['parameters'], dict):
+                                    error_exit("SYNTAX ERROR: class " + cl_nm +
+                                        ", operator " + op_nm + " parameters expected to be dictionary type")
+                                for par_nm, par_type in op_def['parameters'].items():
+                                    actions.append('?'+ par_nm + ' - ' + par_type.lower())
+                            actions.append(')')
+                            if 'when' in op_def:
+                                pass
+                            actions.append(')')
             predicates.append(')')
             types.append(')')
-            body = domain + types + predicates
+            body = domain + types + predicates + actions
             body.append(')')
             print('\n'.join(body))
         except yaml.YAMLError as exc:
