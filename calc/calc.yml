@@ -79,7 +79,7 @@ classes:
                 # lists interpreted as conjuctions (and)
             - not changed
             - not k.processed
-            - k.isDigit() or (k.isPoint() and not dec_point)
+            - k.isDigit or (k.isPoint and not dec_point)
             - not tobe_cleaned
           effect: # assignments
             - changed = True
