@@ -5,6 +5,7 @@
 
 import sys, getopt
 import yaml
+import pprint
 
 def usage ():
     print ('evyml2pddl.py [-h | --help] [-o <outputfile> | --output=<outputfile>] input_file.yml')
@@ -37,6 +38,7 @@ def main (argv):
             types = ['(types: ']
             predicates = ['(:predicates']
             actions = []
+            pddl_predicates = {}
             if not 'classes' in code:
                 raise Exception("SYNTAX ERROR: no 'classes' section found in source file.")
             for cl_nm, cl_def in code['classes'].items():
@@ -48,10 +50,14 @@ def main (argv):
                     if st_nm == 'vars':
                         for var_nm, var_def in st_def.items():
                             if isinstance(var_def, str) and var_def == 'Boolean':
-                                predicates.append('(' + '_'.join([cl_nm, var_nm]) + ' ?p - ' + cl_nm + ')')
+                                prd_name = '_'.join([cl_nm, var_nm])
+                                predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
+                                pddl_predicates[prd_name] = {'this': cl_nm}
                             elif isinstance(var_def, list):
                                 for var_state in var_def:
-                                    predicates.append('(' + '_'.join([cl_nm, var_nm, var_state]) + ' ?p - ' + cl_nm + ')')
+                                    prd_name = '_'.join([cl_nm, var_nm, var_state])
+                                    predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
+                                    pddl_predicates[prd_name] = {'this': cl_nm}
                             else:
                                 raise Exception("SYNTAX ERROR: class " + cl_nm +
                                     ", variable " + var_nm + " --- variable type is expected to be either Boolean or list")
@@ -75,6 +81,7 @@ def main (argv):
             body = domain + types + predicates + actions
             body.append(')')
             print('\n'.join(body))
+            pprint.pprint (pddl_predicates)
         except yaml.YAMLError as exc:
             print(exc)
             sys.exit(2)

@@ -61,7 +61,8 @@ classes:
         dec_point: Boolean # False is the default value for Boolean type
         changed: Boolean
         tobe_cleaned: Boolean
-      predicates: # predicates seem to be useful for simple state inquires
+      predicates: # predicates seem to be useful for simple state inquires;
+                  # predicates in Evans are equivalent to PDDL's derived predicates, i.e. can't be used for assignments;
                   # TODO: predicates in PDDL can have multiple arguments: think about how to implement it here
         isLastKeyDigit: last_key == 'digit' # supported logical operators: '==', '!=', not, and, or
                                             # priorities: not, and, or
