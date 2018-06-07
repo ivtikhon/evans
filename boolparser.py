@@ -20,15 +20,6 @@ p = BooleanParser('<expression text>')
 class TokenType:
     NUM, STR, VAR, GT, GTE, LT, LTE, EQ, NEQ, LP, RP, AND, OR, NOT = range(14)
 
-class TreeNode:
-    tokenType = None
-    value = None
-    left = None
-    right = None
-
-    def __init__(self, tokenType):
-        self.tokenType = tokenType
-
 class Tokenizer:
     expression = None
     tokens = None
@@ -118,9 +109,9 @@ class BooleanParser:
         while self.tokenizer.hasNext() and self.tokenizer.nextTokenType() == TokenType.OR:
             self.tokenizer.next()
             andTermX = self.parseAndTerm()
-            andTerm = TreeNode(TokenType.OR)
-            andTerm.left = andTerm1
-            andTerm.right = andTermX
+            andTerm = dict(tokenType=TokenType.OR)
+            andTerm['left'] = andTerm1
+            andTerm['right'] = andTermX
             andTerm1 = andTerm
         return andTerm1
 
@@ -129,66 +120,65 @@ class BooleanParser:
         while self.tokenizer.hasNext() and self.tokenizer.nextTokenType() == TokenType.AND:
             self.tokenizer.next()
             conditionX = self.parseCondition()
-            condition = TreeNode(TokenType.AND)
-            condition.left = condition1
-            condition.right = conditionX
+            condition = dict(tokenType=TokenType.AND)
+            condition['left'] = condition1
+            condition['right'] = conditionX
             condition1 = condition
         return condition1
 
     def parseNegation(self):
         negation = None
+        print('we are in parseNegation, next token is ' + self.tokenizer.peek())
         if self.tokenizer.hasNext() and self.tokenizer.nextTokenType() == TokenType.NOT:
-            negation = TreeNode(TokenType.NOT)
+            negation = dict(tokenType=TokenType.NOT)
             self.tokenizer.next()
+            print('processing negation, next token is ' + self.tokenizer.peek())
         return negation
 
     def parseCondition(self):
         negation = self.parseNegation()
-        if self.tokenizer.hasNext() and self.tokenizer.nextTokenType() == TokenType.LP:
+        if not self.tokenizer.hasNext():
+            raise Exception('Empty condition')
+        print('We are in parseCondition, next token is ' + self.tokenizer.peek())
+        if self.tokenizer.nextTokenType() == TokenType.LP:
             self.tokenizer.next()
             expression = self.parseExpression()
             if self.tokenizer.hasNext() and self.tokenizer.nextTokenType() == TokenType.RP:
                 self.tokenizer.next()
                 if negation != None:
-                    negation.right = expression
+                    negation['right'] = expression
                     return negation
                 return expression
             else:
                 raise Exception("Closing ) expected, but got " + self.tokenizer.next())
-
-        terminal1 = self.parseTerminal()
-        if self.tokenizer.hasNext() and self.tokenizer.nextTokenTypeIsOperator():
-            condition = TreeNode(self.tokenizer.nextTokenType())
-            self.tokenizer.next()
-            terminal2 = self.parseTerminal()
-            condition.left = terminal1
-            condition.right = terminal2
-            if negation != None:
-                negation.right = condition
-                return negation
-            return condition
-        return terminal1
+        else:
+            terminal1 = self.parseTerminal()
+            if self.tokenizer.hasNext() and self.tokenizer.nextTokenTypeIsOperator():
+                condition = dict(tokenType=self.tokenizer.nextTokenType())
+                self.tokenizer.next()
+                terminal2 = self.parseTerminal()
+                condition['left'] = terminal1
+                condition['right'] = terminal2
+                if negation != None:
+                    negation['right'] = condition
+                    condition = negation
+                return condition
+            else:
+                if negation != None:
+                    negation['right'] = terminal1
+                    terminal1 = negation
+            return terminal1
 
     def parseTerminal(self):
-        negation = self.parseNegation()
-        if self.tokenizer.hasNext():
-            tokenType = self.tokenizer.nextTokenType()
-            if tokenType == TokenType.NUM:
-                n = TreeNode(tokenType)
-                n.value = float(self.tokenizer.next())
-                if negation != None:
-                    negation.right = n
-                    return negation
-                return n
-            elif tokenType == TokenType.STR or tokenType == TokenType.VAR:
-                n = TreeNode(tokenType)
-                n.value = self.tokenizer.next()
-                if negation != None:
-                    negation.right = n
-                    return negation
-                return n
-            else:
-                raise Exception('NUM, STR, or VAR expected, but got ' + self.tokenizer.next())
-
-        else:
+        print('we are in parseTerminal, next token is ' + self.tokenizer.peek())
+        if not self.tokenizer.hasNext():
             raise Exception('Empty terminal token')
+        tokenType = self.tokenizer.nextTokenType()
+        n = dict(tokenType=tokenType)
+        if tokenType == TokenType.NUM:
+            n['value'] = float(self.tokenizer.next())
+        elif tokenType == TokenType.STR or tokenType == TokenType.VAR:
+            n['value'] = self.tokenizer.next()
+        else:
+            raise Exception('NUM, STR, or VAR expected, but got ' + self.tokenizer.next())
+        return n
