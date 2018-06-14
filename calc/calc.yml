@@ -56,36 +56,40 @@ classes:
     state:
       vars:
         last_key: ['digit', 'point']  # state variable with explisitly listed values (inline enum);
-                                      # it is not clear what should be the default value for enum;
-                                      # TODO: read again what Helmert and Hoffmann say about FDR state variables
+                                      # TODO: it is not clear what should be the default value for enum;
+                                      #       read again what Helmert and Hoffmann say about FDR state variables
         dec_point: Boolean # False is the default value for Boolean type
         changed: Boolean
         tobe_cleaned: Boolean
       predicates: # predicates seem to be useful for simple state inquires;
                   # predicates in Evans are equivalent to PDDL's derived predicates, i.e. can't be used for assignments;
-                  # TODO: predicates in PDDL can have multiple arguments: think about how to implement it here
-        isLastKeyDigit: last_key == 'digit' # supported logical operators: '==', '!=', not, and, or
-                                            # priorities: not, and, or
-                                            # TODO: think about complex logical expressions with multiple variables
+                  # TODO: predicates in PDDL can have multiple arguments; implement the same
+                  #       way as parameters in operators
+        isLastKeyDigit: last_key == 'digit' # expressions can contain comparisons '>', '<', '>=', '<=', '==', '!=',
+                                            # and logical operators: not, and, or, with standard priorities, i.e not, and, or;
+                                            # only simple comparisons are supported for now, e.g. var == 'key'
+                                            # comparisons can't be combined with logical operators
         isLastKeyPoint: last_key == 'point'
         isDecPoint: dec_point # synonym to dec_point == True
       operators: # actions in PDDL terms
         push:
-          parameters: # global variables are not supported, i.e. the variable scope is limitied
+          parameters: # global variables are not supported for now, i.e. the variable scope is limitied
                       # by parameters and variables defined in classes;
                       # TODO: it is not clear how to implement PDDL operators 'forall' and 'exists';
-                      # think about using lists in state operators
+                      #       think about using lists in state operators
             k: Key # can be state or hybrid types
           when: # condition check; state variables can be used here as well as predicates
                 # lists interpreted as conjuctions (and)
             - not changed
             - not k.processed
-            - k.isDigit or (k.isPoint and not dec_point)
+            - k.isDigit or (k.isPoint and not dec_point)  # k.isDigit is a shortcut for k.isDigit()
+                                                          # TODO: implement full (not shortcut) predicate call with zero parameters k.isDigit()
+                                                          #       and with multiple parameters var.predicate(param1=val1, param2=val2)
             - not tobe_cleaned
           effect: # assignments
             - changed = True
             - k.processed = True
-            - if: k.isPoint()
+            - if: k.isPoint
               then:
                 - last_key = 'point'
                 - dec_point = True
@@ -99,7 +103,7 @@ classes:
             k: Key
           when:
             - not k.processed
-            - k.isDigit() or k.isPoint()
+            - k.isDigit or k.isPoint
             - tobe_cleaned
           effect:
             - tobe_cleaned = False
@@ -113,8 +117,8 @@ classes:
             k: Key
             a: Alu
           when:
-            - a.isOpExecuted()
-            - k.isOp() or k.isEq()
+            - a.isOpExecuted
+            - k.isOp or k.isEq
             - not k.processed
           effect:
             - k.processed = True
@@ -170,9 +174,9 @@ classes:
             s: Stack
           when:
             - not k.processed
-            - k.isOp()
+            - k.isOp
             - not reg_stored
-            - isOpStored()
+            - isOpStored
           effect:
             - reg_stored = True
             - k.processed = True
@@ -184,8 +188,8 @@ classes:
           parameters:
             k: Key
           when:
-            - not isOpStored()
-            - k.isOp()
+            - not isOpStored
+            - k.isOp
             - not reg_stored
             - not k.processed
           effect: op_stored = True
@@ -197,14 +201,14 @@ classes:
             k: Key
             s: Stack
           when:
-            - isOpStored()
-            - k.isOp() or k.isEq()
-            - isRegStored()
+            - isOpStored
+            - k.isOp or k.isEq
+            - isRegStored
             - not k.processed
-            - not isOpExecuted()
+            - not isOpExecuted
           effect:
             - op_executed = True
-            - if: k.isEq()
+            - if: k.isEq
               then: op_stored = False
           exec:
             execOp: s
@@ -234,6 +238,6 @@ classes:
             s: Stack
           when:
             - not processed
-            - isPoint()
-            - s.isDecPoint()
+            - isPoint
+            - s.isDecPoint
           effect: processed

@@ -6,9 +6,37 @@
 import sys, getopt
 import yaml
 import pprint
+from boolparser import *
 
 def usage ():
     print ('evyml2pddl.py [-h | --help] [-o <outputfile> | --output=<outputfile>] input_file.yml')
+
+def btree_to_pddl (class_name, root):
+    left, right = None, None
+    if 'left' in root:
+        left = btree_to_pddl(class_name, root['left'])
+    if 'right' in root:
+        right = btree_to_pddl(class_name, root['right'])
+    if 'left' not in root and 'right' not in root:
+        return root['value']
+    if left != None and right != None:
+        if root['tokenType'] == TokenType.EQ:  # only simple comparisons are supported for now
+            var = class_name + '_' + left
+            cmp = right
+            if root['left']['tokenType'] != TokenType.VAR:
+                var = right
+                cmp = left
+            if cmp.lower() == 'true':
+                cmp = None
+            elif cmp.lower() == 'false':
+                var = 'not (' + var + ')'
+            else:
+                cmp = cmp[1:-1]  # strp quotes
+            if cmp != None:
+                var = var + '_' + cmp
+            return var
+    else:
+        raise Exception("Complex logical expressions not implemented yet.")
 
 def main (argv):
 # Parse options
@@ -39,6 +67,7 @@ def main (argv):
             predicates = ['(:predicates']
             actions = []
             pddl_predicates = {}
+            derived_predicates = {}
             if not 'classes' in code:
                 raise Exception("SYNTAX ERROR: no 'classes' section found in source file.")
             for cl_nm, cl_def in code['classes'].items():
@@ -76,12 +105,20 @@ def main (argv):
                             if 'when' in op_def:
                                 pass
                             actions.append(')')
+                    # predicates are translated into inline logical expressions
+                    elif st_nm == 'predicates':
+                        for pr_nm, pr_def in st_def.items():
+                            prd_name = '_'.join([cl_nm, pr_nm])
+                            derived_predicates['_'.join([cl_nm, pr_nm])] = btree_to_pddl(cl_nm, BooleanParser(pr_def).root)
             predicates.append(')')
             types.append(')')
             body = domain + types + predicates + actions
             body.append(')')
             print('\n'.join(body))
+            print('=== PDDL predicates ===')
             pprint.pprint (pddl_predicates)
+            print('=== Derived predicates ===')
+            pprint.pprint (derived_predicates)
         except yaml.YAMLError as exc:
             print(exc)
             sys.exit(2)
