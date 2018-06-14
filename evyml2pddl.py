@@ -108,7 +108,10 @@ def main (argv):
                     # predicates are translated into inline logical expressions
                     elif st_nm == 'predicates':
                         for pr_nm, pr_def in st_def.items():
-                            for st_var_nm in cl_def['state']['vars']: # here we add class name to state variables in boolean expressions
+                            # here class name is added to state variables in boolean expressions,
+                            # this allows boolean expressions to be translated into PDDL predicates;
+                            # TODO: check that state variables used in predicates are actually defined in 'vars'
+                            for st_var_nm in cl_def['state']['vars']:
                                 pr_def = pr_def.replace(st_var_nm, cl_nm + '_' + st_var_nm)
                             parsed_expr = BooleanParser(pr_def).root
                             derived_predicates['_'.join([cl_nm, pr_nm])] = btree_to_pddl(parsed_expr)
