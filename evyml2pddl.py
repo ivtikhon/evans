@@ -11,17 +11,17 @@ from boolparser import *
 def usage ():
     print ('evyml2pddl.py [-h | --help] [-o <outputfile> | --output=<outputfile>] input_file.yml')
 
-def btree_to_pddl (class_name, root):
+def btree_to_pddl (root):
     left, right = None, None
     if 'left' in root:
-        left = btree_to_pddl(class_name, root['left'])
+        left = btree_to_pddl(root['left'])
     if 'right' in root:
-        right = btree_to_pddl(class_name, root['right'])
+        right = btree_to_pddl(root['right'])
     if 'left' not in root and 'right' not in root:
         return root['value']
     if left != None and right != None:
         if root['tokenType'] == TokenType.EQ:  # only simple comparisons are supported for now
-            var = class_name + '_' + left
+            var = left
             cmp = right
             if root['left']['tokenType'] != TokenType.VAR:
                 var = right
@@ -66,7 +66,7 @@ def main (argv):
             types = ['(types: ']
             predicates = ['(:predicates']
             actions = []
-            pddl_predicates = {}
+            # pddl_predicates = {}
             derived_predicates = {}
             if not 'classes' in code:
                 raise Exception("SYNTAX ERROR: no 'classes' section found in source file.")
@@ -81,12 +81,12 @@ def main (argv):
                             if isinstance(var_def, str) and var_def == 'Boolean':
                                 prd_name = '_'.join([cl_nm, var_nm])
                                 predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
-                                pddl_predicates[prd_name] = {'this': cl_nm}
+                                # pddl_predicates[prd_name] = {'this': cl_nm}
                             elif isinstance(var_def, list):
                                 for var_state in var_def:
                                     prd_name = '_'.join([cl_nm, var_nm, var_state])
                                     predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
-                                    pddl_predicates[prd_name] = {'this': cl_nm}
+                                    # pddl_predicates[prd_name] = {'this': cl_nm}
                             else:
                                 raise Exception("SYNTAX ERROR: class " + cl_nm +
                                     ", variable " + var_nm + " --- variable type is expected to be either Boolean or list")
@@ -108,15 +108,17 @@ def main (argv):
                     # predicates are translated into inline logical expressions
                     elif st_nm == 'predicates':
                         for pr_nm, pr_def in st_def.items():
-                            prd_name = '_'.join([cl_nm, pr_nm])
-                            derived_predicates['_'.join([cl_nm, pr_nm])] = btree_to_pddl(cl_nm, BooleanParser(pr_def).root)
+                            for st_var_nm in cl_def['state']['vars']: # here we add class name to state variables in boolean expressions
+                                pr_def = pr_def.replace(st_var_nm, cl_nm + '_' + st_var_nm)
+                            parsed_expr = BooleanParser(pr_def).root
+                            derived_predicates['_'.join([cl_nm, pr_nm])] = btree_to_pddl(parsed_expr)
             predicates.append(')')
             types.append(')')
             body = domain + types + predicates + actions
             body.append(')')
             print('\n'.join(body))
-            print('=== PDDL predicates ===')
-            pprint.pprint (pddl_predicates)
+            # print('=== PDDL predicates ===')
+            # pprint.pprint (pddl_predicates)
             print('=== Derived predicates ===')
             pprint.pprint (derived_predicates)
         except yaml.YAMLError as exc:
