@@ -28,6 +28,7 @@ class Tokenizer:
 
     def __init__(self, exp):
         self.expression = exp
+        self.tokenize()
 
     def next(self):
         self.i += 1
@@ -97,8 +98,11 @@ class BooleanParser:
     root = None
 
     def __init__(self, exp):
-        self.tokenizer = Tokenizer(exp)
-        self.tokenizer.tokenize()
+        # exp is either string or Tokenizer type
+        if isinstance(exp, str):
+            self.tokenizer = Tokenizer(exp)
+        else:
+            self.tokenizer = exp
         self.parse()
 
     def parse(self):
@@ -128,18 +132,15 @@ class BooleanParser:
 
     def parseNegation(self):
         negation = None
-        # print('we are in parseNegation, next token is ' + self.tokenizer.peek())
         if self.tokenizer.hasNext() and self.tokenizer.nextTokenType() == TokenType.NOT:
             negation = dict(tokenType=TokenType.NOT)
             self.tokenizer.next()
-            # print('processing negation, next token is ' + self.tokenizer.peek())
         return negation
 
     def parseCondition(self):
         negation = self.parseNegation()
         if not self.tokenizer.hasNext():
             raise Exception('Empty condition')
-        # print('We are in parseCondition, next token is ' + self.tokenizer.peek())
         if self.tokenizer.nextTokenType() == TokenType.LP:
             self.tokenizer.next()
             expression = self.parseExpression()
@@ -170,7 +171,6 @@ class BooleanParser:
             return terminal1
 
     def parseTerminal(self):
-        # print('we are in parseTerminal, next token is ' + self.tokenizer.peek())
         if not self.tokenizer.hasNext():
             raise Exception('Empty terminal token')
         tokenType = self.tokenizer.nextTokenType()

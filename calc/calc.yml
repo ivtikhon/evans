@@ -23,17 +23,13 @@
 
 classes:
   Stack:
-    data: # in Evans, user data along with data methods coexists
-          # with state variables and their respective operators;
-          # data variables are used to initialize the state variables before planning;
-          # on the other hand, data variables themselves are modified from planning
-          # operators during the plan execution phase;
+    data: # user data along with data methods coexists with state variables and their respective operators;
+          # TODO: think how data variables can be used to initialize the state variables before planning;
       vars:
         s: List
       methods:  # the actual methods should be written in some language (e.g. Python or JS) for now;
                 # after plan is created, the interpreter will generate code and then execute it;
-                # later, when the Evans syntax is designed, the translation phase won't be necessary;
-                # TODO: think about calling data methods implicitly from operators if names and parameters match;
+                # later, when the Evans syntax is designed, the intermediate code generation phase won't be necessary;
         pushKey:
           parameters:
             k: Key # can be data or hybrid types
@@ -56,14 +52,17 @@ classes:
     state:
       vars:
         last_key: ['digit', 'point']  # state variable with explisitly listed values (inline enum);
+                                      # only inline enum and Boolean types of state variables are supported for now;
+                                      # TODO: think how variables of hybrid type can be used as state variables;
                                       # TODO: it is not clear what should be the default value for enum;
-                                      #       read again what Helmert and Hoffmann say about FDR state variables
+                                      #       I need to read again what Helmert and Hoffmann say about FDR state
+                                      #       variables; maybe the first item of the enum varibles should be 'undef';
         dec_point: Boolean # False is the default value for Boolean type
         changed: Boolean
         tobe_cleaned: Boolean
       predicates: # predicates seem to be useful for simple state inquires;
                   # predicates in Evans are equivalent to PDDL's derived predicates, i.e. can't be used for assignments;
-                  # TODO: predicates in PDDL can have multiple arguments; implement the same
+                  # TODO: predicates in PDDL can have multiple arguments; it can be implemented the same
                   #       way as parameters in operators
         isLastKeyDigit: last_key == 'digit' # expressions can contain comparisons '>', '<', '>=', '<=', '==', '!=',
                                             # and logical operators: not, and, or, with standard priorities, i.e not, and, or;
@@ -241,3 +240,19 @@ classes:
             - isPoint
             - s.isDecPoint
           effect: processed
+
+main:
+  objects:
+    stack1: Stack
+    key1: Key
+    display1: Display
+    alu1: Alu
+  init:
+    key1.key_isop: True
+    alu1.alu_op_stored: True
+    alu1.alu_reg_stored: True
+  goal:
+    - key1.key_processed
+    - if: stack.stack_changed
+      then:
+        - display1.display_updated

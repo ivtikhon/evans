@@ -8,6 +8,11 @@ import yaml
 import pprint
 from boolparser import *
 
+# Evans YAML parsing procedure:
+# 1. Loop over classes and translate state variables into predicates
+# 2. Create list of derived predicates
+# 3. ...
+
 def usage ():
     print ('evyml2pddl.py [-h | --help] [-o <outputfile> | --output=<outputfile>] input_file.yml')
 
@@ -66,7 +71,6 @@ def main (argv):
             types = ['(types: ']
             predicates = ['(:predicates']
             actions = []
-            # pddl_predicates = {}
             derived_predicates = {}
             if not 'classes' in code:
                 raise Exception("SYNTAX ERROR: no 'classes' section found in source file.")
@@ -81,12 +85,10 @@ def main (argv):
                             if isinstance(var_def, str) and var_def == 'Boolean':
                                 prd_name = '_'.join([cl_nm, var_nm])
                                 predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
-                                # pddl_predicates[prd_name] = {'this': cl_nm}
                             elif isinstance(var_def, list):
                                 for var_state in var_def:
                                     prd_name = '_'.join([cl_nm, var_nm, var_state])
                                     predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
-                                    # pddl_predicates[prd_name] = {'this': cl_nm}
                             else:
                                 raise Exception("SYNTAX ERROR: class " + cl_nm +
                                     ", variable " + var_nm + " --- variable type is expected to be either Boolean or list")
@@ -110,18 +112,19 @@ def main (argv):
                         for pr_nm, pr_def in st_def.items():
                             # here class name is added to state variables in boolean expressions,
                             # this allows boolean expressions to be translated into PDDL predicates;
-                            # TODO: check that state variables used in predicates are actually defined in 'vars'
-                            for st_var_nm in cl_def['state']['vars']:
-                                pr_def = pr_def.replace(st_var_nm, cl_nm + '_' + st_var_nm)
-                            parsed_expr = BooleanParser(pr_def).root
+                            tokenized_expr = Tokenizer(pr_def)
+                            for index, token in enumerate(tokenized_expr.tokens):
+                                if tokenized_expr.tokenTypes[index] == TokenType.VAR:
+                                    for st_var_nm in cl_def['state']['vars']:
+                                        if st_var_nm == token:
+                                            tokenized_expr.tokens[index] = cl_nm + '_' + st_var_nm
+                            parsed_expr = BooleanParser(tokenized_expr).root
                             derived_predicates['_'.join([cl_nm, pr_nm])] = btree_to_pddl(parsed_expr)
             predicates.append(')')
             types.append(')')
             body = domain + types + predicates + actions
             body.append(')')
             print('\n'.join(body))
-            # print('=== PDDL predicates ===')
-            # pprint.pprint (pddl_predicates)
             print('=== Derived predicates ===')
             pprint.pprint (derived_predicates)
         except yaml.YAMLError as exc:
