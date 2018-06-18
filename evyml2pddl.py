@@ -9,9 +9,8 @@ import pprint
 from boolparser import *
 
 # Evans YAML parsing procedure:
-# 1. Loop over classes and translate state variables into predicates
-# 2. Create list of derived predicates
-# 3. ...
+# 1. Loop over classes and create list of derived predicates...
+# 2. ...
 
 def usage ():
     print ('evyml2pddl.py [-h | --help] [-o <outputfile> | --output=<outputfile>] input_file.yml')
@@ -67,21 +66,35 @@ def main (argv):
     with open(input, 'r') as stream:
         try:
             code = yaml.load(stream)
+            # Translate derived predicates into inline logical expressions
+            if not 'classes' in code:
+                raise Exception("SYNTAX ERROR: no 'classes' section found in source file.")
+            for cl_nm, cl_def in code['classes'].items():
+                if 'state' in cl_def and 'predicates' in cl_def['state']:
+                    derived_predicates = {}
+                    for pr_nm, pr_def in cl_def['state']['predicates'].items():
+                        tokenized_expr = Tokenizer(pr_def)
+                        # here class name is added to state variables in boolean expressions,
+                        # this allows boolean expressions to be translated into PDDL predicates;
+                        # predicates are simple for now, i.e. no parameters, no references to other objects
+                        for index, token in enumerate(tokenized_expr.tokens):
+                            if tokenized_expr.tokenTypes[index] == TokenType.VAR and token in cl_def['state']['vars']:
+                                tokenized_expr.tokens[index] = cl_nm + '_' + token
+                        parsed_expr = BooleanParser(tokenized_expr).root
+                        derived_predicates['_'.join([cl_nm, pr_nm])] = btree_to_pddl(parsed_expr)
+                    cl_def['state']['derived_predicates'] = derived_predicates
             domain = ['(define (domain MINE)', '(:requirements :adl)']
             types = ['(types: ']
             predicates = ['(:predicates']
             actions = []
-            derived_predicates = {}
-            if not 'classes' in code:
-                raise Exception("SYNTAX ERROR: no 'classes' section found in source file.")
             for cl_nm, cl_def in code['classes'].items():
                 types.append(cl_nm)
-                if not 'state' in cl_def:
-                    continue
+                if not 'state' in cl_def: continue
                 for st_nm, st_def in cl_def['state'].items():
                     # state variables are translated into PDDL predicates
                     if st_nm == 'vars':
                         for var_nm, var_def in st_def.items():
+                            # only Boolean and inline enum types are supported for now
                             if isinstance(var_def, str) and var_def == 'Boolean':
                                 prd_name = '_'.join([cl_nm, var_nm])
                                 predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
@@ -108,25 +121,12 @@ def main (argv):
                                 pass
                             actions.append(')')
                     # predicates are translated into inline logical expressions
-                    elif st_nm == 'predicates':
-                        for pr_nm, pr_def in st_def.items():
-                            # here class name is added to state variables in boolean expressions,
-                            # this allows boolean expressions to be translated into PDDL predicates;
-                            tokenized_expr = Tokenizer(pr_def)
-                            for index, token in enumerate(tokenized_expr.tokens):
-                                if tokenized_expr.tokenTypes[index] == TokenType.VAR:
-                                    for st_var_nm in cl_def['state']['vars']:
-                                        if st_var_nm == token:
-                                            tokenized_expr.tokens[index] = cl_nm + '_' + st_var_nm
-                            parsed_expr = BooleanParser(tokenized_expr).root
-                            derived_predicates['_'.join([cl_nm, pr_nm])] = btree_to_pddl(parsed_expr)
             predicates.append(')')
             types.append(')')
             body = domain + types + predicates + actions
             body.append(')')
             print('\n'.join(body))
-            print('=== Derived predicates ===')
-            pprint.pprint (derived_predicates)
+            # pprint.pprint(code)
         except yaml.YAMLError as exc:
             print(exc)
             sys.exit(2)
