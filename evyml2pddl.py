@@ -110,15 +110,22 @@ def main (argv):
                         for op_nm, op_def in st_def.items():
                             actions.append('(:action ' + cl_nm + '_' + op_nm)
                             actions.append(':parameters (?this - ' + cl_nm)
+                            op_params = {}
                             if 'parameters' in op_def:
                                 if not isinstance(op_def['parameters'], dict):
                                     raise Exception("SYNTAX ERROR: class " + cl_nm +
                                         ", operator " + op_nm + " --- parameters expected to be dictionary type")
                                 for par_nm, par_type in op_def['parameters'].items():
                                     actions.append('?'+ par_nm + ' - ' + par_type)
+                                    op_params[par_nm] = par_type # list of params to use while parsing conditional expressions
                             actions.append(')')
                             if 'when' in op_def:
-                                pass
+                                if not isinstance(op_def['when'], list):
+                                    raise Exception("SYNTAX ERROR: class " + cl_nm +
+                                        ", operator " + op_nm + " --- condition expected to be list type")
+                                for cond_def in op_def['when']:
+                                    parsed_expr = BooleanParser(cond_def).root
+                                    pprint.pprint(parsed_expr)
                             actions.append(')')
                     # predicates are translated into inline logical expressions
             predicates.append(')')
