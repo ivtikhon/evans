@@ -110,22 +110,36 @@ def main (argv):
                         for op_nm, op_def in st_def.items():
                             actions.append('(:action ' + cl_nm + '_' + op_nm)
                             actions.append(':parameters (?this - ' + cl_nm)
-                            op_params = {}
                             if 'parameters' in op_def:
                                 if not isinstance(op_def['parameters'], dict):
                                     raise Exception("SYNTAX ERROR: class " + cl_nm +
                                         ", operator " + op_nm + " --- parameters expected to be dictionary type")
                                 for par_nm, par_type in op_def['parameters'].items():
                                     actions.append('?'+ par_nm + ' - ' + par_type)
-                                    op_params[par_nm] = par_type # list of params to use while parsing conditional expressions
                             actions.append(')')
                             if 'when' in op_def:
                                 if not isinstance(op_def['when'], list):
                                     raise Exception("SYNTAX ERROR: class " + cl_nm +
                                         ", operator " + op_nm + " --- condition expected to be list type")
                                 for cond_def in op_def['when']:
-                                    parsed_expr = BooleanParser(cond_def).root
-                                    pprint.pprint(parsed_expr)
+                                    tokenized_expr = Tokenizer(cond_def)
+                                    for index, token in enumerate(tokenized_expr.tokens):
+                                        if tokenized_expr.tokenTypes[index] == TokenType.VAR:
+                                            param_nm = 'this'
+                                            param_type = cl_nm
+                                            predic_nm = token
+                                            if '.' in token:
+                                                param_nm, predic_nm = token.split('.', 1)
+                                                if not param_nm in op_def['parameters']:
+                                                    raise Exception("SYNTAX ERROR: class " + cl_nm +
+                                                        ", operator " + op_nm + " --- undefined variable " + param_nm + " in condition")
+                                                param_type = op_def['parameters'][param_nm] # get the parameter type from list of parameters
+                                            predic_nm = param_type + '_' + predic_nm
+                                            # complex predicates with multiple parameters are not supported for now
+                                            if 'derived_predicates' in code['classes'][param_type]['state'] and predic_nm in code['classes'][param_type]['state']['derived_predicates']:
+                                                predic_nm = code['classes'][param_type]['state']['derived_predicates'][predic_nm]
+                                            tokenized_expr.tokens[index] = predic_nm + ' ?' + param_nm
+                                    pprint.pprint(tokenized_expr.tokens)
                             actions.append(')')
                     # predicates are translated into inline logical expressions
             predicates.append(')')
