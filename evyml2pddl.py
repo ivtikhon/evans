@@ -26,7 +26,7 @@ def btree_to_pddl (root):
             var = root['value']
             if '.' in var:
                 key, attr = var.split('.', 1)
-                var = attr + '?' + key
+                var = attr + ' ?' + key
             return '(' + var + ')'
         else:
             return root['value']
@@ -44,7 +44,11 @@ def btree_to_pddl (root):
             else:
                 cmp = cmp[1:-1]  # strp quotes from strings
             if cmp != None:
-                var = var[:-1] + '_' + cmp + ')'
+                if ' ?' in var:
+                    predic, param = var.split(' ?', 1)
+                    var = predic + '_' + cmp + ' ?' + param
+                else:
+                    var = var[:-1] + '_' + cmp + ')'
             return var
         elif root['tokenType'] == TokenType.OR:
             return '(or ' + left + ' ' + right + ')'
@@ -88,7 +92,8 @@ def main (argv):
             actions = []
             for cl_nm, cl_def in code['classes'].items():
                 types.append(cl_nm)
-                if not 'state' in cl_def: continue
+                if not 'state' in cl_def:
+                    continue
                 for st_nm, st_def in cl_def['state'].items():
                     # state variables are translated into PDDL predicates
                     if st_nm == 'vars':
@@ -108,22 +113,22 @@ def main (argv):
                     elif st_nm == 'operators':
                         for op_nm, op_def in st_def.items():
                             actions.append('(:action ' + cl_nm + '_' + op_nm)
-                            actions.append(':parameters (?this - ' + cl_nm)
                             if 'parameters' in op_def:
+                                actions.append(':parameters (?this - ' + cl_nm)
                                 if not isinstance(op_def['parameters'], dict):
                                     raise Exception("SYNTAX ERROR: class " + cl_nm +
                                         ", operator " + op_nm + " --- parameters expected to be dictionary type")
                                 for par_nm, par_type in op_def['parameters'].items():
                                     actions.append('?'+ par_nm + ' - ' + par_type)
-                            actions.append(')')
+                                actions.append(')')
                             # parse operator's condition
                             if 'when' in op_def:
+                                actions.append(':precondition (and')
                                 if not isinstance(op_def['when'], list):
                                     raise Exception("SYNTAX ERROR: class " + cl_nm +
                                         ", operator " + op_nm + " --- condition expected to be list type")
                                 for cond_def in op_def['when']:
                                     # here predicates are translated into inline logical expressions
-                                    print(cond_def)
                                     tokenized_expr = Tokenizer(cond_def)
                                     for index, token in enumerate(tokenized_expr.tokens):
                                         if tokenized_expr.tokenTypes[index] == TokenType.VAR:
@@ -146,7 +151,8 @@ def main (argv):
                                                 raise Exception("SYNTAX ERROR: class " + cl_nm +
                                                     ", operator " + op_nm + " --- undefined variable " + var_nm + " in condition")
                                     parsed_expr = BooleanParser(' '.join(tokenized_expr.tokens))
-                                    print (btree_to_pddl(parsed_expr.root))
+                                    actions.append(btree_to_pddl(parsed_expr.root))
+                                actions.append(')')
                             actions.append(')')
             predicates.append(')')
             types.append(')')
