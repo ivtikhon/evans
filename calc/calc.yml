@@ -81,9 +81,9 @@ classes:
                 # lists interpreted as conjuctions (and)
             - not changed
             - not k.processed
-            - k.isDigit or (k.isPoint and not dec_point)  # k.isDigit is a shortcut for k.isDigit()
-                                                          # TODO: implement full (not shortcut) predicate call with zero parameters k.isDigit()
-                                                          #       and with multiple parameters var.predicate(param1=val1, param2=val2)
+            - k.isDigit or (k.k_val == 'point' and not dec_point)  # k.isDigit is a shortcut for k.isDigit()
+                                  # TODO: implement full (not shortcut) predicate call with zero parameters k.isDigit()
+                                  #       and with multiple parameters var.predicate(param1=val1, param2=val2)
             - not tobe_cleaned
           effect: # assignments
             - changed = True
