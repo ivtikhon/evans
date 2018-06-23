@@ -8,10 +8,6 @@ import yaml
 import pprint
 from boolparser import *
 
-# Evans YAML parsing procedure:
-# 1. Loop over classes and create list of derived predicates...
-# 2. ...
-
 def usage ():
     print ('evyml2pddl.py [-h | --help] [-o <outputfile> | --output=<outputfile>] input_file.yml')
 
@@ -24,6 +20,7 @@ def btree_to_pddl (root):
     if 'left' not in root and 'right' not in root:
         if root['tokenType'] == TokenType.VAR and root['value'].lower() not in ['true', 'false']:
             var = root['value']
+            # translate Evans variable_name.predicate_name into PDDL (predicate_name ?variable_name)
             if '.' in var:
                 key, attr = var.split('.', 1)
                 var = attr + ' ?' + key
@@ -31,7 +28,7 @@ def btree_to_pddl (root):
         else:
             return root['value']
     if left != None and right != None:
-        if root['tokenType'] == TokenType.EQ:  # only simple comparisons are supported for now
+        if root['tokenType'] == TokenType.EQ:  # only simple comparisons are supported for now, e.g. state_variable == 'state'
             var = left
             cmp = right
             if root['left']['tokenType'] != TokenType.VAR:
@@ -44,6 +41,7 @@ def btree_to_pddl (root):
             else:
                 cmp = cmp[1:-1]  # strp quotes from strings
             if cmp != None:
+                # add state variable name to predicate name
                 if ' ?' in var:
                     predic, param = var.split(' ?', 1)
                     var = predic + '_' + cmp + ' ?' + param
@@ -54,6 +52,8 @@ def btree_to_pddl (root):
             return '(or ' + left + ' ' + right + ')'
         elif root['tokenType'] == TokenType.AND:
             return '(and ' + left + ' ' + right + ')'
+        else:
+            raise Exception("Only '==', 'and', 'or', 'not' are supported in logical expressions for now.")
     elif right != None and root['tokenType'] == TokenType.NOT:
         return '(not ' + right + ')'
     else:
@@ -83,7 +83,6 @@ def main (argv):
     with open(input, 'r') as stream:
         try:
             code = yaml.load(stream)
-            # Translate derived predicates into inline logical expressions
             if not 'classes' in code:
                 raise Exception("SYNTAX ERROR: no 'classes' section found in source file.")
             domain = ['(define (domain MINE)', '(:requirements :adl)']
@@ -107,7 +106,7 @@ def main (argv):
                                     prd_name = '_'.join([cl_nm, var_nm, var_state])
                                     predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
                             else:
-                                raise Exception("SYNTAX ERROR: class " + cl_nm +
+                                raise Exception("SYNTAX ERROR: class " + cl_nm + \
                                     ", variable " + var_nm + " --- variable type is expected to be either Boolean or list")
                     # operators are translated into PDDL actions
                     elif st_nm == 'operators':
@@ -116,7 +115,7 @@ def main (argv):
                             if 'parameters' in op_def:
                                 actions.append(':parameters (?this - ' + cl_nm)
                                 if not isinstance(op_def['parameters'], dict):
-                                    raise Exception("SYNTAX ERROR: class " + cl_nm +
+                                    raise Exception("SYNTAX ERROR: class " + cl_nm + \
                                         ", operator " + op_nm + " --- parameters expected to be dictionary type")
                                 for par_nm, par_type in op_def['parameters'].items():
                                     actions.append('?'+ par_nm + ' - ' + par_type)
@@ -125,10 +124,10 @@ def main (argv):
                             if 'when' in op_def:
                                 actions.append(':precondition (and')
                                 if not isinstance(op_def['when'], list):
-                                    raise Exception("SYNTAX ERROR: class " + cl_nm +
+                                    raise Exception("SYNTAX ERROR: class " + cl_nm + \
                                         ", operator " + op_nm + " --- condition expected to be list type")
                                 for cond_def in op_def['when']:
-                                    # here predicates are translated into inline logical expressions
+                                    # parse logical expressions; expand predicates; add 'this' to local state variables;
                                     tokenized_expr = Tokenizer(cond_def)
                                     for index, token in enumerate(tokenized_expr.tokens):
                                         if tokenized_expr.tokenTypes[index] == TokenType.VAR:
@@ -140,15 +139,21 @@ def main (argv):
                                             if '.' in token:
                                                 param_nm, var_nm = token.split('.', 1)
                                                 if not param_nm in op_def['parameters']:
-                                                    raise Exception("SYNTAX ERROR: class " + cl_nm +
+                                                    raise Exception("SYNTAX ERROR: class " + cl_nm + \
                                                         ", operator " + op_nm + " --- undefined variable " + param_nm + " in condition")
                                                 class_nm = op_def['parameters'][param_nm]
                                             if var_nm in code['classes'][class_nm]['state']['vars']:
-                                                tokenized_expr.tokens[index] = param_nm + '.' + var_nm
+                                                tokenized_expr.tokens[index] = param_nm + '.' + class_nm + '_' + var_nm
                                             elif var_nm in code['classes'][class_nm]['state']['predicates']:
-                                                tokenized_expr.tokens[index] = '('+ param_nm + '.' + code['classes'][class_nm]['state']['predicates'][var_nm] +')'
+                                                tokenized_pr = Tokenizer(code['classes'][class_nm]['state']['predicates'][var_nm])
+                                                for pr_index, pr_token in enumerate(tokenized_pr.tokens):
+                                                    if tokenized_pr.tokenTypes[pr_index] == TokenType.VAR:
+                                                        # references from predicates to other predicates are not supported for now
+                                                        if pr_token in code['classes'][class_nm]['state']['vars']:
+                                                            tokenized_pr.tokens[pr_index] = param_nm + '.' + class_nm + '_' + pr_token
+                                                tokenized_expr.tokens[index] = '('+ ' '.join(tokenized_pr.tokens) + ')'
                                             else:
-                                                raise Exception("SYNTAX ERROR: class " + cl_nm +
+                                                raise Exception("SYNTAX ERROR: class " + cl_nm + \
                                                     ", operator " + op_nm + " --- undefined variable " + var_nm + " in condition")
                                     parsed_expr = BooleanParser(' '.join(tokenized_expr.tokens))
                                     actions.append(btree_to_pddl(parsed_expr.root))
