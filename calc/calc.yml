@@ -82,17 +82,19 @@ classes:
             - not changed
             - not k.processed
             - k.isDigit or (k.k_val == 'point' and not dec_point)  # k.isDigit is a shortcut for k.isDigit()
+                                  # state variables can be tested directly, e.g. k.k_val == 'point', which is equal to k.isPoint
                                   # TODO: implement full (not shortcut) predicate call with zero parameters k.isDigit()
                                   #       and with multiple parameters var.predicate(param1=val1, param2=val2)
             - not tobe_cleaned
-          effect: # assignments
+          effect: # only simple assignments are supported; one assignment per list item
             - changed = True
             - k.processed = True
-            - if: k.isPoint
+            - if: k.isPoint # one condition per list item
               then:
                 - last_key = 'point'
                 - dec_point = True
-              else: last_key = 'digit'
+              else:
+                - last_key = 'digit'
           exec:
             pushKey: k  # data methods are called from here;
                         # assignments, conditionals, loops, etc. are not supported for now;
@@ -107,7 +109,7 @@ classes:
           effect:
             - tobe_cleaned = False
             - dec_point = False
-            - last_key = 'undef'
+            - last_key = 'digit'
           exec:
             clean:  # data method call with no parameters
 
@@ -191,7 +193,8 @@ classes:
             - k.isOp
             - not reg_stored
             - not k.processed
-          effect: op_stored = True
+          effect:
+            - op_stored = True
           exec:
             storeOp: k
 
@@ -239,7 +242,8 @@ classes:
             - not processed
             - isPoint
             - s.isDecPoint
-          effect: processed
+          effect:
+            - processed = True
 
 main:
   objects:

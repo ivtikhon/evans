@@ -24,10 +24,12 @@ class Tokenizer:
     expression = None
     tokens = None
     tokenTypes = None
+    singleEqSign = None
     i = 0
 
-    def __init__(self, exp):
+    def __init__(self, exp, singleEqSign = False):
         self.expression = exp
+        self.singleEqSign = singleEqSign
         self.tokenize()
 
     def next(self):
@@ -52,6 +54,8 @@ class Tokenizer:
     def tokenize(self):
         import re
         reg = re.compile(r'(\band\b|\bor\b|\bnot\b|!=|==|<=|>=|<|>|\(|\))')
+        if self.singleEqSign:
+            reg = re.compile(r'(\band\b|\bor\b|\bnot\b|!=|=|<=|>=|<|>|\(|\))')
         self.tokens = reg.split(self.expression)
         self.tokens = [t.strip() for t in self.tokens if t.strip() != '']
 
@@ -75,7 +79,9 @@ class Tokenizer:
                 self.tokenTypes.append(TokenType.GT)
             elif t == '>=':
                 self.tokenTypes.append(TokenType.GTE)
-            elif t == '==':
+            elif t == '==' and not self.singleEqSign:
+                self.tokenTypes.append(TokenType.EQ)
+            elif t == '=' and self.singleEqSign:
                 self.tokenTypes.append(TokenType.EQ)
             elif t == '!=':
                 self.tokenTypes.append(TokenType.NEQ)
