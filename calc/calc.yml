@@ -76,6 +76,7 @@ classes:
                       # by parameters and variables defined in classes;
                       # TODO: it is not clear how to implement PDDL operators 'forall' and 'exists';
                       #       think about using lists in state operators
+                      # TODO: think about PDDL's 'imply'
             k: Key # can be state or hybrid types
           when: # condition check; state variables can be used here as well as predicates
                 # lists interpreted as conjuctions (and)
@@ -257,6 +258,6 @@ main:
     alu1.alu_reg_stored: True
   goal:
     - key1.key_processed
-    - if: stack.stack_changed
+    - if: stack1.stack_changed
       then:
         - display1.display_updated

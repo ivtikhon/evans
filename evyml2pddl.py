@@ -9,9 +9,15 @@ import pprint
 from boolparser import *
 
 def usage ():
+    '''This is just usage message'''
     print ('evyml2pddl.py [-h | --help] [-o <outputfile> | --output=<outputfile>] input_file.yml')
 
 def btree_to_pddl (root):
+    ''' This procedure translates logical expression supplied in a form of binary tree
+            into PDDL formula.
+        Input: reference to binary tree root (BooleanParser)
+        Output: PDDL formula (string)
+    '''
     left, right = None, None
     if 'left' in root:
         left = btree_to_pddl(root['left'])
@@ -58,6 +64,75 @@ def btree_to_pddl (root):
         return '(not ' + right + ')'
     else:
         raise Exception("Complex logical expressions not implemented yet.")
+
+def operator_var_to_canonical(variable_name, class_name, context):
+    ''' This procedure translates (possible complex) operator variable, into canonical form,
+            e.g. (complex variable) var.attribute:
+                - attribute converts to state variable
+                - var converts to parameter; its class taken from context converts to parameter type
+        Input:
+            - variable name (string)
+            - class where operator is defined (string)
+            - context where complex variable is defined, e.g. operator parameters (list)
+        Output: [variabe name, parameter name (or 'this'), class name (or None if variable undefined)]
+    '''
+    parameter = 'this'
+    if '.' in variable_name:
+        parameter, state_variable = variable_name.split('.', 1)
+        if parameter not in context:
+            class_name = None
+        class_name = context[parameter]
+        variable_name = state_variable
+    return [variable_name, parameter, class_name]
+
+def operator_effect_to_pddl (effect_sting, class_name, operator_name, classes_root):
+    ''' This procedure converts unconditional operator assignment (effect)
+            into PDDL formula.
+        Input:
+            - assignment from operator effect (string)
+            - class where operator is defined (string)
+            - operator name (string)
+            - reference to classes definition (dictionary)
+        Output: PDDL formulae (list)
+    '''
+    pddl_str = []
+    tokenized_asgnmt = Tokenizer(exp = effect_sting, singleEqSign = True)
+    # assignment format: state_var = value (either Boolean or inline enum item)
+    if len(tokenized_asgnmt.tokens) != 3 or tokenized_asgnmt.tokens[1] != '=':
+        raise Exception("SYNTAX ERROR: class " + class_name + \
+            ", operator " + operator_name + " --- unsupported assignment format: " + effect_sting)
+    var_nm, param_nm, class_nm = \
+        operator_var_to_canonical(variable_name = tokenized_asgnmt.tokens[0], \
+            class_name = class_name, context = \
+                classes_root[class_name]['state']['operators'][operator_name]['parameters'])
+    if class_nm == None:
+        raise Exception("SYNTAX ERROR: class " + class_name + \
+            ", operator " + operator_name + " --- undefined variable " + param_nm + " in operator parameters")
+    if var_nm not in classes_root[class_nm]['state']['vars']:
+        raise Exception("SYNTAX ERROR: class " + class_name + \
+            ", operator " + operator_name + " --- undefined variable " + var_nm + " in operator effect")
+    var_type = classes_root[class_nm]['state']['vars'][var_nm] # state variable type
+    assignment_value = tokenized_asgnmt.tokens[2] # value to be assigned to state variable
+    # state variable type is either Boolean...
+    if tokenized_asgnmt.tokenTypes[2] == TokenType.VAR and \
+            var_type.lower() == 'boolean' and \
+            assignment_value.lower() in ['true', 'false']:
+        assignment_str = '(' + class_nm + '_' + var_nm + ' ?' + param_nm + ')'
+        if assignment_value.lower() == 'false':
+            assignment_str = '(not ' + assignment_str + ')'
+        pddl_str.append(assignment_str)
+    # ...or inline enum (where all values are explisitly listed in state variable definition)
+    elif tokenized_asgnmt.tokenTypes[2] == TokenType.STR and \
+            isinstance(var_type, list) and assignment_value[1:-1] in var_type:
+        pddl_str.append('(and')
+        for st_var_val in var_type:
+            assignment_str = '(' + class_nm + '_' + var_nm + '_' + st_var_val + ' ?' + param_nm + ')'
+            if st_var_val != assignment_value[1:-1]:
+                assignment_str = '(not ' + assignment_str + ')'
+            pddl_str.append(assignment_str)
+        pddl_str.append(')')
+    return pddl_str
+
 
 def main (argv):
 # Parse options
@@ -133,16 +208,10 @@ def main (argv):
                                     tokenized_expr = Tokenizer(cond_def)
                                     for index, token in enumerate(tokenized_expr.tokens):
                                         if tokenized_expr.tokenTypes[index] == TokenType.VAR:
-                                            class_nm = cl_nm
-                                            var_nm = token
-                                            param_nm = 'this'
-                                            # get the parameter's class name
-                                            if '.' in token:
-                                                param_nm, var_nm = token.split('.', 1)
-                                                if param_nm not in op_def['parameters']:
-                                                    raise Exception("SYNTAX ERROR: class " + cl_nm + \
-                                                        ", operator " + op_nm + " --- undefined variable " + param_nm + " in operator parameters")
-                                                class_nm = op_def['parameters'][param_nm]
+                                            var_nm, param_nm, class_nm = operator_var_to_canonical(variable_name = token, class_name = cl_nm, context = op_def['parameters'])
+                                            if class_nm == None:
+                                                raise Exception("SYNTAX ERROR: class " + cl_nm + \
+                                                    ", operator " + op_nm + " --- undefined variable " + param_nm + " in operator parameters")
                                             # variable is searched in 'vars' first, then in 'predicates';
                                             # when found in 'predicates', variable is substituted by the predicate
                                             if var_nm in code['classes'][class_nm]['state']['vars']:
@@ -173,49 +242,9 @@ def main (argv):
                                         # conditional assignment
                                         actions.append('(conditional effect -- to be done)')
                                     else:
-                                        # simple assignment
-                                        tokenized_asgnmt = Tokenizer(exp = eff_def, singleEqSign = True)
-                                        # assignment format: state_var = value (either Boolean or inline enum item)
-                                        if len(tokenized_asgnmt.tokens) != 3 or tokenized_asgnmt.tokens[1] != '=':
-                                            raise Exception("SYNTAX ERROR: class " + cl_nm + \
-                                                ", operator " + op_nm + " --- unsupported assignment format: " + eff_def)
-                                        class_nm = cl_nm
-                                        var_nm = tokenized_asgnmt.tokens[0]
-                                        param_nm = 'this'
-                                        # get the parameter's class name
-                                        if '.' in var_nm:
-                                            param_nm, st_var_nm = var_nm.split('.', 1)
-                                            if param_nm not in op_def['parameters']:
-                                                raise Exception("SYNTAX ERROR: class " + cl_nm + \
-                                                    ", operator " + op_nm + " --- undefined variable " + param_nm + " in operator parameters")
-                                            class_nm = op_def['parameters'][param_nm]
-                                            var_nm = st_var_nm
-                                        if var_nm not in code['classes'][class_nm]['state']['vars']:
-                                            raise Exception("SYNTAX ERROR: class " + cl_nm + \
-                                                ", operator " + op_nm + " --- undefined variable " + var_nm + " in operator effect")
-                                        var_type = code['classes'][class_nm]['state']['vars'][var_nm] # state variable type
-                                        assignment_value = tokenized_asgnmt.tokens[2] # value to be assigned to state variable
-                                        # Boolean type check
-                                        if tokenized_asgnmt.tokenTypes[2] == TokenType.VAR and \
-                                                var_type.lower() == 'boolean' and \
-                                                assignment_value.lower() in ['true', 'false']:
-                                            assignment_str = '(' + class_nm + '_' + var_nm + ' ?' + param_nm + ')'
-                                            if assignment_value.lower() == 'false':
-                                                assignment_str = '(not ' + assignment_str + ')'
-                                            actions.append(assignment_str)
-                                        # inline enum type check
-                                        elif tokenized_asgnmt.tokenTypes[2] == TokenType.STR and \
-                                                isinstance(var_type, list) and assignment_value[1:-1] in var_type:
-                                            actions.append('(and')
-                                            for st_var_val in var_type:
-                                                assignment_str = '(' + class_nm + '_' + var_nm + '_' + st_var_val + ' ?' + param_nm + ')'
-                                                if st_var_val != assignment_value[1:-1]:
-                                                    assignment_str = '(not ' + assignment_str + ')'
-                                                actions.append(assignment_str)
-                                            actions.append(')')
-                                        else:
-                                            raise Exception("SYNTAX ERROR: class " + cl_nm + \
-                                                ", operator " + op_nm + " --- wrong assignment value " + assignment_value + " in operator effect")
+                                        effect_in_pddl = operator_effect_to_pddl(effect_sting = eff_def, \
+                                            class_name = cl_nm, operator_name = op_nm, classes_root = code['classes'])
+                                        actions.extend(effect_in_pddl) # effect_in_pddl is an array of strings
                                 actions.append(')')
                             actions.append(')')
             predicates.append(')')
