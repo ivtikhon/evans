@@ -13,7 +13,7 @@ def usage ():
     print ('evyml2pddl.py [-h | --help] [-o <outputfile> | --output=<outputfile>] input_file.yml')
 
 def btree_to_pddl (root):
-    ''' This procedure translates logical expression supplied in a form of binary tree
+    ''' This procedure translates logical expression, supplied in a form of binary tree,
             into PDDL formula.
         Input: reference to binary tree root (BooleanParser)
         Output: PDDL formula (string)
@@ -93,7 +93,7 @@ def operator_effect_to_pddl (effect_sting, class_name, operator_name, classes_ro
             - class where operator is defined (string)
             - operator name (string)
             - reference to classes definition (dictionary)
-        Output: PDDL formulae (list)
+        Output: PDDL formulae (list of strings)
     '''
     pddl_str = []
     tokenized_asgnmt = Tokenizer(exp = effect_sting, singleEqSign = True)
@@ -133,6 +133,33 @@ def operator_effect_to_pddl (effect_sting, class_name, operator_name, classes_ro
         pddl_str.append(')')
     return pddl_str
 
+# def operator_condition_to_pddl(condition_sting, class_name, operator_name, classes_root):
+#     # parse logical expressions, expand predicates;
+#     # add 'this' to the current class state variables;
+#     tokenized_expr = Tokenizer(condition_sting)
+#     for index, token in enumerate(tokenized_expr.tokens):
+#         if tokenized_expr.tokenTypes[index] == TokenType.VAR:
+#             var_nm, param_nm, class_nm = operator_var_to_canonical(variable_name = token, \
+#                 class_name = class_name, context = classes_root[class_name]['state']['operators'][operator_name]['parameters'])
+#             if class_nm == None:
+#                 raise Exception("SYNTAX ERROR: class " + cl_nm + \
+#                     ", operator " + operator_name + " --- undefined variable " + param_nm + " in operator parameters")
+#             # variable is searched in 'vars' first, then in 'predicates';
+#             # when found in 'predicates', variable is substituted by the predicate
+#             if var_nm in classes_root[class_nm]['state']['vars']:
+#                 tokenized_expr.tokens[index] = param_nm + '.' + class_nm + '_' + var_nm
+#             elif var_nm in code['classes'][class_nm]['state']['predicates']:
+#                 tokenized_pr = Tokenizer(code['classes'][class_nm]['state']['predicates'][var_nm])
+#                 for pr_index, pr_token in enumerate(tokenized_pr.tokens):
+#                     if tokenized_pr.tokenTypes[pr_index] == TokenType.VAR:
+#                         # references from predicates to other predicates are not supported for now
+#                         # TODO: add exception when undefined variable used in predicate
+#                         if pr_token in code['classes'][class_nm]['state']['vars']:
+#                             tokenized_pr.tokens[pr_index] = param_nm + '.' + class_nm + '_' + pr_token
+#                 tokenized_expr.tokens[index] = '('+ ' '.join(tokenized_pr.tokens) + ')'
+#             else:
+#                 raise Exception("SYNTAX ERROR: class " + cl_nm + \
+#                     ", operator " + op_nm + " --- undefined variable " + var_nm + " in operator condition")
 
 def main (argv):
 # Parse options
@@ -154,7 +181,7 @@ def main (argv):
     else:
         usage()
         sys.exit()
-# Read YAML file
+    # Read YAML file
     with open(input, 'r') as stream:
         try:
             code = yaml.load(stream)
@@ -240,8 +267,18 @@ def main (argv):
                                 for eff_def in op_def['effect']:
                                     if isinstance(eff_def, dict):
                                         # conditional assignment
-                                        actions.append('(conditional effect -- to be done)')
+                                        try:
+                                            effect_condition = eff_def['if']
+                                            effect_body = eff_def['then']
+                                            pass
+                                            if 'else' in eff_def:
+                                                effect_alternative = eff_def['else']
+                                                pass
+                                        except KeyError:
+                                            raise Exception("SYNTAX ERROR: class " + cl_nm + \
+                                                ", operator " + op_nm + " --- conditional effect is expected to be in the if: ... then: ... else: format")
                                     else:
+                                        # unconditional assignment
                                         effect_in_pddl = operator_effect_to_pddl(effect_sting = eff_def, \
                                             class_name = cl_nm, operator_name = op_nm, classes_root = code['classes'])
                                         actions.extend(effect_in_pddl) # effect_in_pddl is an array of strings
