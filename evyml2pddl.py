@@ -133,33 +133,34 @@ def operator_effect_to_pddl (effect_sting, class_name, operator_name, classes_ro
         pddl_str.append(')')
     return pddl_str
 
-# def operator_condition_to_pddl(condition_sting, class_name, operator_name, classes_root):
-#     # parse logical expressions, expand predicates;
-#     # add 'this' to the current class state variables;
-#     tokenized_expr = Tokenizer(condition_sting)
-#     for index, token in enumerate(tokenized_expr.tokens):
-#         if tokenized_expr.tokenTypes[index] == TokenType.VAR:
-#             var_nm, param_nm, class_nm = operator_var_to_canonical(variable_name = token, \
-#                 class_name = class_name, context = classes_root[class_name]['state']['operators'][operator_name]['parameters'])
-#             if class_nm == None:
-#                 raise Exception("SYNTAX ERROR: class " + cl_nm + \
-#                     ", operator " + operator_name + " --- undefined variable " + param_nm + " in operator parameters")
-#             # variable is searched in 'vars' first, then in 'predicates';
-#             # when found in 'predicates', variable is substituted by the predicate
-#             if var_nm in classes_root[class_nm]['state']['vars']:
-#                 tokenized_expr.tokens[index] = param_nm + '.' + class_nm + '_' + var_nm
-#             elif var_nm in code['classes'][class_nm]['state']['predicates']:
-#                 tokenized_pr = Tokenizer(code['classes'][class_nm]['state']['predicates'][var_nm])
-#                 for pr_index, pr_token in enumerate(tokenized_pr.tokens):
-#                     if tokenized_pr.tokenTypes[pr_index] == TokenType.VAR:
-#                         # references from predicates to other predicates are not supported for now
-#                         # TODO: add exception when undefined variable used in predicate
-#                         if pr_token in code['classes'][class_nm]['state']['vars']:
-#                             tokenized_pr.tokens[pr_index] = param_nm + '.' + class_nm + '_' + pr_token
-#                 tokenized_expr.tokens[index] = '('+ ' '.join(tokenized_pr.tokens) + ')'
-#             else:
-#                 raise Exception("SYNTAX ERROR: class " + cl_nm + \
-#                     ", operator " + op_nm + " --- undefined variable " + var_nm + " in operator condition")
+def operator_condition_to_pddl(condition_sting, class_name, operator_name, classes_root):
+    # parse logical expressions, expand predicates;
+    # add 'this' to the current class state variables;
+    tokenized_expr = Tokenizer(condition_sting)
+    for index, token in enumerate(tokenized_expr.tokens):
+        if tokenized_expr.tokenTypes[index] == TokenType.VAR:
+            var_nm, param_nm, class_nm = operator_var_to_canonical(variable_name = token, \
+                class_name = class_name, context = classes_root[class_name]['state']['operators'][operator_name]['parameters'])
+            if class_nm == None:
+                raise Exception("SYNTAX ERROR: class " + class_name + \
+                    ", operator " + operator_name + " --- undefined variable " + param_nm + " in operator parameters")
+            # variable is searched in 'vars' first, then in 'predicates';
+            # when found in 'predicates', variable is substituted by the predicate
+            if var_nm in classes_root[class_nm]['state']['vars']:
+                tokenized_expr.tokens[index] = param_nm + '.' + class_nm + '_' + var_nm
+            elif var_nm in classes_root[class_nm]['state']['predicates']:
+                tokenized_pr = Tokenizer(classes_root[class_nm]['state']['predicates'][var_nm])
+                for pr_index, pr_token in enumerate(tokenized_pr.tokens):
+                    if tokenized_pr.tokenTypes[pr_index] == TokenType.VAR:
+                        # references from predicates to other predicates are not supported for now
+                        # TODO: add exception when undefined variable used in predicate
+                        if pr_token in classes_root[class_nm]['state']['vars']:
+                            tokenized_pr.tokens[pr_index] = param_nm + '.' + class_nm + '_' + pr_token
+                tokenized_expr.tokens[index] = '('+ ' '.join(tokenized_pr.tokens) + ')'
+            else:
+                raise Exception("SYNTAX ERROR: class " + class_nm + \
+                    ", operator " + operator_name + " --- undefined variable " + var_nm + " in operator condition")
+    return btree_to_pddl(BooleanParser(' '.join(tokenized_expr.tokens)).root)
 
 def main (argv):
 # Parse options
@@ -230,33 +231,10 @@ def main (argv):
                                     raise Exception("SYNTAX ERROR: class " + cl_nm + \
                                         ", operator " + op_nm + " --- condition expected to be list type")
                                 for cond_def in op_def['when']:
-                                    # parse logical expressions, expand predicates;
-                                    # add 'this' to the current class state variables;
-                                    tokenized_expr = Tokenizer(cond_def)
-                                    for index, token in enumerate(tokenized_expr.tokens):
-                                        if tokenized_expr.tokenTypes[index] == TokenType.VAR:
-                                            var_nm, param_nm, class_nm = operator_var_to_canonical(variable_name = token, class_name = cl_nm, context = op_def['parameters'])
-                                            if class_nm == None:
-                                                raise Exception("SYNTAX ERROR: class " + cl_nm + \
-                                                    ", operator " + op_nm + " --- undefined variable " + param_nm + " in operator parameters")
-                                            # variable is searched in 'vars' first, then in 'predicates';
-                                            # when found in 'predicates', variable is substituted by the predicate
-                                            if var_nm in code['classes'][class_nm]['state']['vars']:
-                                                tokenized_expr.tokens[index] = param_nm + '.' + class_nm + '_' + var_nm
-                                            elif var_nm in code['classes'][class_nm]['state']['predicates']:
-                                                tokenized_pr = Tokenizer(code['classes'][class_nm]['state']['predicates'][var_nm])
-                                                for pr_index, pr_token in enumerate(tokenized_pr.tokens):
-                                                    if tokenized_pr.tokenTypes[pr_index] == TokenType.VAR:
-                                                        # references from predicates to other predicates are not supported for now
-                                                        # TODO: add exception when undefined variable used in predicate
-                                                        if pr_token in code['classes'][class_nm]['state']['vars']:
-                                                            tokenized_pr.tokens[pr_index] = param_nm + '.' + class_nm + '_' + pr_token
-                                                tokenized_expr.tokens[index] = '('+ ' '.join(tokenized_pr.tokens) + ')'
-                                            else:
-                                                raise Exception("SYNTAX ERROR: class " + cl_nm + \
-                                                    ", operator " + op_nm + " --- undefined variable " + var_nm + " in operator condition")
-                                    parsed_expr = BooleanParser(' '.join(tokenized_expr.tokens))
-                                    actions.append(btree_to_pddl(parsed_expr.root))
+                                    pddl_cond = operator_condition_to_pddl(condition_sting = cond_def, \
+                                        class_name = cl_nm, operator_name = op_nm, \
+                                        classes_root = code['classes'])
+                                    actions.append(pddl_cond)
                                 actions.append(')')
                             # parse operator's effect
                             if 'effect' in op_def:
@@ -268,12 +246,35 @@ def main (argv):
                                     if isinstance(eff_def, dict):
                                         # conditional assignment
                                         try:
-                                            effect_condition = eff_def['if']
-                                            effect_body = eff_def['then']
-                                            pass
+                                            pddl_cond = operator_condition_to_pddl(condition_sting = eff_def['if'], \
+                                                class_name = cl_nm, operator_name = op_nm, \
+                                                    classes_root = code['classes'])
+                                            actions.append('(when')
+                                            actions.append(pddl_cond)
+                                            if len(eff_def['then']) > 1:
+                                                actions.append('(and')
+                                            for cond_eff in eff_def['then']:
+                                                pddl_effect = operator_effect_to_pddl(effect_sting = cond_eff, \
+                                                    class_name = cl_nm, operator_name = op_nm, \
+                                                        classes_root = code['classes'])
+                                                actions.extend(pddl_effect) # pddl_effect is an array of strings
+                                            if len(eff_def['then']) > 1:
+                                                actions.append(')')
+                                            actions.append(')')
                                             if 'else' in eff_def:
-                                                effect_alternative = eff_def['else']
-                                                pass
+                                                actions.append('(when (not ')
+                                                actions.append(pddl_cond)
+                                                actions.append(')')
+                                                if len(eff_def['else']) > 1:
+                                                    actions.append('(and')
+                                                for cond_eff in eff_def['else']:
+                                                    pddl_effect = operator_effect_to_pddl(effect_sting = cond_eff, \
+                                                        class_name = cl_nm, operator_name = op_nm, \
+                                                            classes_root = code['classes'])
+                                                    actions.extend(pddl_effect)
+                                                if len(eff_def['else']) > 1:
+                                                    actions.append(')')
+                                                actions.append(')')
                                         except KeyError:
                                             raise Exception("SYNTAX ERROR: class " + cl_nm + \
                                                 ", operator " + op_nm + " --- conditional effect is expected to be in the if: ... then: ... else: format")
@@ -281,7 +282,7 @@ def main (argv):
                                         # unconditional assignment
                                         effect_in_pddl = operator_effect_to_pddl(effect_sting = eff_def, \
                                             class_name = cl_nm, operator_name = op_nm, classes_root = code['classes'])
-                                        actions.extend(effect_in_pddl) # effect_in_pddl is an array of strings
+                                        actions.extend(effect_in_pddl)
                                 actions.append(')')
                             actions.append(')')
             predicates.append(')')

@@ -212,7 +212,8 @@ classes:
           effect:
             - op_executed = True
             - if: k.isEq
-              then: op_stored = False
+              then:
+                - op_stored = False
           exec:
             execOp: s
 
