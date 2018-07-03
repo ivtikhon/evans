@@ -2,13 +2,12 @@
 
 ## Classes
 
-Classes in Evans, like in traditional object oriented languages, define new types of objects along with their attributes and methods to modify the attributes.  
+Classes in Evans, like in traditional object oriented languages, define new types of objects along with object attributes and methods to manage the attributes. Classes are templates, based on which new objects are created.
 
-Classes are templates, based on which new objects are created.
+But here the similarity with traditional object oriented languages ends. In Evans there can be two types of attributes defined in classes: the data and state attributes, or variables, and their respective methods.
 
-But here the similarity ends. In Evans, in contrary to traditional object oriented languages, there can be two types of attributes defined in classes: the data and state attributes, and their respective methods.
+Data variables represents information about outside world, expressed in the form of objects. Set of states represents transformation of information during the life of objects.
 
-Data represents information. Set of states represents transformation of information.
 ```
 classes:
   <class name>:
