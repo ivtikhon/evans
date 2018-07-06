@@ -1,5 +1,10 @@
 # Evans Tutorial
 
+## Basic concepts
+
+Programming essentially is an information processing exercise. Programs written by humans usually take some data in some format as input, modify the data according to program algorithms, and then present the results in some format as output. Algorithms encoded in programs define the data transformation procedure. Coding is difficult and prone to errors. And so far the evolution of programming languages goes toward designing better syntax to ease the process of coding.
+...
+
 ## Classes
 
 Classes in Evans, like in traditional object oriented languages, define new types of objects along with object attributes and procedures, or methods, to manage the attributes. Classes can be seen as templates, based on which new objects are created.
