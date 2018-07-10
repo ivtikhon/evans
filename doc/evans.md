@@ -2,13 +2,13 @@
 
 ## Basic concepts
 
-Programming essentially is an information processing exercise. Software programs usually take some data as input, modify the data according to program algorithms, and then present the results in as output.
+Programming essentially is an information processing exercise. Software programs usually take some data as input, modify the data according to program algorithms, and then present the results as output.
 
 This can be imagined as a three-stage process: 1) the _initial state_, where we consider data to work with, 2) the _course of actions_, a step-by-step procedure to transform data into its 3) desired state, or _goal_.
 
 Selecting the best course of actions is what constitutes programming. Algorithms encoded in programs define the data transformation procedure. Coding is difficult and prone to errors. And so far the evolution of programming languages has been going toward designing better language syntax to ease the process of coding.
 
-In Evans programming language we suggest to shift attention from developing code that describes the data transformation procedure toward design of data transformation models, and utilize capacity of automated planning for selecting the appropriate course of actions.
+In Evans programming language we suggest to shift attention from developing code, which describes the data transformation procedure, toward designing of data transformation models, and utilizing capacity of automated planning for selecting the appropriate course of actions.
 
 ## Classes
 
