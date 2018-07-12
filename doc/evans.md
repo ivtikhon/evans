@@ -8,7 +8,11 @@ This can be imagined as a three-stage process: 1) the _initial state_, where we 
 
 Selecting the best course of actions is what constitutes programming. Algorithms encoded in programs define the data transformation procedure. Coding is difficult and prone to errors. And so far the evolution of programming languages has been going toward designing better language syntax to ease the process of coding.
 
-In Evans programming language we suggest to shift attention from developing code, which describes the data transformation procedure, toward designing of data transformation models, and utilizing capacity of automated planning for selecting the appropriate course of actions.
+By introducing the Evans programming language, we suggest to shift attention of the programming community from developing code, which describes the data transformation _procedure_, toward designing the data transformation _model_, and utilize capability of automated (classical) planning for selecting the appropriate course of actions, i.e. generating the actual code.
+
+Evans extends the well known PDDL (Planning Domain Definition Language) with classes and state variables, and also adds execution capacity to PDDL actions, called operators in Evans.
+
+The language syntax is not designed yet, so we model syntax elements using YAML for now.
 
 ## Classes
 
@@ -16,7 +20,7 @@ Classes in Evans, like in traditional object oriented languages, define new type
 
 But here the similarity with traditional object oriented languages ends. In Evans, there can be two types of attributes defined in classes: the data and state attributes, also called variables, and their respective methods.
 
-Data variables represents information about outside world, expressed in the form of objects. Set of object states represents how information transforms during the life of objects.
+Data variables represents information about objects in outside world, expressed in the form of object attributes. Set of object states represents how information transforms during the life of objects.
 
 ```
 classes:
@@ -66,14 +70,6 @@ classes:
   ...
 ```
 
-### Embedded classes
+## State Variables
 
-#### Data
-* String
-* Int
-* Long
-* Float
-* Double
-
-#### State
-* Boolean
+## Operators
