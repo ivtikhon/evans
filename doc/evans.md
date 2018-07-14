@@ -2,7 +2,7 @@
 
 ## Basic concepts
 
-Programming essentially is an information processing exercise. Software programs usually take some data as input, modify the data according to program algorithms, and then present the results as output.
+Programming essentially is an information processing exercise. Software developers write programs that take some data as input, modify the data according to program algorithms, and then present the results as output.
 
 This can be imagined as a three-stage process: 1) the _initial state_, where we consider data to work with, 2) the _course of actions_, a step-by-step procedure to transform data into its 3) desired state, or _goal_.
 
@@ -10,7 +10,7 @@ Selecting the best course of actions is what constitutes programming. Algorithms
 
 By introducing the Evans programming language, we suggest to shift attention of the programming community from developing code, which describes the data transformation _procedure_, toward designing the data transformation _model_, and utilize capability of automated (classical) planning for selecting the appropriate course of actions, i.e. generating the actual code.
 
-Evans extends the well known PDDL (Planning Domain Definition Language) with classes and state variables, and also adds execution capacity to PDDL actions, called operators in Evans.
+Evans extends the well known PDDL (Planning Domain Definition Language) with _classes_ and _state variables_, and also adds _execution_ capacity to PDDL actions, called operators in Evans.
 
 The language syntax is not designed yet, so we model syntax elements using YAML for now.
 
@@ -72,4 +72,22 @@ classes:
 
 ## State Variables
 
+State variables describe _states_ in which object of a certain class can be. For example, typical location of a hockey mom's car can be either home, work, school, ice rink, or shopping mall:
+
+```
+classes:
+  car:
+    state:
+      vars:
+        location: [home, work, school, ice_rink, shopping_mall]
+```
+
+State variables can also be the Boolean type, i.e. has either True or 
+
+## Predicates
+
 ## Operators
+
+## Initial state
+
+## Goal

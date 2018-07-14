@@ -53,10 +53,8 @@ classes:
       vars:
         last_key: ['digit', 'point']  # state variable with explisitly listed values (inline enum);
                                       # only inline enum and Boolean types of state variables are supported for now;
-                                      # TODO: think how variables of hybrid type can be used as state variables;
                                       # TODO: it is not clear what should be the default value for enum;
-                                      #       I need to read again what Helmert and Hoffmann say about FDR state
-                                      #       variables; maybe the first item of the enum varibles should be 'undef';
+                                      #       maybe the first item of the enum varibles should be 'undef';
         dec_point: Boolean # False is the default value for Boolean type
         changed: Boolean
         tobe_cleaned: Boolean
