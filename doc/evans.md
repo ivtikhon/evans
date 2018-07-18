@@ -24,6 +24,89 @@ Data variables represents information about objects in outside world, expressed 
 
 ```
 classes:
+
+```
+
+## State Variables
+
+State variables describe _states_ in which object of a certain class can be. For example, typical location of a hockey mom's car can be either home, work, school, ice rink, or shopping mall:
+
+```
+classes:
+  car:
+    state:
+      vars:
+        location: [home, work, school, ice_rink, shopping_mall]
+  ...
+```
+
+State variables can also be the Boolean type, i.e. has either True or False value, or Number type, i.e. assume any numeric value. Say, to specify if the hockey mom's car needs maintenance, we can define a Boolean variable 'maintenance_required', and a Number variable 'next_maintenance_in_days':
+
+```
+classes:
+  car:
+    state:
+      vars:
+        maintenance_required: Boolean
+        next_maintenance_in_days: Number
+      operators:
+        maintenance_signal:
+          when:
+            - not maintenance_required
+            - next_maintenance_in_days <= 15
+          effect:
+            - maintenance_required = True
+  ...
+```
+
+## Predicates
+
+Predicates are facts about objects, which are either True or False. Predicates can simply return the value of a state variable, if it is Boolean, or calculate the value using a logical formula. For example, a smart fridge can figure out the fact that a bottle of milk has to be added to an online order by checking the amount of bottles of milk in:
+```
+classes:
+  fridge:
+    vars:
+      milk_bottles: Number
+    predicates:
+      is_milk_requred: milk_bottles == 0
+    operators:
+      place_order:
+        when:
+          - is_milk_requred
+  ...
+```
+
+## Operators
+
+Operators are actions that can manipulate the objects' states. Say, a pizza, when cooked, is to be delivered, so 'deliver' can be one of the operators of the pizza class:
+
+```
+classes:
+  pizza:
+    state:
+      vars:
+        cooked: Boolean
+        delivered: Boolean
+      operators:
+        deliver:
+          parameters:
+            from: Location
+            to: Location
+          when:
+            - cooked
+            - not delivered
+          effect:
+           - delivered = True
+  ...
+```
+
+## Initial state
+
+## Goal
+
+## Formal YAML description
+```
+classes:
   <class name>:
     data:
       vars:
@@ -39,7 +122,7 @@ classes:
         ...
     state:
       vars:
-        <state variable name>: <Boolean|inline enum>
+        <state variable name>: <Boolean|Number|list>
         ...
       predicates:
         <predicate name>: <logical formula>
@@ -53,15 +136,15 @@ classes:
             - <logical formula>
             ...
           effect:
-            - <state variable name> = <Boolean|inline enum>
+            - <state variable name> = <Boolean|Number|list>
               ...
             # conditional effect
             - if: <logical formula>
               then:
-                - <state variable name> = <Boolean|inline enum>
+                - <state variable name> = <Boolean|value from list>
                 ...
               else:
-                <state variable name> = <Boolean|inline enum>
+                <state variable name> = <Boolean|value from list>
                 ...
           exec:
             # data methods are called here
@@ -69,25 +152,6 @@ classes:
             ...
   ...
 ```
-
-## State Variables
-
-State variables describe _states_ in which object of a certain class can be. For example, typical location of a hockey mom's car can be either home, work, school, ice rink, or shopping mall:
-
-```
-classes:
-  car:
-    state:
-      vars:
-        location: [home, work, school, ice_rink, shopping_mall]
-```
-
-State variables can also be the Boolean type, i.e. has either True or 
-
-## Predicates
-
-## Operators
-
-## Initial state
-
-## Goal
+### Embedded classes
+* Boolean
+* Number
