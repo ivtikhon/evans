@@ -22,9 +22,21 @@ But here the similarity with traditional object oriented languages ends. In Evan
 
 Data variables represents information about objects in outside world, expressed in the form of object attributes. Set of object states represents how information transforms during the life of objects.
 
+Let's use postal service as an example to show the data and state variables in use. If you would like to send a letter to someone, the actual information is the letter content and the sender and recipient addresses (these are the data variables). The content is written on a sheet of paper, which is enclosed into an envelope, which, in its turn, is sealed, stamped, addressed and dropped into the nearest postal box (these are the state variables).
+
 ```
 classes:
-
+  letter:
+    state:
+      vars:
+        location: [sender_home, postal_box, in_transit, recipient_mailbox]
+        status: [written, addressed, sealed, stamped, sent, received]
+    data:
+      vars:
+        content: List
+        source_address: String
+        destination_address: String
+  ...
 ```
 
 ## State Variables
@@ -155,3 +167,5 @@ classes:
 ### Embedded classes
 * Boolean
 * Number
+* List
+* String
