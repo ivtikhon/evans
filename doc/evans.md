@@ -1,16 +1,14 @@
 # Evans Tutorial
 
-## Basic concepts
+## Intoduction
 
-Programming essentially is an information processing exercise. Software developers write programs that take some data as input, modify the data according to program algorithms, and then present the results as output.
-
-This can be imagined as a three-stage process: 1) the _initial state_, where we consider data to work with, 2) the _course of actions_, a step-by-step procedure to transform data into its 3) desired state, or _goal_.
+Programming essentially is an information processing exercise. Software developers write programs that take some data as input, modify the data according to program algorithms, and then present the results as output. So, it is a three-stage process, with 1) the _initial state_, where some data is considered to work with; then 2) a _course of actions_ is applied to transform data into its 3) desired state, or _goal_.
 
 Selecting the best course of actions is what constitutes programming. Algorithms encoded in programs define the data transformation procedure. Coding is difficult and prone to errors. And so far the evolution of programming languages has been going toward designing better language syntax to ease the process of coding.
 
 By introducing the Evans programming language, we suggest to shift attention of the programming community from developing code, which describes the data transformation _procedure_, toward designing the data transformation _model_, and utilize capability of automated (classical) planning for selecting the appropriate course of actions, i.e. generating the actual code.
 
-Evans extends the well known PDDL (Planning Domain Definition Language) with _classes_ and _state variables_, and also adds _execution_ capacity to PDDL actions, called operators in Evans.
+Evans extends the well known PDDL (Planning Domain Definition Language) with _classes_ and _state variables_, and also adds _execution_ capacity to PDDL actions, called _operators_ in Evans.
 
 The language syntax is not designed yet, so we model syntax elements using YAML for now.
 
@@ -71,6 +69,34 @@ classes:
   ...
 ```
 
+State variables can be accessed directly in the same class operators, like it is shown in the previous example, where we read the value of the variable 'maintenance_required' in the 'maintenance_signal' operator precondition, and assigned its value in the operator effect. To access other classes' state variables, they have to be prefixed by the relevant object name. In the example below, we define two classes: stack and address, and we access the address state variable 'processed' from the stack operator 'push':
+
+```
+classes:
+  stack:
+    state:
+      vars:
+        pointer:
+          - incremented
+          - decremented
+      operators:
+        push:
+          parameters:
+            val: address
+          when:
+            - not val.processed
+          effect:
+            - pointer = incremented
+
+  address:
+    state:
+      vars:
+        processed: Boolean
+  ...
+```
+
+Predicates also have read-only access to state variables.
+
 ## Predicates
 
 Predicates are facts about objects, which are either True or False. Predicates can simply return the value of a state variable, if it is Boolean, or calculate the value using a logical formula. For example, a smart fridge can figure out the fact that a bottle of milk has to be added to an online order by checking the amount of bottles of milk in:
@@ -113,8 +139,10 @@ classes:
 ```
 
 ## Initial state
+_To Be Done_
 
 ## Goal
+_To Be Done_
 
 ## Formal YAML description
 ```

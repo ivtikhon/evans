@@ -51,17 +51,22 @@ classes:
             s.clear()
     state:
       vars:
-        last_key: ['digit', 'point']  # state variable with explisitly listed values (inline enum);
-                                      # only inline enum and Boolean types of state variables are supported for now;
+        last_key: ['digit', 'point']  # state variable with explisitly listed values (inline enum)
                                       # TODO: it is not clear what should be the default value for enum;
-                                      #       maybe the first item of the enum varibles should be 'undef';
+                                      #       maybe the first item in the list?
+                                      #       or we can have constructors where the initial values can be assigned;
+                                      # TODO: should we allow to declare other classes variables here?
         dec_point: Boolean # False is the default value for Boolean type
         changed: Boolean
         tobe_cleaned: Boolean
+              # types of state variables so far:
+              #   - inline enum
+              #   - Boolean
+              #   - Number (to be done)
       predicates: # predicates seem to be useful for simple state inquires;
-                  # predicates in Evans are equivalent to PDDL's derived predicates, i.e. can't be used for assignments;
-                  # TODO: predicates in PDDL can have multiple arguments; it can be implemented the same
-                  #       way as parameters in operators
+                  # predicates in Evans are equivalent to PDDL's derived predicates, i.e. read only, can't be used for assignments;
+                  # TODO: predicates in PDDL can have multiple arguments;
+                  #       in Evans this can be implemented the same way as parameters in operators
         isLastKeyDigit: last_key == 'digit' # expressions can contain comparisons '>', '<', '>=', '<=', '==', '!=',
                                             # and logical operators: not, and, or, with standard priorities, i.e not, and, or;
                                             # only simple comparisons are supported for now, e.g. var == 'key'
@@ -70,7 +75,7 @@ classes:
         isDecPoint: dec_point # synonym to dec_point == True
       operators: # actions in PDDL terms
         push:
-          parameters: # global variables are not supported for now, i.e. the variable scope is limitied
+          parameters: # global variables are not supported, i.e. the variable scope is limitied
                       # by parameters and variables defined in classes;
                       # TODO: it is not clear how to implement PDDL operators 'forall' and 'exists';
                       #       think about using lists in state operators
