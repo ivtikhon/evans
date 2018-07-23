@@ -2,7 +2,7 @@
 
 ## Intoduction
 
-Programming essentially is an information processing exercise. Software developers write programs that take some data as input, modify the data according to program algorithms, and then present the results as output. So, it is a three-stage process, with 1) the _initial state_, where some data is considered to work with; then 2) a _course of actions_ is applied to transform data into its 3) desired state, or _goal_.
+Programming essentially is an information processing exercise. Software developers write programs that take some data as input, modify the data according to program algorithms, and then present the results as output. In other words, it is a three-stage process, with 1) the _initial state_, where some data is considered to work with; then 2) a _course of actions_ is applied to transform data into its 3) desired state, or _goal_.
 
 Selecting the best course of actions is what constitutes programming. Algorithms encoded in programs define the data transformation procedure. Coding is difficult and prone to errors. And so far the evolution of programming languages has been going toward designing better language syntax to ease the process of coding.
 
@@ -195,5 +195,7 @@ classes:
 ### Embedded classes
 * Boolean
 * Number
-* List
+* Char
 * String
+* List
+* Dict

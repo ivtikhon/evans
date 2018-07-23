@@ -137,7 +137,7 @@ classes:
   Alu:
     data:
       vars:
-        reg: Float
+        reg: Number
         op: Char
       methods:
         storeReg:
