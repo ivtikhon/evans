@@ -37,7 +37,7 @@ classes:
   ...
 ```
 
-## State Variables
+### State Variables
 
 State variables describe _states_ in which object of a certain class can be. For example, typical location of a hockey mom's car can be either home, work, school, ice rink, or shopping mall:
 
@@ -87,6 +87,7 @@ classes:
             - not val.processed
           effect:
             - pointer = incremented
+            - val.processed = True
 
   address:
     state:
@@ -97,7 +98,7 @@ classes:
 
 Predicates also have read-only access to state variables.
 
-## Predicates
+### Predicates
 
 Predicates are facts about objects, which are either True or False. Predicates can simply return the value of a state variable, if it is Boolean, or calculate the value using a logical formula. For example, a smart fridge can figure out the fact that a bottle of milk has to be added to an online order by checking the amount of bottles of milk in:
 ```
@@ -106,7 +107,7 @@ classes:
     vars:
       milk_bottles: Number
     predicates:
-      is_milk_requred: milk_bottles == 0
+      is_milk_requred: milk_bottles < 1
     operators:
       place_order:
         when:
@@ -114,7 +115,7 @@ classes:
   ...
 ```
 
-## Operators
+### Operators
 
 Operators are actions that can manipulate the objects' states. Say, a pizza, when cooked, is to be delivered, so 'deliver' can be one of the operators of the pizza class:
 
@@ -123,25 +124,31 @@ classes:
   pizza:
     state:
       vars:
-        cooked: Boolean
-        delivered: Boolean
+        order: [received, cooked, delivered]
       operators:
         deliver:
           parameters:
             from: Location
             to: Location
           when:
-            - cooked
-            - not delivered
+            - order == cooked
           effect:
-           - delivered = True
+           - order = delivered
+        cook:
+          when:
+            - order == received
+          effect:
+            - order = cooked
   ...
 ```
 
-## Initial state
+## Main
 _To Be Done_
 
-## Goal
+### Initial state
+_To Be Done_
+
+### Goal
 _To Be Done_
 
 ## Formal YAML description
