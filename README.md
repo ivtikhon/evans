@@ -1,6 +1,6 @@
 ## EVANS
 
-### In late 1780's Oliver Evans, an American inventor, engineer and entrepreneur, designed and built an automatic flour mill. That was the first implementation of a completely automated industrial process.
+#### In late 1780's Oliver Evans, an American inventor, engineer and entrepreneur, designed and built an automatic flour mill. That was the first implementation of a completely automated industrial process.
 
 This project is an attempt to design a programming language (which will be named *Evans* upon arrival), that would allow software developers to reduce time they spend on coding by employing capabilities of *Automatic Planning* for code generation.
 
