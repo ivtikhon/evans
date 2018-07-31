@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Programming essentially is an information processing exercise. Software developers write programs that take some data as input, modify the data according to program algorithms, and then present the results as output. In other words, it is a three-stage process, with 1) the _initial state_, where some data is considered to work with; then 2) a _course of actions_ is applied to transform data into its 3) desired state, or _goal_.
+Programming essentially is an information processing exercise. Software developers write programs that take some data as input, modify the data according to program algorithms, and then present the results as output. In other words, it is a three-stage process, with 1) the _initial state_, where some data is considered to work with; then 2) a _course of actions_ is applied to transform data into its 3) desired, or _goal_ state.
 
 Selecting the best course of actions is what constitutes programming. Algorithms encoded in programs define the data transformation procedure. Coding is difficult and prone to errors. And so far the evolution of programming languages has been going toward designing better language syntax to ease the process of coding.
 
@@ -16,24 +16,20 @@ The language syntax is not designed yet, so we model syntax elements using YAML 
 
 Classes in Evans, like in traditional object oriented languages, define new types of objects along with object attributes and procedures, or methods, to manage the attributes. Classes can be seen as templates, based on which new objects are created.
 
-But here the similarity with traditional object oriented languages ends. In Evans, there can be two types of attributes defined in classes: the data and state attributes, also called variables, and their respective methods.
+But here the similarity with traditional object oriented languages ends. In Evans, we distinguish between object attributes and object states. Attributes represents information about objects, i.e. attributes are object characteristics. Set of object states represents how information transforms during the object lifetime, i.e. object states, expressed in the form of state variables, are procedural checkpoints.
 
-Data variables represents information about objects in outside world, expressed in the form of object attributes. Set of object states represents how information transforms during the life of objects.
-
-Let's use postal service as an example to show the data and state variables in use. If you would like to send a letter to someone, the actual information is the letter content and the sender and recipient addresses (these are the data variables). The content is written on a sheet of paper, which is enclosed into an envelope, which, in its turn, is sealed, stamped, addressed and dropped into the nearest postal box (these are the state variables).
+In the following example we use postal service to show attributes and state variables in use. If you would like to send a letter to someone, the actual information is the letter content and the sender and recipient addresses (these are the attributes). The content is written on a sheet of paper, which is enclosed into an envelope, which, in its turn, is sealed, stamped, addressed and dropped into the nearest postal box (these are the state variables).
 
 ```
 classes:
   letter:
     state:
-      vars:
-        location: [sender_home, postal_box, in_transit, recipient_mailbox]
-        status: [written, addressed, sealed, stamped, sent, received]
-    data:
-      vars:
-        content: List
-        source_address: String
-        destination_address: String
+      location: [sender_home, postal_box, in_transit, recipient_mailbox]
+      status: [written, addressed, sealed, stamped, sent, received]
+    attr:
+      content: List
+      source_address: String
+      destination_address: String
   ...
 ```
 
@@ -155,49 +151,47 @@ _To Be Done_
 ```
 classes:
   <class name>:
-    data:
-      vars:
-        <data variable name>: <class name>
-        ...
-      methods:
-        <data method name>:
-          [parameters:]
-            <parameter name>: <class name>
-            ...
-          body: |
-            <code in Python>
-        ...
+    attr:
+      <attribute name>: <class name>
+      ...
+    methods:
+      <method name>:
+        [parameters:]
+          <parameter name>: <class name>
+          ...
+        body: |
+          <code in Python>
+      ...
     state:
-      vars:
         <state variable name>: <Boolean|Number|list>
         ...
-      predicates:
-        <predicate name>: <logical formula>
-        ...
-      operators:
-        <operator name>:
-          parameters:
-            <parameter name>: <class name>
+    predicates:
+      <predicate name>: <logical formula>
+      ...
+    operators:
+      <operator name>:
+        parameters:
+          <parameter name>: <class name>
+          ...
+        when:
+          - <logical formula>
+          ...
+        effect:
+          - <state variable name> = <Boolean|Number|list>
             ...
-          when:
-            - <logical formula>
-            ...
-          effect:
-            - <state variable name> = <Boolean|Number|list>
+          # conditional effect
+          - if: <logical formula>
+            then:
+              - <state variable name> = <Boolean|value from list>
               ...
-            # conditional effect
-            - if: <logical formula>
-              then:
-                - <state variable name> = <Boolean|value from list>
-                ...
-              else:
-                <state variable name> = <Boolean|value from list>
-                ...
-          exec:
-            # data methods are called here
-            - <data method name>: parameter1, parameter2, ...
-            ...
-  ...
+            else:
+              <state variable name> = <Boolean|value from list>
+              ...
+        exec:
+          # methods are called here
+          - <method name>: parameter1, parameter2, ...
+          ...
+...
 ```
 ### Embedded classes
 * Boolean
