@@ -18,7 +18,7 @@ Classes in Evans, like in traditional object oriented languages, define new type
 
 But here the similarity with traditional object oriented languages ends. In Evans, we distinguish between object attributes and object states. Attributes represents information about objects, i.e. attributes are object characteristics. Set of object states represents how information transforms during the object lifetime, i.e. object states, expressed in the form of state variables, are procedural checkpoints.
 
-In the following example we use postal service to show attributes and state variables in use. If you would like to send a letter to someone, the actual information is the letter content and the sender and recipient addresses (these are the attributes). The content is written on a sheet of paper, which is enclosed into an envelope, which, in its turn, is sealed, stamped, addressed and dropped into the nearest postal box (these are the state variables).
+In the following example we use postal service to show attributes and state variables in use. So, if you would like to send a letter to someone, the actual information is the letter content and the sender and recipient addresses (these are the letter attributes). The content is written on a sheet of paper, which is enclosed into an envelope, which, in its turn, is sealed, stamped, addressed and dropped into the nearest postal box (these are the state variables).
 
 ```
 classes:
@@ -33,6 +33,13 @@ classes:
   ...
 ```
 
+### Attributes
+
+Attributes are object _characteristics_, such as shape, weight, length, color, etc. In attributes we encode information about object, describing what the object is.
+
+### Methods
+_To Be Done_
+
 ### State Variables
 
 State variables describe _states_ in which object of a certain class can be. For example, typical location of a hockey mom's car can be either home, work, school, ice rink, or shopping mall:
@@ -41,58 +48,54 @@ State variables describe _states_ in which object of a certain class can be. For
 classes:
   car:
     state:
-      vars:
-        location: [home, work, school, ice_rink, shopping_mall]
+      location: [home, work, school, ice_rink, shopping_mall]
   ...
 ```
 
-State variables can also be the Boolean type, i.e. has either True or False value, or Number type, i.e. assume any numeric value. Say, to specify if the hockey mom's car needs maintenance, we can define a Boolean variable 'maintenance_required', and a Number variable 'next_maintenance_in_days':
+State variables can also be the Boolean type, i.e. has either True or False value, or Number type, i.e. assume any numeric value. Say, to specify if the hockey mom's car needs maintenance, we can define a Boolean variable **maintenance_required**, and a Number variable **next_maintenance_in_days**:
 
 ```
 classes:
   car:
     state:
-      vars:
-        maintenance_required: Boolean
-        next_maintenance_in_days: Number
-      operators:
-        maintenance_signal:
-          when:
-            - not maintenance_required
-            - next_maintenance_in_days <= 15
-          effect:
-            - maintenance_required = True
+      maintenance_required: Boolean
+      next_maintenance_in_days: Number
+    operators:
+      maintenance_signal:
+        when:
+          - not maintenance_required
+          - next_maintenance_in_days < 15
+        effect:
+          - maintenance_required = True
   ...
 ```
 
-State variables can be accessed directly in the same class operators, like it is shown in the previous example, where we read the value of the variable 'maintenance_required' in the 'maintenance_signal' operator precondition, and assigned its value in the operator effect. To access other classes' state variables, they have to be prefixed by the relevant object name. In the example below, we define two classes: stack and address, and we access the address state variable 'processed' from the stack operator 'push':
+State variables can be accessed directly in the same class operators, like it is shown in the previous example, where we read the value of the variable **maintenance_required** in the **maintenance_signal** operator precondition, and assigned its value in the operator effect. To access other classes' state variables, they have to be prefixed by the relevant object name. In the example below, we define two classes: **stack** and **address**, and we access the state variable **processed** which belongs to the class **address** from the operator **push**:
 
 ```
 classes:
   stack:
     state:
-      vars:
-        pointer:
-          - incremented
-          - decremented
-      operators:
-        push:
-          parameters:
-            val: address
-          when:
-            - not val.processed
-          effect:
-            - pointer = incremented
-            - val.processed = True
+      pointer:
+        - incremented
+        - decremented
+    operators:
+      push:
+        parameters:
+          val: address
+        when:
+          - not val.processed
+        effect:
+          - pointer = incremented
+          - val.processed = True
 
   address:
     state:
-      vars:
-        processed: Boolean
+      processed: Boolean
   ...
 ```
 
-Predicates also have read-only access to state variables.
+State variables can also be accessed by predicates, described below.
 
 ### Predicates
 
@@ -100,7 +103,7 @@ Predicates are facts about objects, which are either True or False. Predicates c
 ```
 classes:
   fridge:
-    vars:
+    state:
       milk_bottles: Number
     predicates:
       is_milk_requred: milk_bottles < 1
@@ -113,30 +116,33 @@ classes:
 
 ### Operators
 
-Operators are actions that can manipulate the objects' states. Say, a pizza, when cooked, is to be delivered, so 'deliver' can be one of the operators of the pizza class:
+Operators are actions that can manipulate the objects' states. Say, a pizza, when cooked, is to be delivered, so **deliver** can be one of the operators of the **pizza** class:
 
 ```
 classes:
   pizza:
     state:
-      vars:
-        order: [received, cooked, delivered]
-      operators:
-        deliver:
-          parameters:
-            from: Location
-            to: Location
-          when:
-            - order == cooked
-          effect:
-           - order = delivered
-        cook:
-          when:
-            - order == received
-          effect:
-            - order = cooked
+      order: [received, cooked, delivered]
+    operators:
+      deliver:
+        parameters:
+          from: Location
+          to: Location
+        when:
+          - order == cooked
+        effect:
+         - order = delivered
+      cook:
+        when:
+          - order == received
+        effect:
+          - order = cooked
   ...
 ```
+
+Operators have (optional) parameters, the list of objects to work with. Operators are executed when their preconditions are satisfied. If no precondition specified, then operator is always applicable. Operators have effect if they modify any state variables. And operators can trigger method(s) execution. (Remember, methods belong to attributes.)
+
+In the example above, the operator **deliver** has parameters **from** and **to** in the **paramters:** section. The operator is executed when its precondition, described in the section **when:**, is satisfied (when pizza is cooked). And the operator effect, described in the section **effect:** is what the pizza delivered.
 
 ## Main
 _To Be Done_
