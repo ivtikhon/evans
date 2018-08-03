@@ -16,7 +16,7 @@ The language syntax is not designed yet, so we model syntax elements using YAML 
 
 Classes in Evans, like in traditional object oriented languages, define new types of objects along with object attributes and procedures, or methods, to manage the attributes. Classes can be seen as templates, based on which new objects are created.
 
-But here the similarity with traditional object oriented languages ends. In Evans, we distinguish between object attributes and object states. Attributes represents information about objects, i.e. attributes are object characteristics. Set of object states represents how information transforms during the object lifetime, i.e. object states, expressed in the form of state variables, are procedural checkpoints.
+What differs Evans from traditional object oriented languages is that in Evans, we distinguish between object _attributes_ and object _states_. Attributes represents information about objects, i.e. attributes are object characteristics. Set of object states represents how information transforms during the object lifetime, i.e. object states, expressed in the form of state variables, are procedural checkpoints.
 
 In the following example we use postal service to show attributes and state variables in use. So, if you would like to send a letter to someone, the actual information is the letter content and the sender and recipient addresses (these are the letter attributes). The content is written on a sheet of paper, which is enclosed into an envelope, which, in its turn, is sealed, stamped, addressed and dropped into the nearest postal box (these are the state variables).
 
@@ -35,14 +35,24 @@ classes:
 
 ### Attributes
 
-Attributes are object _characteristics_, such as shape, weight, length, color, etc. In attributes we encode information about object, describing what the object is.
+Attributes are object _characteristics_, such as size, shape, weight, length, color, etc. In attributes we encode information about object, describing what the object is.
+```
+classes:
+  cirle:
+    attr:
+      radius: Number
+      color: String
+      coordinates: List
+  ...
+```
 
 ### Methods
-_To Be Done_
+
+Methods in Evans have the same semantic as in any other object oriented languages, i.e. methods allow to manipulate object attributes. Methods do not have access to state variables.
 
 ### State Variables
 
-State variables describe _states_ in which object of a certain class can be. For example, typical location of a hockey mom's car can be either home, work, school, ice rink, or shopping mall:
+State variables describe _states_ in which object of a certain class can be. For example, typical location of a hockey mom's van can be either home, work, school, ice rink, or shopping mall:
 
 ```
 classes:
@@ -52,7 +62,7 @@ classes:
   ...
 ```
 
-State variables can also be the Boolean type, i.e. has either True or False value, or Number type, i.e. assume any numeric value. Say, to specify if the hockey mom's car needs maintenance, we can define a Boolean variable **maintenance_required**, and a Number variable **next_maintenance_in_days**:
+State variables can also be the Boolean type, i.e. has either True or False value, or Number type, i.e. assume any numeric value. Say, to specify if the hockey mom's van needs maintenance, we can define a Boolean variable **maintenance_required**, and a Number variable **next_maintenance_in_days**:
 
 ```
 classes:
@@ -70,7 +80,7 @@ classes:
   ...
 ```
 
-State variables can be accessed directly in the same class operators, like it is shown in the previous example, where we read the value of the variable **maintenance_required** in the **maintenance_signal** operator precondition, and assigned its value in the operator effect. To access other classes' state variables, they have to be prefixed by the relevant object name. In the example below, we define two classes: **stack** and **address**, and we access the state variable **processed** which belongs to the class **address** from the operator **push**:
+State variables can be accessed directly in the same class operators, like it is shown in the previous example, where we read the value of the variable **maintenance_required** in the **maintenance_signal** operator precondition, and assigned its value in the operator effect. To access other classes' state variables, they have to be prefixed by the relevant object name. In the example below, we define two classes: **stack** and **address**, and we access the state variable **processed** which belongs to the **address** class from the operator **push**:
 
 ```
 classes:
@@ -140,9 +150,9 @@ classes:
   ...
 ```
 
-Operators have (optional) parameters, the list of objects to work with. Operators are executed when their preconditions are satisfied. If no precondition specified, then operator is always applicable. Operators have effect if they modify any state variables. And operators can trigger method(s) execution. (Remember, methods belong to attributes.)
+Operators have (optional) parameters, the list of objects supplied as arguments. Operators are executed when their preconditions are satisfied. If no precondition specified, then operator is always applicable. Operators have effect if they modify any state variables. And operators can trigger method(s) execution. (Remember, methods belong to attributes.) Operators do not have direct access to attributes.
 
-In the example above, the operator **deliver** has parameters **from** and **to** in the **paramters:** section. The operator is executed when its precondition, described in the section **when:**, is satisfied (when pizza is cooked). And the operator effect, described in the section **effect:** is what the pizza delivered.
+In the example above, the operator **deliver** has parameters **from** and **to** in the **parameters:** section. The operator is executed when its precondition, described in the section **when:**, is satisfied (when pizza is cooked). And the operator effect, described in the section **effect:** is what the pizza delivered.
 
 ## Main
 _To Be Done_
