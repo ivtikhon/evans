@@ -252,7 +252,7 @@ classes:
 main:
   # here we initialize objects
   # TODO: design information processing cycle;
-  #       preliminary view: data constructors should be ables to initialize state variables and trigger planning
+  #       preliminary view: data constructors should be able to initialize state variables and trigger planning
   parameters:
     argv: List
   exec: |

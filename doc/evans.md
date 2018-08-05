@@ -48,11 +48,11 @@ classes:
 
 ### Methods
 
-Methods in Evans have the same semantic as in any other object oriented languages, i.e. methods allow to manipulate object attributes. Methods do not have access to state variables.
+Methods in Evans have the same semantic as in any other object oriented languages, i.e. methods allow to manage object attributes. Methods do not have access to state variables.
 
 ### State Variables
 
-State variables describe _states_ in which object of a certain class can be. For example, typical location of a hockey mom's van can be either home, work, school, ice rink, or shopping mall:
+State variables hold _states_ in which object of a certain class can be. For example, typical location of a hockey mom's car can be either home, work, school, ice rink, or shopping mall:
 
 ```
 classes:
@@ -62,7 +62,7 @@ classes:
   ...
 ```
 
-State variables can also be the Boolean type, i.e. has either True or False value, or Number type, i.e. assume any numeric value. Say, to specify if the hockey mom's van needs maintenance, we can define a Boolean variable **maintenance_required**, and a Number variable **next_maintenance_in_days**:
+State variables can also be the Boolean type, i.e. has either True or False value, or Number type, i.e. assume any numeric value. Say, to specify if the hockey mom's car needs maintenance, we can define a Boolean variable **maintenance_required**, and a Number variable **next_maintenance_in_days**:
 
 ```
 classes:
