@@ -250,24 +250,32 @@ classes:
             - processed = True
 
 main:
-  # here we initialize objects
-  # TODO: design information processing cycle;
-  #       preliminary view: data constructors should be able to initialize state variables and trigger planning
+  # DRAFT1: data constructors can initialize state variables and trigger planning
+  # DRAFT2: exec section can execute methods and plans
+  #   - main section should read the list of arguments;
+  #   - there should be methods to read from files (sockets, streams);
+  #   - there should be some way to loop over actions;
   parameters:
     argv: List
-  exec: |
-    pass
-  objects:
-    stack1: Stack
-    key1: Key
-    display1: Display
-    alu1: Alu
-  init:
-    key1.key_isop: True
-    alu1.alu_op_stored: True
-    alu1.alu_reg_stored: True
-  goal:
-    - key1.key_processed
-    - if: stack1.stack_changed
-      then:
-        - display1.display_updated
+  exec:
+    vars: # common variables
+      stack1: Stack
+      key1: Key
+      display1: Display
+      alu1: Alu
+    loop:
+      plan:
+        objects:
+          - stack1
+          - key1
+          - display1
+          - alu1
+        init:
+          key1.key_isop: True
+          alu1.alu_op_stored: True
+          alu1.alu_reg_stored: True
+        goal:
+          - key1.key_processed
+          - if: stack1.stack_changed
+            then:
+              - display1.display_updated
