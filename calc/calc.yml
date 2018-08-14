@@ -250,32 +250,39 @@ classes:
             - processed = True
 
 main:
-  # DRAFT1: data constructors can initialize state variables and trigger planning
-  # DRAFT2: exec section can execute methods and plans
-  #   - main section should read the list of arguments;
-  #   - there should be methods to read from files (sockets, streams);
+  # DRAFT for the main section:
+  #   - main can read the list of arguments;
+  #   - there should be methods to read/write from/to files (sockets, streams);
   #   - there should be some way to loop over actions;
+  #   - exec in main can trigger planning
+  # TODO: exec in any operator can trigger planning
   parameters:
-    argv: List
+    argv: List  # TODO: implement argument parsing right here, so there is no need to do it in the exec section
   exec:
     vars: # common variables
       stack1: Stack
       key1: Key
       display1: Display
       alu1: Alu
-    loop:
-      plan:
-        objects:
-          - stack1
-          - key1
-          - display1
-          - alu1
-        init:
-          key1.key_isop: True
-          alu1.alu_op_stored: True
-          alu1.alu_reg_stored: True
-        goal:
-          - key1.key_processed
-          - if: stack1.stack_changed
-            then:
-              - display1.display_updated
+        # init:
+        #   key1.key_isop: True
+        #   alu1.alu_op_stored: True
+        #   alu1.alu_reg_stored: True
+    code: |
+      # read key from STDIN
+      # TODO: where should we initialize state variables?
+      #       - either here, from Python code
+      #       - or later, in the planning init section
+    plan:
+      objects:
+        - stack1
+        - key1
+        - display1
+        - alu1
+      init:
+        - key1.key_processed = False
+      goal:
+        - key1.key_processed
+        - if: stack1.stack_changed
+          then:
+            - display1.display_updated
