@@ -257,9 +257,12 @@ main:
   #   - exec in main can trigger planning
   # TODO: exec in any operator can trigger planning
   parameters:
-    argv: List  # TODO: implement argument parsing right here, so there is no need to do it in the exec section
+    input_file: String
+      default: STDIN  # parameters of main are the program attributes,
+                      # the format is: -input_file='file name';
+                      # parameters can be omitted if default value is specified
   exec:
-    vars: # common variables
+    vars: # variables visible in both, code and plan sections
       stack1: Stack
       key1: Key
       display1: Display
