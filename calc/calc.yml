@@ -261,31 +261,30 @@ main:
       default: STDIN  # parameters of main are the program attributes,
                       # the format is: -input_file='file name';
                       # parameters can be omitted if default value is specified
-  exec:
-    vars: # variables visible in both, code and plan sections
-      stack1: Stack
-      key1: Key
-      display1: Display
-      alu1: Alu
-        # init:
-        #   key1.key_isop: True
-        #   alu1.alu_op_stored: True
-        #   alu1.alu_reg_stored: True
-    code: |
-      # read key from STDIN
-      # TODO: where should we initialize state variables?
-      #       - either here, from Python code
-      #       - or later, in the planning init section
-    plan:
-      objects:
-        - stack1
-        - key1
-        - display1
-        - alu1
-      init:
-        - key1.key_processed = False
-      goal:
-        - key1.key_processed
-        - if: stack1.stack_changed
-          then:
-            - display1.display_updated
+  vars: # variables visible in both, code and plan sections
+    stack1: Stack
+    key1: Key
+    display1: Display
+    alu1: Alu
+      # init:
+      #   key1.key_isop: True
+      #   alu1.alu_op_stored: True
+      #   alu1.alu_reg_stored: True
+  tasks:
+    - code: |
+        pass
+        # read key from STDIN
+    - plan:
+        objects:  # here we just list the objects, participating in planning
+                  # the objects were defined above, in the var section
+          - stack1
+          - key1
+          - display1
+          - alu1
+        init:
+          - key1.key_processed = False
+        goal:
+          - key1.key_processed
+          - if: stack1.stack_changed
+            then:
+              - display1.display_updated

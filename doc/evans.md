@@ -18,7 +18,7 @@ Classes in Evans, like in traditional object oriented languages, define new type
 
 What differs Evans from traditional object oriented languages is that in Evans, we distinguish between object _attributes_ and object _states_. Attributes represents information about objects, i.e. attributes are object characteristics. Set of object states represents how information transforms during the object lifetime, i.e. object states, expressed in the form of state variables, are procedural checkpoints.
 
-In the following example we use postal service to show attributes and state variables in use. So, if you would like to send a letter to someone, the actual information is the letter content and the sender and recipient addresses (these are the letter attributes). The content is written on a sheet of paper, which is enclosed into an envelope, which, in its turn, is sealed, stamped, addressed and dropped into the nearest postal box (these are the state variables).
+In the following example we use postal service to show attributes and state variables in use. If you would like to send a letter to someone, the actual information is the letter content and the sender and recipient addresses (these are the letter attributes). The content is written on a sheet of paper, which is enclosed into an envelope, which, in its turn, is sealed, stamped, addressed and dropped into the nearest postal box (these are the letter states).
 
 ```
 classes:
@@ -152,16 +152,11 @@ classes:
 
 Operators have (optional) parameters, the list of objects supplied as arguments. Operators are executed when their preconditions are satisfied. If no precondition specified, then operator is always applicable. Operators have effect if they modify any state variables. And operators can trigger method(s) execution. (Remember, methods belong to attributes.) Operators do not have direct access to attributes.
 
-In the example above, the operator **deliver** has parameters **from** and **to** in the **parameters:** section. The operator is executed when its precondition, described in the section **when:**, is satisfied (when pizza is cooked). And the operator effect, described in the section **effect:** is what the pizza delivered.
+In the example above, the operator **deliver** has parameters **from** and **to** in the **parameters:** section. The operator is executed when its precondition, described in the section **when:**, is satisfied (when pizza is cooked). And the operator effect, described in the section **effect:** shows that the pizza was delivered.
 
 ## Main
-_To Be Done_
 
-### Initial state
-_To Be Done_
-
-### Goal
-_To Be Done_
+The starting point of any Evans program is **main**. Main has (optional) parameters, the list of program arguments and the **exec** section.  
 
 ## Formal YAML description
 ```
