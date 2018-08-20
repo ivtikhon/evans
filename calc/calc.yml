@@ -98,9 +98,11 @@ classes:
                 - dec_point = True
               else:
                 - last_key = 'digit'
-          exec:
+          exec: # TODO: effect might be conditional; think about conditional execution;
+                # exec section should have read access to state variables and full access to attributes
             pushKey: k  # data methods are called from here;
                         # assignments, conditionals, loops, etc. are not supported for now;
+                        # TODO: should we be able to call other classes methods here?
 
         clean:
           parameters:
@@ -254,35 +256,39 @@ main:
   #   - main can read the list of arguments;
   #   - there should be methods to read/write from/to files (sockets, streams);
   #   - there should be some way to loop over actions;
-  #   - exec in main can trigger planning
+  #   - main can trigger planning
+  #   - there should be a way to dump the planning state (into json format)
   # TODO: exec in any operator can trigger planning
   parameters:
     input_file: String
       default: STDIN  # parameters of main are the program attributes,
                       # the format is: -input_file='file name';
                       # parameters can be omitted if default value is specified
-  vars: # variables visible in both, code and plan sections
+  vars: # variables visible in tasks sections
     stack1: Stack
     key1: Key
     display1: Display
     alu1: Alu
-      # init:
-      #   key1.key_isop: True
-      #   alu1.alu_op_stored: True
-      #   alu1.alu_reg_stored: True
   tasks:
-    - code: |
+    - loop:
+      # in the exec section we have access to object attributes and state variables
+      # of the objects defined in vars
+      - exec: |
         pass
-        # read key from STDIN
-    - plan:
+        # read STDIN
+      #   key1.state['key_isop']: True
+      #   alu1.state['alu_op_stored']: True
+      #   alu1.state['alu_reg_stored']: True
+      - plan:
         objects:  # here we just list the objects, participating in planning
-                  # the objects were defined above, in the var section
+                  # the objects were defined in the var section and
+                  # (partially) initialized in the exec section
           - stack1
           - key1
           - display1
           - alu1
         init:
-          - key1.key_processed = False
+          - key1.key_processed: False
         goal:
           - key1.key_processed
           - if: stack1.stack_changed
