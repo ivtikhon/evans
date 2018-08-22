@@ -258,7 +258,14 @@ main:
   #   - there should be some way to loop over actions;
   #   - main can trigger planning
   #   - there should be a way to dump the planning state (into json format)
-  # TODO: exec in any operator can trigger planning
+  # main -> paramters,vars,tasks
+  # tasks -> loop,exec,plan
+  # operator -> parameters,when,effect,exec
+  #
+  # TODO: exec in any operator should be able to trigger planning
+  # operator -> parameters,when,effect
+  # effect -> loop,exec,plan
+  #
   parameters:
     input_file: String
       default: STDIN  # parameters of main are the program attributes,
