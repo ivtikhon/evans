@@ -20,7 +20,7 @@ What differs Evans from traditional object oriented languages is that in Evans, 
 
 In the following example we use postal service to show attributes and state variables in use. If you would like to send a letter to someone, the actual information is the letter content and the sender and recipient addresses (these are the letter attributes). The content is written on a sheet of paper, which is enclosed into an envelope, which, in its turn, is sealed, stamped, addressed and dropped into the nearest postal box (these are the letter states).
 
-```
+```yaml
 classes:
   letter:
     state:
@@ -36,7 +36,7 @@ classes:
 ### Attributes
 
 Attributes are object _characteristics_, such as size, shape, weight, length, color, etc. In attributes we encode information about object, describing what the object is.
-```
+```yaml
 classes:
   cirle:
     attr:
@@ -54,7 +54,7 @@ Methods in Evans have the same semantic as in any other object oriented language
 
 State variables hold _states_ in which object of a certain class can be. For example, typical location of a hockey mom's car can be either home, work, school, ice rink, or shopping mall:
 
-```
+```yaml
 classes:
   car:
     state:
@@ -64,7 +64,7 @@ classes:
 
 State variables can also be the Boolean type, i.e. has either True or False value, or Number type, i.e. assume any numeric value. Say, to specify if the hockey mom's car needs maintenance, we can define a Boolean variable **maintenance_required**, and a Number variable **next_maintenance_in_days**:
 
-```
+```yaml
 classes:
   car:
     state:
@@ -82,7 +82,7 @@ classes:
 
 State variables can be accessed directly in the same class operators, like it is shown in the previous example, where we read the value of the variable **maintenance_required** in the **maintenance_signal** operator precondition, and assigned its value in the operator effect. To access other classes' state variables, they have to be prefixed by the relevant object name. In the example below, we define two classes: **stack** and **address**, and we access the state variable **processed** which belongs to the **address** class from the operator **push**:
 
-```
+```yaml
 classes:
   stack:
     state:
@@ -110,7 +110,7 @@ State variables can also be accessed by predicates, described below.
 ### Predicates
 
 Predicates are facts about objects, which are either True or False. Predicates can simply return the value of a state variable, if it is Boolean, or calculate the value using a logical formula. For example, a smart fridge can figure out the fact that a bottle of milk has to be added to an online order by checking the amount of bottles of milk in:
-```
+```yaml
 classes:
   fridge:
     state:
@@ -128,7 +128,7 @@ classes:
 
 Operators are actions that can manipulate the objects' states. Say, a pizza, when cooked, is to be delivered, so **deliver** can be one of the operators of the **pizza** class:
 
-```
+```yaml
 classes:
   pizza:
     state:
@@ -159,7 +159,7 @@ In the example above, the operator **deliver** has parameters **from** and **to*
 The starting point of any Evans program is **main**. Main has (optional) parameters, the list of program arguments and the **exec** section.  
 
 ## Formal YAML description
-```
+```yaml
 classes:
   <class name>:
     attr:

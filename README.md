@@ -17,7 +17,7 @@ PDDL itself has some disadvantages that we would like to address:
 * boolean (true/false) nature of variables (predicates).
 
 ### Evans YAML
-At the current stage of the project we are working on the basic principles of the language, using YAML to model the language functionality. The language syntax is yet to be designed. Evans YAML (we call it Evy tentatively) [tutorial](doc/evans.md) can be found in the [*doc*](doc/) folder.
+At the current stage of the project we are working on the basic principles of the language, using YAML to model the language functionality. The language syntax is yet to be designed. Evans YAML [tutorial](doc/evans.md) can be found in the [*doc*](doc/) folder.
 
 ### Workflow
 Evans interpreter generates PDDL v2.1 from Evans YAML code, runs the PDDL planner, and then converts the obtained plan into Python 3 code.
