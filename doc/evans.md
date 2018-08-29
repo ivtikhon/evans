@@ -156,7 +156,8 @@ In the example above, the operator **deliver** has parameters **from** and **to*
 
 ## Main
 
-The starting point of any Evans program is **main**. Main has (optional) parameters, the list of program arguments and the **exec** section.  
+The starting point of any Evans program is **main**. Main has (optional) parameters, the list of program arguments and the **exec** section.
+... _to be continued_ ...
 
 ## Formal YAML description
 ```yaml

@@ -23,233 +23,226 @@
 
 classes:
   Stack:
-    data: # user data along with data methods coexists with state variables and their respective operators;
-          # TODO: think how data variables can be used to initialize the state variables before planning;
-      vars:
-        s: List
-      methods:  # the actual methods should be written in some language (e.g. Python or JS) for now;
-                # after plan is created, the interpreter will generate code and then execute it;
-                # later, when the Evans syntax is designed, the intermediate code generation phase won't be necessary;
-        pushKey:
-          parameters:
-            k: Key # can be data or hybrid types
-          body: |
-            s.append(k.getValue())
+    attr:
+      s: List
+    methods:  # the actual methods should be written in some language (e.g. Python or JS) for now;
+              # after plan is created, the interpreter will generate code and then execute it;
+              # later, when the Evans syntax is designed, the intermediate code generation phase won't be necessary;
+      pushKey:
+        parameters:
+          k: Key # can be data or hybrid types
+        body: |
+          s.append(k.getValue())
 
-        pushReg:
-          parameters:
-            a: Alu
-          body: |
-            s.append(str(a.getReg()).split())
+      pushReg:
+        parameters:
+          a: Alu
+        body: |
+          s.append(str(a.getReg()).split())
 
-        getValue:
-          body: |
-            return ''.join(s)
+      getValue:
+        body: |
+          return ''.join(s)
 
-        clean:
-          body: |
-            s.clear()
+      clean:
+        body: |
+          s.clear()
     state:
-      vars:
-        last_key: ['digit', 'point']  # state variable with explisitly listed values (inline enum)
-                                      # TODO: it is not clear what should be the default value for enum;
-                                      #       maybe the first item in the list?
-                                      #       or we can have constructors where the initial values can be assigned;
-                                      # TODO: should we allow to declare other classes variables here?
-        dec_point: Boolean # False is the default value for Boolean type
-        changed: Boolean
-        tobe_cleaned: Boolean
-              # types of state variables so far:
-              #   - inline enum
-              #   - Boolean
-              #   - Number (to be done)
-      predicates: # predicates in Evans are equivalent to PDDL's derived predicates, i.e. read only, can't be used for assignments;
-                  # TODO: predicates in PDDL can have multiple arguments;
-                  #       in Evans this can be implemented the same way as parameters in operators
-        isLastKeyDigit: last_key == 'digit' # expressions can contain comparisons '>', '<', '>=', '<=', '==', '!=',
-                                            # and logical operators: not, and, or, with standard priorities, i.e not, and, or;
-                                            # only simple comparisons are supported for now, e.g. var == 'key'
-                                            # comparisons can't be combined with logical operators
-        isLastKeyPoint: last_key == 'point'
-        isDecPoint: dec_point # synonym to dec_point == True
-      operators: # actions in PDDL terms
-        push:
-          parameters: # global variables are not supported, i.e. the variable scope is limitied
-                      # by parameters and variables defined in classes;
-                      # TODO: it is not clear how to implement PDDL operators 'forall' and 'exists';
-                      #       think about using lists in state operators
-                      # TODO: think about PDDL's 'imply'
-            k: Key # can be state or hybrid types
-          when: # condition check; state variables can be used here as well as predicates
-                # lists interpreted as conjuctions (and)
-            - not changed
-            - not k.processed
-            - k.isDigit or (k.k_val == 'point' and not dec_point)  # k.isDigit is a shortcut for k.isDigit()
-                                  # state variables can be tested directly, e.g. k.k_val == 'point', which is equal to k.isPoint
-                                  # TODO: implement full (not shortcut) predicate call with zero parameters k.isDigit()
-                                  #       and with multiple parameters var.predicate(param1=val1, param2=val2)
-            - not tobe_cleaned
-          effect: # only simple assignments are supported; one assignment per list item
-            - changed = True
-            - k.processed = True
-            - if: k.isPoint # one condition per list item
-              then:
-                - last_key = 'point'
-                - dec_point = True
-              else:
-                - last_key = 'digit'
-          exec: # TODO: effect might be conditional; think about conditional execution;
-                # exec section should have read access to state variables and full access to attributes
-            pushKey: k  # data methods are called from here;
-                        # assignments, conditionals, loops, etc. are not supported for now;
-                        # TODO: should we be able to call other classes methods here?
+      last_key: ['digit', 'point']  # state variable with explisitly listed values (inline enum)
+                                    # TODO: it is not clear what should be the default value for enum;
+                                    #       maybe the first item in the list?
+                                    #       or we can have constructors where the initial values can be assigned;
+                                    # TODO: should we allow to declare other classes variables here?
+      dec_point: Boolean # False is the default value for Boolean type
+      changed: Boolean
+      tobe_cleaned: Boolean
+            # types of state variables so far:
+            #   - inline enum
+            #   - Boolean
+            #   - Number (to be done)
+    predicates: # predicates in Evans are equivalent to PDDL's derived predicates, i.e. read only, can't be used for assignments;
+                # TODO: predicates in PDDL can have multiple arguments;
+                #       in Evans this can be implemented the same way as parameters in operators
+      isLastKeyDigit: last_key == 'digit' # expressions can contain comparisons '>', '<', '>=', '<=', '==', '!=',
+                                          # and logical operators: not, and, or, with standard priorities, i.e not, and, or;
+                                          # only simple comparisons are supported for now, e.g. var == 'key'
+                                          # comparisons can't be combined with logical operators
+      isLastKeyPoint: last_key == 'point'
+      isDecPoint: dec_point # synonym to dec_point == True
+    operators: # actions in PDDL terms
+      push:
+        parameters: # global variables are not supported, i.e. the variable scope is limitied
+                    # by parameters and variables defined in classes;
+                    # TODO: it is not clear how to implement PDDL operators 'forall' and 'exists';
+                    #       think about using lists in state operators
+                    # TODO: think about PDDL's 'imply'
+          k: Key # can be state or hybrid types
+        when: # condition check; state variables can be used here as well as predicates
+              # lists interpreted as conjuctions (and)
+          - not changed
+          - not k.processed
+          - k.isDigit or (k.k_val == 'point' and not dec_point)  # k.isDigit is a shortcut for k.isDigit()
+                                # state variables can be tested directly, e.g. k.k_val == 'point', which is equal to k.isPoint
+                                # TODO: implement full (not shortcut) predicate call with zero parameters k.isDigit()
+                                #       and with multiple parameters var.predicate(param1=val1, param2=val2)
+          - not tobe_cleaned
+        effect: # only simple assignments are supported; one assignment per list item
+          - changed = True
+          - k.processed = True
+          - if: k.isPoint # one condition per list item
+            then:
+              - last_key = 'point'
+              - dec_point = True
+            else:
+              - last_key = 'digit'
+        exec: # TODO: effect might be conditional; think about conditional execution;
+              # exec section should have read access to state variables and full access to attributes
+          - pushKey: k  # data methods are called from here;
+                      # assignments, conditionals, loops, etc. are not supported for now;
+                      # TODO: should we be able to call other classes methods here?
 
-        clean:
-          parameters:
-            k: Key
-          when:
-            - not k.processed
-            - k.isDigit or k.isPoint
-            - tobe_cleaned
-          effect:
-            - tobe_cleaned = False
-            - dec_point = False
-            - last_key = 'digit'
-          exec:
-            clean:  # data method call with no parameters
+      clean:
+        parameters:
+          k: Key
+        when:
+          - not k.processed
+          - k.isDigit or k.isPoint
+          - tobe_cleaned
+        effect:
+          - tobe_cleaned = False
+          - dec_point = False
+          - last_key = 'digit'
+        exec:
+          - clean:  # data method call with no parameters
 
-        copy_from_register:
-          parameters:
-            k: Key
-            a: Alu
-          when:
-            - a.isOpExecuted
-            - k.isOp or k.isEq
-            - not k.processed
-          effect:
-            - k.processed = True
-            - changed = True
-            - a.reg_stored = False
-            - tobe_cleaned = True
-          exec:
-            clean:
-            pushReg: a
+      copy_from_register:
+        parameters:
+          k: Key
+          a: Alu
+        when:
+          - a.isOpExecuted
+          - k.isOp or k.isEq
+          - not k.processed
+        effect:
+          - k.processed = True
+          - changed = True
+          - a.reg_stored = False
+          - tobe_cleaned = True
+        exec:
+          - clean:
+          - pushReg: a
 
   Alu:
-    data:
-      vars:
-        reg: Number
-        op: Char
-      methods:
-        storeReg:
-          parameters:
-            s: Stack
-          body: |
-            reg = float(s.getValue())
-        storeOp:
-          parameters:
-            k: Key
-          body: |
-            op = k.getValue()
-        execOp:
-          parameters:
-            s: Stack
-          body: |
-            st1 = float(s.getValue())
-            if op == '+':
-              reg = st1 + reg
-            elif op == '-':
-              reg = st1 + reg
-            elif op == '*':
-              reg = st1 * reg
-            elif op == '/':
-              reg = st1 / reg
+    attr:
+      reg: Number
+      op: Char
+    methods:
+      storeReg:
+        parameters:
+          s: Stack
+        body: |
+          reg = float(s.getValue())
+      storeOp:
+        parameters:
+          k: Key
+        body: |
+          op = k.getValue()
+      execOp:
+        parameters:
+          s: Stack
+        body: |
+          st1 = float(s.getValue())
+          if op == '+':
+            reg = st1 + reg
+          elif op == '-':
+            reg = st1 + reg
+          elif op == '*':
+            reg = st1 * reg
+          elif op == '/':
+            reg = st1 / reg
     state:
-      vars:
-        reg_stored: Boolean
-        op_executed: Boolean
-        op_stored: Boolean
-      predicates:
-        isOpExecuted: op_executed == True
-        isOpStored: op_stored == True
-        isRegStored: reg_stored == True
-      operators:
-        stack_to_register:
-          parameters:
-            k: Key
-            s: Stack
-          when:
-            - not k.processed
-            - k.isOp
-            - not reg_stored
-            - isOpStored
-          effect:
-            - reg_stored = True
-            - k.processed = True
-            - s.tobe_cleaned = True
-          exec:
-            storeReg: s
+      reg_stored: Boolean
+      op_executed: Boolean
+      op_stored: Boolean
+    predicates:
+      isOpExecuted: op_executed == True
+      isOpStored: op_stored == True
+      isRegStored: reg_stored == True
+    operators:
+      stack_to_register:
+        parameters:
+          k: Key
+          s: Stack
+        when:
+          - not k.processed
+          - k.isOp
+          - not reg_stored
+          - isOpStored
+        effect:
+          - reg_stored = True
+          - k.processed = True
+          - s.tobe_cleaned = True
+        exec:
+          - storeReg: s
 
-        store_op:
-          parameters:
-            k: Key
-          when:
-            - not isOpStored
-            - k.isOp
-            - not reg_stored
-            - not k.processed
-          effect:
-            - op_stored = True
-          exec:
-            storeOp: k
+      store_op:
+        parameters:
+          k: Key
+        when:
+          - not isOpStored
+          - k.isOp
+          - not reg_stored
+          - not k.processed
+        effect:
+          - op_stored = True
+        exec:
+          - storeOp: k
 
-        exec_op:
-          parameters:
-            k: Key
-            s: Stack
-          when:
-            - isOpStored
-            - k.isOp or k.isEq
-            - isRegStored
-            - not k.processed
-            - not isOpExecuted
-          effect:
-            - op_executed = True
-            - if: k.isEq
-              then:
-                - op_stored = False
-          exec:
-            execOp: s
+      exec_op:
+        parameters:
+          k: Key
+          s: Stack
+        when:
+          - isOpStored
+          - k.isOp or k.isEq
+          - isRegStored
+          - not k.processed
+          - not isOpExecuted
+        effect:
+          - op_executed = True
+          - if: k.isEq
+            then:
+              - op_stored = False
+        exec:
+          - execOp: s
 
   Key:
-    data:
-      vars:
-        k: Char
-      methods:
-        getValue:
-          body: |
-            return k
+    attr:
+      k: Char
+    methods:
+      getValue:
+        body: |
+          return k
     state:
-      vars:
-        k_val: ['digit', 'point', 'op', 'eq', 'clear', 'erase']
-        processed: Boolean
-      predicates:
-        isOp: k_val == 'op'
-        isDigit: k_val == 'digit'
-        isPoint: k_val == 'point'
-        isEq: k_val == 'eq'
-        isClear: k_val == 'clear'
-        isErase: k_val == 'erase'
-      operators:
-        no_op:
-          parameters:
-            s: Stack
-          when:
-            - not processed
-            - isPoint
-            - s.isDecPoint
-          effect:
-            - processed = True
+      k_val: ['digit', 'point', 'op', 'eq', 'clear', 'erase']
+      processed: Boolean
+    predicates:
+      isOp: k_val == 'op'
+      isDigit: k_val == 'digit'
+      isPoint: k_val == 'point'
+      isEq: k_val == 'eq'
+      isClear: k_val == 'clear'
+      isErase: k_val == 'erase'
+    operators:
+      no_op:
+        parameters:
+          s: Stack
+        when:
+          - not processed
+          - isPoint
+          - s.isDecPoint
+        effect:
+          - processed = True
 
 main:
   # DRAFT for the main section:
@@ -258,46 +251,51 @@ main:
   #   - there should be some way to loop over actions;
   #   - main can trigger planning
   #   - there should be a way to dump the planning state (into json format)
-  # main -> paramters,vars,tasks
-  # tasks -> loop,exec,plan
-  # operator -> parameters,when,effect,exec
-  #
-  # TODO: exec in any operator should be able to trigger planning
-  # operator -> parameters,when,effect
-  # effect -> loop,exec,plan
   #
   parameters:
     input_file: String
       default: STDIN  # parameters of main are the program attributes,
                       # the format is: -input_file='file name';
                       # parameters can be omitted if default value is specified
-  vars: # variables visible in tasks sections
-    stack1: Stack
-    key1: Key
-    display1: Display
-    alu1: Alu
-  tasks:
-    - loop:
-      # in the exec section we have access to object attributes and state variables
-      # of the objects defined in vars
-      - exec: |
-        pass
-        # read STDIN
-      #   key1.state['key_isop']: True
-      #   alu1.state['alu_op_stored']: True
-      #   alu1.state['alu_reg_stored']: True
-      - plan:
-        objects:  # here we just list the objects, participating in planning
-                  # the objects were defined in the var section and
-                  # (partially) initialized in the exec section
-          - stack1
-          - key1
-          - display1
-          - alu1
-        init:
-          - key1.key_processed: False
-        goal:
-          - key1.key_processed
-          - if: stack1.stack_changed
-            then:
-              - display1.display_updated
+  exec:
+    vars:
+      stack1: Stack
+      key1: Key
+      display1: Display
+      alu1: Alu
+      key_val1: Char
+      key_type: String
+    tasks:
+      - loop:
+        # code section has write access to attributes and state variables
+        # of the objects defined in vars
+        - code: |
+          # read STDIN
+          key1['attr']['k'] = key_val1  # attribute assignment
+          if key_val1 in ['0','1','2', '3', '4', '5', '6', '7', '8', '9']:
+            key1['state']['k_val'] = 'digit'  # state variable assignment
+          elif key1_value == '.':
+            key1['state']['k_val'] = 'point'
+          elif key1_value in ['+', '-', '/', '*']:
+            key1['state']['k_val'] = 'op'
+          elif key1_value == '=':
+            key1['state']['k_val'] = 'eq'
+          elif key1_value == 'C':
+              key1['state']['k_val'] = 'clear'
+          elif key1_value == 'R':
+            key1['state']['k_val'] = 'erase'
+        - plan:
+          objects:  # here we just list the objects, participating in planning
+                    # the objects were defined in the var section and
+                    # (partially) initialized in the code section
+            - stack1
+            - key1
+            - display1
+            - alu1
+          init:
+            - key1.key_processed: False
+          goal:
+            - key1.key_processed
+            - if: stack1.stack_changed
+              then:
+                - display1.display_updated
