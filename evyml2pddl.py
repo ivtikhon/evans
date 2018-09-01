@@ -94,7 +94,7 @@ def operator_effect_to_pddl (effect_definition, class_name, operator_name, class
             - reference to classes definition (dictionary)
         Output: PDDL formulae (list of strings)
     '''
-    pddl_str = ['']
+    pddl_str = []
     # assignment format: state_var: value (either Boolean or inline enum item)
     if len(effect_definition) > 1:
         raise Exception("SYNTAX ERROR: class " + class_name + \
