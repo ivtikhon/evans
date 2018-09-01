@@ -175,8 +175,8 @@ classes:
           <code in Python>
       ...
     state:
-        <state variable name>: <Boolean|Number|list>
-        ...
+      <state variable name>: <Boolean|Number|list>
+      ...
     predicates:
       <predicate name>: <logical formula>
       ...
@@ -189,15 +189,15 @@ classes:
           - <logical formula>
           ...
         effect:
-          - <state variable name> = <Boolean|Number|list>
+          - <state variable name>: <Boolean|Number|list>
             ...
           # conditional effect
           - if: <logical formula>
             then:
-              - <state variable name> = <Boolean|value from list>
+              - <state variable name>: <Boolean|value from list>
               ...
             else:
-              <state variable name> = <Boolean|value from list>
+              - <state variable name>: <Boolean|value from list>
               ...
         exec:
           # methods are called here

@@ -85,9 +85,8 @@ def operator_var_to_canonical(variable_name, class_name, context):
         variable_name = state_variable
     return [variable_name, parameter, class_name]
 
-def operator_effect_to_pddl (effect_sting, class_name, operator_name, classes_root):
-    ''' This procedure converts unconditional operator assignment (effect)
-            into PDDL formula.
+def operator_effect_to_pddl (effect_string, class_name, operator_name, classes_root):
+    ''' This procedure converts operator assignment (effect) into PDDL formula.
         Input:
             - assignment from operator effect (string)
             - class where operator is defined (string)
@@ -95,42 +94,40 @@ def operator_effect_to_pddl (effect_sting, class_name, operator_name, classes_ro
             - reference to classes definition (dictionary)
         Output: PDDL formulae (list of strings)
     '''
-    pddl_str = []
-    tokenized_asgnmt = Tokenizer(exp = effect_sting, singleEqSign = True)
-    # assignment format: state_var = value (either Boolean or inline enum item)
-    if len(tokenized_asgnmt.tokens) != 3 or tokenized_asgnmt.tokens[1] != '=':
-        raise Exception("SYNTAX ERROR: class " + class_name + \
-            ", operator " + operator_name + " --- unsupported assignment format: " + effect_sting)
-    var_nm, param_nm, class_nm = \
-        operator_var_to_canonical(variable_name = tokenized_asgnmt.tokens[0], \
-            class_name = class_name, context = \
-                classes_root[class_name]['state']['operators'][operator_name]['parameters'])
-    if class_nm == None:
-        raise Exception("SYNTAX ERROR: class " + class_name + \
-            ", operator " + operator_name + " --- undefined variable " + param_nm + " in operator parameters")
-    if var_nm not in classes_root[class_nm]['state']['vars']:
-        raise Exception("SYNTAX ERROR: class " + class_name + \
-            ", operator " + operator_name + " --- undefined variable " + var_nm + " in operator effect")
-    var_type = classes_root[class_nm]['state']['vars'][var_nm] # state variable type
-    assignment_value = tokenized_asgnmt.tokens[2] # value to be assigned to state variable
-    # state variable type is either Boolean...
-    if tokenized_asgnmt.tokenTypes[2] == TokenType.VAR and \
-            var_type.lower() == 'boolean' and \
-            assignment_value.lower() in ['true', 'false']:
-        assignment_str = '(' + class_nm + '_' + var_nm + ' ?' + param_nm + ')'
-        if assignment_value.lower() == 'false':
-            assignment_str = '(not ' + assignment_str + ')'
-        pddl_str.append(assignment_str)
-    # ...or inline enum (where all values are explisitly listed in state variable definition)
-    elif tokenized_asgnmt.tokenTypes[2] == TokenType.STR and \
-            isinstance(var_type, list) and assignment_value[1:-1] in var_type:
-        pddl_str.append('(and')
-        for st_var_val in var_type:
-            assignment_str = '(' + class_nm + '_' + var_nm + '_' + st_var_val + ' ?' + param_nm + ')'
-            if st_var_val != assignment_value[1:-1]:
-                assignment_str = '(not ' + assignment_str + ')'
-            pddl_str.append(assignment_str)
-        pddl_str.append(')')
+    pddl_str = ['test_string']
+    print('we are in operator_effect_to_pddl')
+    print('effect_string = ' + effect_string)
+    # assignment format: state_var: value (either Boolean or inline enum item)
+    # var_nm, param_nm, class_nm = \
+    #     operator_var_to_canonical(variable_name = tokenized_asgnmt.tokens[0], \
+    #         class_name = class_name, context = \
+    #             classes_root[class_name]['state']['operators'][operator_name]['parameters'])
+    # if class_nm == None:
+    #     raise Exception("SYNTAX ERROR: class " + class_name + \
+    #         ", operator " + operator_name + " --- undefined variable " + param_nm + " in operator parameters")
+    # if var_nm not in classes_root[class_nm]['state']['vars']:
+    #     raise Exception("SYNTAX ERROR: class " + class_name + \
+    #         ", operator " + operator_name + " --- undefined variable " + var_nm + " in operator effect")
+    # var_type = classes_root[class_nm]['state']['vars'][var_nm] # state variable type
+    # assignment_value = tokenized_asgnmt.tokens[2] # value to be assigned to state variable
+    # # state variable type is either Boolean...
+    # if tokenized_asgnmt.tokenTypes[2] == TokenType.VAR and \
+    #         var_type.lower() == 'boolean' and \
+    #         assignment_value.lower() in ['true', 'false']:
+    #     assignment_str = '(' + class_nm + '_' + var_nm + ' ?' + param_nm + ')'
+    #     if assignment_value.lower() == 'false':
+    #         assignment_str = '(not ' + assignment_str + ')'
+    #     pddl_str.append(assignment_str)
+    # # ...or inline enum (where all values are explisitly listed in state variable definition)
+    # elif tokenized_asgnmt.tokenTypes[2] == TokenType.STR and \
+    #         isinstance(var_type, list) and assignment_value[1:-1] in var_type:
+    #     pddl_str.append('(and')
+    #     for st_var_val in var_type:
+    #         assignment_str = '(' + class_nm + '_' + var_nm + '_' + st_var_val + ' ?' + param_nm + ')'
+    #         if st_var_val != assignment_value[1:-1]:
+    #             assignment_str = '(not ' + assignment_str + ')'
+    #         pddl_str.append(assignment_str)
+    #     pddl_str.append(')')
     return pddl_str
 
 def operator_condition_to_pddl(condition_sting, class_name, operator_name, classes_root):
@@ -194,97 +191,93 @@ def main (argv):
             actions = []
             for cl_nm, cl_def in code['classes'].items():
                 types.append(cl_nm)
-                if 'state' not in cl_def:
-                    continue
-                for st_nm, st_def in cl_def['state'].items():
-                    # state variables are translated into PDDL predicates
-                    if st_nm == 'vars':
-                        for var_nm, var_def in st_def.items():
-                            # only Boolean and inline enum types are supported for now
-                            if isinstance(var_def, str) and var_def == 'Boolean':
-                                prd_name = '_'.join([cl_nm, var_nm])
+                if 'state' in cl_def:
+                    for var_nm, var_def in cl_def['state'].items():
+                        # only Boolean and inline enum types are supported for now
+                        if isinstance(var_def, str) and var_def == 'Boolean':
+                            prd_name = '_'.join([cl_nm, var_nm])
+                            predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
+                        elif isinstance(var_def, list):
+                            for var_state in var_def:
+                                prd_name = '_'.join([cl_nm, var_nm, var_state])
                                 predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
-                            elif isinstance(var_def, list):
-                                for var_state in var_def:
-                                    prd_name = '_'.join([cl_nm, var_nm, var_state])
-                                    predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
-                            else:
-                                raise Exception("SYNTAX ERROR: class " + cl_nm + \
-                                    ", variable " + var_nm + " --- variable type is expected to be either Boolean or list")
+                        else:
+                            raise Exception("SYNTAX ERROR: class " + cl_nm + \
+                                ", variable " + var_nm + " --- variable type is expected to be either Boolean or list")
+                if 'operators' in cl_def:
                     # operators are translated into PDDL actions
-                    elif st_nm == 'operators':
-                        for op_nm, op_def in st_def.items():
-                            actions.append('(:action ' + cl_nm + '_' + op_nm)
-                            # parse parameters
-                            if 'parameters' in op_def:
-                                actions.append(':parameters (?this - ' + cl_nm)
-                                if not isinstance(op_def['parameters'], dict):
-                                    raise Exception("SYNTAX ERROR: class " + cl_nm + \
-                                        ", operator " + op_nm + " --- parameters expected to be dictionary type")
-                                for par_nm, par_type in op_def['parameters'].items():
-                                    actions.append('?'+ par_nm + ' - ' + par_type)
-                                actions.append(')')
-                            # parse operator's condition
-                            if 'when' in op_def:
-                                actions.append(':precondition (and')
-                                if not isinstance(op_def['when'], list):
-                                    raise Exception("SYNTAX ERROR: class " + cl_nm + \
-                                        ", operator " + op_nm + " --- condition expected to be list type")
-                                for cond_def in op_def['when']:
-                                    pddl_cond = operator_condition_to_pddl(condition_sting = cond_def, \
-                                        class_name = cl_nm, operator_name = op_nm, \
-                                        classes_root = code['classes'])
-                                    actions.append(pddl_cond)
-                                actions.append(')')
-                            # parse operator's effect
-                            if 'effect' in op_def:
-                                if not isinstance(op_def['effect'], list):
-                                    raise Exception("SYNTAX ERROR: class " + cl_nm + \
-                                        ", operator " + op_nm + " --- effect expected to be list type")
-                                actions.append(':effect (and')
-                                for eff_def in op_def['effect']:
-                                    if isinstance(eff_def, dict):
-                                        # conditional assignment
-                                        try:
-                                            pddl_cond = operator_condition_to_pddl(condition_sting = eff_def['if'], \
+                    for op_nm, op_def in cl_def['operators'].items():
+                        actions.append('(:action ' + cl_nm + '_' + op_nm)
+                        # parse parameters
+                        if 'parameters' in op_def:
+                            actions.append(':parameters (?this - ' + cl_nm)
+                            if not isinstance(op_def['parameters'], dict):
+                                raise Exception("SYNTAX ERROR: class " + cl_nm + \
+                                    ", operator " + op_nm + " --- parameters expected to be dictionary type")
+                            for par_nm, par_type in op_def['parameters'].items():
+                                actions.append('?'+ par_nm + ' - ' + par_type)
+                            actions.append(')')
+                        # parse operator's condition
+                        if 'when' in op_def:
+                            actions.append(':precondition (and')
+                            if not isinstance(op_def['when'], list):
+                                raise Exception("SYNTAX ERROR: class " + cl_nm + \
+                                    ", operator " + op_nm + " --- condition expected to be list type")
+                            for cond_def in op_def['when']:
+                                pddl_cond = operator_condition_to_pddl(condition_sting = cond_def, \
+                                    class_name = cl_nm, operator_name = op_nm, \
+                                    classes_root = code['classes'])
+                                actions.append(pddl_cond)
+                            actions.append(')')
+                        # parse operator's effect
+                        if 'effect' in op_def:
+                            if not isinstance(op_def['effect'], list):
+                                raise Exception("SYNTAX ERROR: class " + cl_nm + \
+                                    ", operator " + op_nm + " --- effect expected to be list type")
+                            actions.append(':effect (and')
+                            for eff_def in op_def['effect']:
+                                if isinstance(eff_def, dict):
+                                    # conditional assignment
+                                    try:
+                                        pddl_cond = operator_condition_to_pddl(condition_sting = eff_def['if'], \
+                                            class_name = cl_nm, operator_name = op_nm, \
+                                                classes_root = code['classes'])
+                                        actions.append('(when')
+                                        actions.append(pddl_cond)
+                                        if len(eff_def['then']) > 1:
+                                            actions.append('(and')
+                                        for cond_eff in eff_def['then']:
+                                            pddl_effect = operator_effect_to_pddl(effect_string = cond_eff, \
                                                 class_name = cl_nm, operator_name = op_nm, \
                                                     classes_root = code['classes'])
-                                            actions.append('(when')
+                                            actions.extend(pddl_effect) # pddl_effect is an array of strings
+                                        if len(eff_def['then']) > 1:
+                                            actions.append(')')
+                                        actions.append(')')
+                                        if 'else' in eff_def:
+                                            actions.append('(when (not ')
                                             actions.append(pddl_cond)
-                                            if len(eff_def['then']) > 1:
+                                            actions.append(')')
+                                            if len(eff_def['else']) > 1:
                                                 actions.append('(and')
-                                            for cond_eff in eff_def['then']:
-                                                pddl_effect = operator_effect_to_pddl(effect_sting = cond_eff, \
+                                            for cond_eff in eff_def['else']:
+                                                pddl_effect = operator_effect_to_pddl(effect_string = cond_eff, \
                                                     class_name = cl_nm, operator_name = op_nm, \
                                                         classes_root = code['classes'])
-                                                actions.extend(pddl_effect) # pddl_effect is an array of strings
-                                            if len(eff_def['then']) > 1:
+                                                actions.extend(pddl_effect)
+                                            if len(eff_def['else']) > 1:
                                                 actions.append(')')
                                             actions.append(')')
-                                            if 'else' in eff_def:
-                                                actions.append('(when (not ')
-                                                actions.append(pddl_cond)
-                                                actions.append(')')
-                                                if len(eff_def['else']) > 1:
-                                                    actions.append('(and')
-                                                for cond_eff in eff_def['else']:
-                                                    pddl_effect = operator_effect_to_pddl(effect_sting = cond_eff, \
-                                                        class_name = cl_nm, operator_name = op_nm, \
-                                                            classes_root = code['classes'])
-                                                    actions.extend(pddl_effect)
-                                                if len(eff_def['else']) > 1:
-                                                    actions.append(')')
-                                                actions.append(')')
-                                        except KeyError:
-                                            raise Exception("SYNTAX ERROR: class " + cl_nm + \
-                                                ", operator " + op_nm + " --- conditional effect is expected to be in the if: ... then: ... else: format")
-                                    else:
-                                        # unconditional assignment
-                                        effect_in_pddl = operator_effect_to_pddl(effect_sting = eff_def, \
-                                            class_name = cl_nm, operator_name = op_nm, classes_root = code['classes'])
-                                        actions.extend(effect_in_pddl)
-                                actions.append(')')
+                                    except KeyError:
+                                        raise Exception("SYNTAX ERROR: class " + cl_nm + \
+                                            ", operator " + op_nm + " --- conditional effect is expected to be in the if: ... then: ... else: format")
+                                else:
+                                    # unconditional assignment
+                                    effect_in_pddl = operator_effect_to_pddl(effect_string = eff_def, \
+                                        class_name = cl_nm, operator_name = op_nm, classes_root = code['classes'])
+                                    actions.extend(effect_in_pddl)
                             actions.append(')')
+                        actions.append(')')
             predicates.append(')')
             types.append(')')
             body = domain + types + predicates + actions
