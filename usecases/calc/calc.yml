@@ -238,59 +238,57 @@ classes:
         effect:
           - processed: True
 
-# main:
-#   # DRAFT for the main section:
-#   #   - main can read the list of arguments;
-#   #   - there should be methods to read/write from/to files (sockets, streams);
-#   #   - there should be some way to loop over actions;
-#   #   - main can trigger planning
-#   #   - there should be a way to dump the planning state (into json format)
-#   #
-#   parameters:
-#     input_file: String
-#       default: 'STDIN'  # parameters of main are the program attributes,
-#                       # the format is: -input_file='file name';
-#                       # parameters can be omitted if default value is specified
-#   exec:
-#     # either vars and tasks are defined, or just an array of calls of methods
-#     vars:
-#       stack1: Stack
-#       key1: Key
-#       display1: Display
-#       alu1: Alu
-#       key_val1: Char
-#       key_type: String
-#     tasks:
-#       - loop:
-#         # code section has write access to attributes and state variables
-#         # of the objects defined in vars; parameters are read-only
-#         - code: |
-#           # read STDIN and assign the key value
-#           key1['attr']['k'] = key_val1  # attribute assignment
-#           if key_val1 in ['0','1','2', '3', '4', '5', '6', '7', '8', '9']:
-#             key1['state']['k_val'] = 'digit'  # state variable assignment
-#           elif key1_value == '.':
-#             key1['state']['k_val'] = 'point'
-#           elif key1_value in ['+', '-', '/', '*']:
-#             key1['state']['k_val'] = 'op'
-#           elif key1_value == '=':
-#             key1['state']['k_val'] = 'eq'
-#           elif key1_value == 'C':
-#               key1['state']['k_val'] = 'clear'
-#           elif key1_value == 'R':
-#             key1['state']['k_val'] = 'erase'
-#         - plan:
-#           objects:  # here we just list the objects, participating in planning
-#                     # the objects were defined in the var section and
-#                     # (partially) initialized in the code section
-#             - stack1
-#             - key1
-#             - display1
-#             - alu1
-#           init:
-#             - key1.key_processed: False
-#           goal:
-#             - key1.key_processed
-#             - if: stack1.stack_changed
-#               then:
-#                 - display1.display_updated
+main:
+  # DRAFT for the main section:
+  #   - main can read the list of arguments;
+  #   - there should be methods to read/write from/to files (sockets, streams);
+  #   - there should be some way to loop over actions;
+  #   - main can trigger planning
+  #   - there should be a way to dump the planning state (into json format)
+  #   - variables can be defined in 'parameters' and exec 'vars'
+  parameters:
+    input_file: String
+              # parameters of main are the program attributes,
+              # the format is: -input_file='file name';
+  exec:
+    # either vars and tasks are defined, or just an array of calls of methods
+    vars:
+      stack1: Stack
+      key1: Key
+      display1: Display
+      alu1: Alu
+      key_val1: Char
+      key_type: String
+    tasks:
+      - block:
+        # code section has write access to attributes and state variables
+        # of the objects defined in vars; parameters are read-only
+        - code: |
+            key1['attr']['k'] = key_val1  # attribute assignment
+            if key_val1 in ['0','1','2', '3', '4', '5', '6', '7', '8', '9']:
+              key1['state']['k_val'] = 'digit'  # state variable assignment
+            elif key1_value == '.':
+              key1['state']['k_val'] = 'point'
+            elif key1_value in ['+', '-', '/', '*']:
+              key1['state']['k_val'] = 'op'
+            elif key1_value == '=':
+              key1['state']['k_val'] = 'eq'
+            elif key1_value == 'C':
+                key1['state']['k_val'] = 'clear'
+            elif key1_value == 'R':
+              key1['state']['k_val'] = 'erase'
+        - plan:
+            objects:  # here we just list the objects, participating in planning
+                      # the objects were defined in the var section and
+                      # (partially) initialized in the code section
+              - stack1
+              - key1
+              - display1
+              - alu1
+            init:
+              - key1.key_processed: False
+            goal:
+              - key1.key_processed
+              - if: stack1.stack_changed
+                then:
+                  - display1.display_updated

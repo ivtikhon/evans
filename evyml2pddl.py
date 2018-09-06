@@ -165,7 +165,7 @@ def operator_condition_to_pddl(condition_sting, class_name, operator_name, class
     return btree_to_pddl(BooleanParser(' '.join(tokenized_expr.tokens)).root)
 
 def main (argv):
-# Parse options
+# Parse main options
     try:
         opts, args = getopt.getopt(argv, "ho:", ["help", "output="])
     except getopt.GetoptError:
@@ -188,8 +188,13 @@ def main (argv):
     with open(input, 'r') as stream:
         try:
             code = yaml.load(stream)
-            if 'classes' not in code:
-                raise Exception("SYNTAX ERROR: no 'classes' section found in source file.")
+            # sanity check
+            if any (major_section not in code for major_section in ['classes', 'main']):
+                raise Exception("SYNTAX ERROR: no '" + major_section + "' section found in source file.")
+            if 'exec' not in code['main']:
+                raise Exception("SYNTAX ERROR: no 'exec' section found in 'main'.")
+
+            # parse classes
             domain = ['(define (domain MINE)', '(:requirements :adl)']
             types = ['(types: ']
             predicates = ['(:predicates']
@@ -213,7 +218,7 @@ def main (argv):
                     # operators are translated into PDDL actions
                     for op_nm, op_def in cl_def['operators'].items():
                         actions.append('(:action ' + cl_nm + '_' + op_nm)
-                        # parse parameters
+                        # parse operator's parameters
                         if 'parameters' in op_def:
                             actions.append(':parameters (?this - ' + cl_nm)
                             if not isinstance(op_def['parameters'], dict):
@@ -249,6 +254,7 @@ def main (argv):
                                                 classes_root = code['classes'])
                                         actions.append('(when')
                                         actions.append(pddl_cond)
+                                        # multi-level conditional expressions are not supported for now
                                         if len(eff_def['then']) > 1:
                                             actions.append('(and')
                                         for cond_eff in eff_def['then']:
@@ -287,8 +293,12 @@ def main (argv):
             types.append(')')
             body = domain + types + predicates + actions
             body.append(')')
+
+            # parse main
+            if isinstance(code['main']['exec'], dict):
+                pass
             print('\n'.join(body))
-            # pprint.pprint(code)
+            pprint.pprint(code['main'])
         except yaml.YAMLError as exc:
             print(exc)
             sys.exit(2)
