@@ -239,13 +239,19 @@ classes:
           - processed: True
 
 main:
-  # DRAFT for the main section:
+  # main section:
   #   - main can read the list of arguments;
   #   - there should be methods to read/write from/to files (sockets, streams);
   #   - there should be some way to loop over actions;
   #   - main can trigger planning
   #   - there should be a way to dump the planning state (into json format)
   #   - variables can be defined in 'parameters' and exec 'vars'
+  # exec section:
+  #   - exec has 'vars' section, where variables are declared
+  #   - 'tasks' section:
+  #       - code: here we initialize state variables and attributes;
+  #       - plan: here we run planning
+  #       TODO: think about recovery from unsuccessfull planning
   parameters:
     input_file: String
               # parameters of main are the program attributes,
@@ -259,11 +265,13 @@ main:
       alu1: Alu
       key_val1: Char
       key_type: String
-    tasks:
-      - block:
+    tasks: # one task per list element
+      - loop:  # unconditional (endless) loop; TODO implement loops with conditional exit
         # code section has write access to attributes and state variables
-        # of the objects defined in vars; parameters are read-only
+        # of the objects defined in vars;
+        # main parameters are read-only
         - code: |
+            # TODO: read STDIN and assign to key_val1
             key1['attr']['k'] = key_val1  # attribute assignment
             if key_val1 in ['0','1','2', '3', '4', '5', '6', '7', '8', '9']:
               key1['state']['k_val'] = 'digit'  # state variable assignment
@@ -277,8 +285,9 @@ main:
                 key1['state']['k_val'] = 'clear'
             elif key1_value == 'R':
               key1['state']['k_val'] = 'erase'
-        - plan:
-            objects:  # here we just list the objects, participating in planning
+        - autocode:
+            name: 'Simple calculator'
+            objects:  # here we just list the objects, participating in automatic planning;
                       # the objects were defined in the var section and
                       # (partially) initialized in the code section
               - stack1

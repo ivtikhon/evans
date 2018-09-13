@@ -8,6 +8,14 @@ import yaml
 import pprint
 from boolparser import *
 
+class Executor:
+    vars = None
+    stack= None
+
+    def __init__(self):
+        self.vars = {}
+        self.stack = []
+
 def usage ():
     '''This is just usage message'''
     print ('evyml2pddl.py [-h | --help] [-o <outputfile> | --output=<outputfile>] input_file.yml')
@@ -164,6 +172,15 @@ def operator_condition_to_pddl(condition_sting, class_name, operator_name, class
                     ", operator " + operator_name + " --- undefined variable " + var_nm + " in operator condition")
     return btree_to_pddl(BooleanParser(' '.join(tokenized_expr.tokens)).root)
 
+def exec_tasks_to_pddl (vars, tasks):
+    for item in tasks:
+        if 'loop' in item:
+            print('loop defined')
+            exec_tasks_to_pddl (vars, item['loop'])
+        elif 'autocode' in item:
+            if 'init' in item['autocode']:
+                print('processing init')
+
 def main (argv):
 # Parse main options
     try:
@@ -296,9 +313,31 @@ def main (argv):
 
             # parse main
             if isinstance(code['main']['exec'], dict):
-                pass
-            print('\n'.join(body))
-            pprint.pprint(code['main'])
+                try:
+                    main_stack = Executor()
+                    # initialize variables
+                    for v in code['main']['exec']['vars']:
+                        class_name = code['main']['exec']['vars'][v]
+                        main_stack.vars[v] = {'class': class_name}
+                        if class_name in code['classes']:
+                            if 'state' in code['classes'][class_name]:
+                                main_stack.vars[v]['state'] = {}
+                                for var_nm, var_def in code['classes'][class_name]['state'].items():
+                                    # Boolean state variables are initialized with 'False'
+                                    if isinstance(var_def, str) and var_def.lower() == 'boolean':
+                                        main_stack.vars[v]['state'][var_nm] = False
+                                    else:
+                                        main_stack.vars[v]['state'][var_nm] = 'undef'
+                            if 'attr' in code['classes'][class_name]:
+                                main_stack.vars[v]['attr'] = {}
+                                for var_nm, var_def in code['classes'][class_name]['attr'].items():
+                                    main_stack.vars[v]['attr'][var_nm] = 'undef'
+                    pprint.pprint(main_stack.vars)
+                    exec_tasks_to_pddl(code['main']['exec']['vars'], code['main']['exec']['tasks'])
+                except KeyError:
+                    raise Exception("SYNTAX ERROR: exec section in main should contain tasks and vars definitions.")
+            # print('\n'.join(body))
+            # pprint.pprint(code['main'])
         except yaml.YAMLError as exc:
             print(exc)
             sys.exit(2)
