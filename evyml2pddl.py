@@ -48,9 +48,9 @@ def btree_to_pddl (root):
             if root['left']['tokenType'] != TokenType.VAR:
                 var = right
                 cmp = left
-            if cmp.lower() == 'true':
+            if cmp.title() == 'True':
                 cmp = None
-            elif cmp.lower() == 'false':
+            elif cmp.title() == 'False':
                 var = '(not ' + var + ')'
             else:
                 cmp = cmp[1:-1]  # strp quotes from strings
@@ -121,12 +121,12 @@ def operator_effect_to_pddl (effect_definition, class_name, operator_name, class
     var_type = classes_root[class_nm]['state'][var_nm] # state variable type
     assignment_value = effect_definition[unprocessed_var_nm] # value to be assigned to state variable
     # state variable type is either Boolean...
-    if isinstance(var_type, str) and var_type.lower() == 'boolean' and \
-            (isinstance(assignment_value, bool) or assignment_value.lower() in ['true', 'false']):
+    if isinstance(var_type, str) and var_type.title() == 'Boolean' and \
+            (isinstance(assignment_value, bool) or assignment_value.title() in ['True', 'False']):
         if isinstance(assignment_value, bool):
             assignment_value = str(assignment_value)
         assignment_str = '(' + class_nm + '_' + var_nm + ' ?' + param_nm + ')'
-        if assignment_value.lower() == 'false':
+        if assignment_value.title() == 'False':
             assignment_str = '(not ' + assignment_str + ')'
         pddl_str.append(assignment_str)
     # ...or inline enum (where all values are explisitly listed in state variable definition)
@@ -204,13 +204,27 @@ def main (argv):
     # Read YAML file
     with open(input, 'r') as stream:
         try:
+            # embedded classes declaration
+            embedded_classes = {
+                'Char': {
+                    'attr': {}
+                },
+                'String': {
+                    'attr': {}
+                },
+                'Number': {
+                    'attr': {}
+                }
+            }
+            # load evyml code
             code = yaml.load(stream)
-            # sanity check
+            # perform sanity check
             if any (major_section not in code for major_section in ['classes', 'main']):
                 raise Exception("SYNTAX ERROR: no '" + major_section + "' section found in source file.")
             if 'exec' not in code['main']:
                 raise Exception("SYNTAX ERROR: no 'exec' section found in 'main'.")
-
+            # megre embedded classes with user defined ones
+            code['classes'].update(embedded_classes)
             # parse classes
             domain = ['(define (domain MINE)', '(:requirements :adl)']
             types = ['(types: ']
@@ -221,7 +235,7 @@ def main (argv):
                 if 'state' in cl_def:
                     for var_nm, var_def in cl_def['state'].items():
                         # only Boolean and inline enum types are supported for now
-                        if isinstance(var_def, str) and var_def == 'Boolean':
+                        if isinstance(var_def, str) and var_def.title() == 'Boolean':
                             prd_name = '_'.join([cl_nm, var_nm])
                             predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
                         elif isinstance(var_def, list):
@@ -306,6 +320,9 @@ def main (argv):
                                     actions.extend(effect_in_pddl)
                             actions.append(')')
                         actions.append(')')
+                if 'attr' in cl_def:
+                    for at_nm, at_def in cl_def['attr'].items():
+                        pass
             predicates.append(')')
             types.append(')')
             body = domain + types + predicates + actions
@@ -324,14 +341,16 @@ def main (argv):
                                 main_stack.vars[v]['state'] = {}
                                 for var_nm, var_def in code['classes'][class_name]['state'].items():
                                     # Boolean state variables are initialized with 'False'
-                                    if isinstance(var_def, str) and var_def.lower() == 'boolean':
+                                    if isinstance(var_def, str) and var_def.title() == 'Boolean':
                                         main_stack.vars[v]['state'][var_nm] = False
                                     else:
                                         main_stack.vars[v]['state'][var_nm] = 'undef'
                             if 'attr' in code['classes'][class_name]:
                                 main_stack.vars[v]['attr'] = {}
                                 for var_nm, var_def in code['classes'][class_name]['attr'].items():
-                                    main_stack.vars[v]['attr'][var_nm] = 'undef'
+                                    main_stack.vars[v]['attr'][var_nm] = None
+                        else:
+                            raise Exception("SYNTAX ERROR: variable " + v + " in main is of unknown class " + class_name)
                     pprint.pprint(main_stack.vars)
                     exec_tasks_to_pddl(code['main']['exec']['vars'], code['main']['exec']['tasks'])
                 except KeyError:

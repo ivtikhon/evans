@@ -19,7 +19,7 @@ classes:
   Stack:
     attr:
       s: List
-    methods:  # the actual methods should be written in some language (e.g. Python or JS) for now;
+    methods:  # the actual methods should be written in some language (e.g. Python) for now;
               # after plan is created, the interpreter will generate code and then execute it;
               # later, when the Evans syntax is designed, the intermediate code generation phase won't be necessary;
       pushKey:
@@ -42,11 +42,9 @@ classes:
         body: |
           s.clear()
     state:
-      last_key: ['digit', 'point']  # state variable with explisitly listed values (inline enum)
-                                    # TODO: it is not clear what should be the default value for enum;
-                                    #       maybe the first item in the list?
-                                    #       or we can have constructors where the initial values can be assigned;
-                                    # TODO: should we allow to declare other classes variables here?
+      last_key: ['digit', 'point']  # state variable with explisitly listed values (inline enum);
+                                    # 'undef' is the default value for enums
+                                    # TODO: think how to declare other classes variables
       dec_point: Boolean # False is the default value for Boolean type
       changed: Boolean
       tobe_cleaned: Boolean
@@ -70,7 +68,7 @@ classes:
                     # TODO: it is not clear how to implement PDDL operators 'forall' and 'exists';
                     #       think about using lists in state operators
                     # TODO: think about PDDL's 'imply'
-          k: Key # can be state or hybrid types
+          k: Key
         when: # condition check; state variables can be used here as well as predicates
               # lists interpreted as conjuctions (and)
           - not changed
@@ -238,6 +236,10 @@ classes:
         effect:
           - processed: True
 
+  Display:
+    state:
+      display_updated: Boolean
+
 main:
   # main section:
   #   - main can read the list of arguments;
@@ -296,6 +298,7 @@ main:
               - alu1
             init:
               - key1.key_processed: False
+              - display1.display_updated: False
             goal:
               - key1.key_processed
               - if: stack1.stack_changed
