@@ -269,8 +269,7 @@ main:
       key_type: String
     tasks: # one task per list element
       - loop:  # unconditional (endless) loop; TODO implement loops with conditional exit
-        # code section has write access to attributes and state variables
-        # of the objects defined in vars;
+        # code section has write access to attributes and state variables of the objects defined in vars;
         # main parameters are read-only
         - code: |
             # TODO: read STDIN and assign to key_val1
@@ -287,7 +286,7 @@ main:
                 key1['state']['k_val'] = 'clear'
             elif key1_value == 'R':
               key1['state']['k_val'] = 'erase'
-        - autocode:
+        - auto:
             name: 'Simple calculator'
             objects:  # here we just list the objects, participating in automatic planning;
                       # the objects were defined in the var section and

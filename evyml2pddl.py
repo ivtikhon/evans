@@ -172,13 +172,14 @@ def operator_condition_to_pddl(condition_sting, class_name, operator_name, class
                     ", operator " + operator_name + " --- undefined variable " + var_nm + " in operator condition")
     return btree_to_pddl(BooleanParser(' '.join(tokenized_expr.tokens)).root)
 
-def exec_tasks_to_pddl (vars, tasks):
+def exec_tasks_to_pddl (exec_list, tasks):
     for item in tasks:
         if 'loop' in item:
             print('loop defined')
-            exec_tasks_to_pddl (vars, item['loop'])
-        elif 'autocode' in item:
-            if 'init' in item['autocode']:
+            # if I'm using recursion, a stack, probably, is not required
+            exec_tasks_to_pddl (exec_list, item['loop'])
+        elif 'auto' in item:
+            if 'init' in item['auto']:
                 print('processing init')
 
 def main (argv):
@@ -213,6 +214,9 @@ def main (argv):
                     'attr': {}
                 },
                 'Number': {
+                    'attr': {}
+                },
+                'List': {
                     'attr': {}
                 }
             }
@@ -322,7 +326,9 @@ def main (argv):
                         actions.append(')')
                 if 'attr' in cl_def:
                     for at_nm, at_def in cl_def['attr'].items():
-                        pass
+                        if at_def not in code['classes']:
+                            raise Exception("SYNTAX ERROR: class " + cl_nm + \
+                                ", attribute " + at_nm + ", attribute class " + at_def + " --- attribute class is not defined.")
             predicates.append(')')
             types.append(')')
             body = domain + types + predicates + actions
@@ -340,11 +346,14 @@ def main (argv):
                             if 'state' in code['classes'][class_name]:
                                 main_stack.vars[v]['state'] = {}
                                 for var_nm, var_def in code['classes'][class_name]['state'].items():
-                                    # Boolean state variables are initialized with 'False'
+                                    # Boolean state variables are initialized with 'False';
+                                    # all other state variables are set to 'undef'
+                                    # TODO: initialize Number type with 0 (zero)
                                     if isinstance(var_def, str) and var_def.title() == 'Boolean':
                                         main_stack.vars[v]['state'][var_nm] = False
                                     else:
                                         main_stack.vars[v]['state'][var_nm] = 'undef'
+                            # attributes are initialized with 'None' for now
                             if 'attr' in code['classes'][class_name]:
                                 main_stack.vars[v]['attr'] = {}
                                 for var_nm, var_def in code['classes'][class_name]['attr'].items():
@@ -352,7 +361,7 @@ def main (argv):
                         else:
                             raise Exception("SYNTAX ERROR: variable " + v + " in main is of unknown class " + class_name)
                     pprint.pprint(main_stack.vars)
-                    exec_tasks_to_pddl(code['main']['exec']['vars'], code['main']['exec']['tasks'])
+                    exec_tasks_to_pddl(main_stack, code['main']['exec']['tasks'])
                 except KeyError:
                     raise Exception("SYNTAX ERROR: exec section in main should contain tasks and vars definitions.")
             # print('\n'.join(body))
