@@ -296,6 +296,7 @@ main:
               - display1
               - alu1
             init:
+              # one assignment per list item
               - key1.key_processed: False
               - display1.display_updated: False
             goal:
@@ -303,3 +304,4 @@ main:
               - if: stack1.stack_changed
                 then:
                   - display1.display_updated
+        - break:

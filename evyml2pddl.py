@@ -172,15 +172,29 @@ def operator_condition_to_pddl(condition_sting, class_name, operator_name, class
                     ", operator " + operator_name + " --- undefined variable " + var_nm + " in operator condition")
     return btree_to_pddl(BooleanParser(' '.join(tokenized_expr.tokens)).root)
 
-def exec_tasks_to_pddl (exec_list, tasks):
+def exec_tasks_to_pddl (vars, tasks):
     for item in tasks:
+        # only unconditional loop (with break) implemented for now
         if 'loop' in item:
             print('loop defined')
-            # if I'm using recursion, a stack, probably, is not required
-            exec_tasks_to_pddl (exec_list, item['loop'])
+            loop_exit = 'continue'
+            while loop_exit != 'break':
+                loop_exit = exec_tasks_to_pddl (vars, item['loop'])
+            print('exiting loop')
         elif 'auto' in item:
             if 'init' in item['auto']:
-                print('processing init')
+                # state variables initialization
+                for assignment in item['auto']['init']:
+                    # one assignment per list item
+                    if len(assignment) > 1:
+                        raise Exception("SYNTAX ERROR: main section, task auto '" + item['auto']['name'] + \
+                            "', init section --- only one variable assignment per list item is currently supported")
+                    full_var_nm = list(assignment.keys())[0]
+                    main_var_nm, state_var_nm = full_var_nm.split('.', 1)
+                    vars[main_var_nm]['state'][state_var_nm] = assignment[full_var_nm]
+        elif 'break' in item:
+            return 'break'
+    return 'continue'
 
 def main (argv):
 # Parse main options
@@ -359,9 +373,10 @@ def main (argv):
                                 for var_nm, var_def in code['classes'][class_name]['attr'].items():
                                     main_stack.vars[v]['attr'][var_nm] = None
                         else:
-                            raise Exception("SYNTAX ERROR: variable " + v + " in main is of unknown class " + class_name)
+                            raise Exception("SYNTAX ERROR: main section, variable " + v + " is of unknown class " + class_name)
                     pprint.pprint(main_stack.vars)
-                    exec_tasks_to_pddl(main_stack, code['main']['exec']['tasks'])
+                    exec_tasks_to_pddl(main_stack.vars, code['main']['exec']['tasks'])
+                    pprint.pprint(main_stack.vars)
                 except KeyError:
                     raise Exception("SYNTAX ERROR: exec section in main should contain tasks and vars definitions.")
             # print('\n'.join(body))
