@@ -172,15 +172,13 @@ def operator_condition_to_pddl(condition_sting, class_name, operator_name, class
                     ", operator " + operator_name + " --- undefined variable " + var_nm + " in operator condition")
     return btree_to_pddl(BooleanParser(' '.join(tokenized_expr.tokens)).root)
 
-def exec_tasks_to_pddl (vars, tasks):
+def exec_tasks_to_pddl (vars, tasks, classes_root):
     for item in tasks:
         # only unconditional loop (with break) implemented for now
         if 'loop' in item:
-            print('loop defined')
             loop_exit = 'continue'
             while loop_exit != 'break':
-                loop_exit = exec_tasks_to_pddl (vars, item['loop'])
-            print('exiting loop')
+                loop_exit = exec_tasks_to_pddl (vars, item['loop'], classes_root)
         elif 'auto' in item:
             if 'init' in item['auto']:
                 # state variables initialization
@@ -192,6 +190,34 @@ def exec_tasks_to_pddl (vars, tasks):
                     full_var_nm = list(assignment.keys())[0]
                     main_var_nm, state_var_nm = full_var_nm.split('.', 1)
                     vars[main_var_nm]['state'][state_var_nm] = assignment[full_var_nm]
+            try:
+                problem = ['(define (problem MYPROBLEM)', '(:domain MYDOMAIN)']
+                objects = ['(:objects']
+                init = ['(:init']
+                goal = ['(:goal']
+                for obj in item['auto']['objects']:
+                    # generate list of object
+                    objects.append(obj + ' - ' + vars[obj]['class'])
+                    # initialize objects
+                    for var_nm, var_val in vars[obj]['state'].items():
+                        prefix = '('
+                        postfix = ')'
+                        if isinstance(var_val, bool):
+                            if var_val == False:
+                                prefix = '(not ('
+                                postfix = '))'
+                            var_val = ''
+                        else:
+                            var_val = '_' + var_val
+                        init.append(prefix + vars[obj]['class'] + '_' + var_nm + var_val + ' ' + obj + postfix)
+                objects.append(')')
+                init.append(')')
+                goal.append(')')
+                body = problem + objects + init + goal
+                body.append(')')
+                print('\n'.join(body))
+            except KeyError:
+                raise Exception("SYNTAX ERROR: auto section in main tasks should contain objects and goal definitions.")
         elif 'break' in item:
             return 'break'
     return 'continue'
@@ -244,7 +270,7 @@ def main (argv):
             # megre embedded classes with user defined ones
             code['classes'].update(embedded_classes)
             # parse classes
-            domain = ['(define (domain MINE)', '(:requirements :adl)']
+            domain = ['(define (domain MYDOMAIN)', '(:requirements :adl)']
             types = ['(types: ']
             predicates = ['(:predicates']
             actions = []
@@ -374,12 +400,10 @@ def main (argv):
                                     main_stack.vars[v]['attr'][var_nm] = None
                         else:
                             raise Exception("SYNTAX ERROR: main section, variable " + v + " is of unknown class " + class_name)
-                    pprint.pprint(main_stack.vars)
-                    exec_tasks_to_pddl(main_stack.vars, code['main']['exec']['tasks'])
-                    pprint.pprint(main_stack.vars)
+                    exec_tasks_to_pddl(main_stack.vars, code['main']['exec']['tasks'], code['classes'])
                 except KeyError:
                     raise Exception("SYNTAX ERROR: exec section in main should contain tasks and vars definitions.")
-            # print('\n'.join(body))
+            print('\n'.join(body))
             # pprint.pprint(code['main'])
         except yaml.YAMLError as exc:
             print(exc)
