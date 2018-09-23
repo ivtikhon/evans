@@ -300,8 +300,8 @@ main:
               - key1.key_processed: False
               - display1.display_updated: False
             goal:
-              - key1.key_processed
+              - key1.key_processed: True
               - if: stack1.stack_changed
                 then:
-                  - display1.display_updated
+                  - display1.display_updated: True
         - break:
