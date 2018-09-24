@@ -35,6 +35,10 @@ class Evans:
         self.main_vars = {}
 
     def parse_classes(self):
+        ''' This procedure translates Evans classes into PDDL
+            Input: Evans classes in YAML (self.classes)
+            Output: PDDL Domain (self.pddl_domain)
+        '''
         header = ['(define (domain MYDOMAIN)', '(:requirements :adl)']
         types = ['(types: ']
         predicates = ['(:predicates']
@@ -162,9 +166,61 @@ class Evans:
                             self.main_vars[v]['attr'][var_nm] = None
                 else:
                     raise Exception("SYNTAX ERROR: main section, variable " + v + " is of unknown class " + class_name)
-            exec_tasks_to_pddl(self.main_vars, self.main['exec']['tasks'], self.classes)
+            # parse tasks
+            self.exec_tasks_to_pddl(self.main['exec']['tasks'])
         except KeyError:
             raise Exception("SYNTAX ERROR: exec section in main should contain tasks and vars definitions.")
+
+    def exec_tasks_to_pddl (self, tasks):
+        for item in tasks:
+            # only unconditional loop (with break) implemented for now
+            if 'loop' in item:
+                loop_exit = 'continue'
+                while loop_exit != 'break':
+                    loop_exit = self.exec_tasks_to_pddl (item['loop'])
+            elif 'auto' in item:
+                if 'init' in item['auto']:
+                    # state variables initialization
+                    for assignment in item['auto']['init']:
+                        # one assignment per list item
+                        if len(assignment) > 1:
+                            raise Exception("SYNTAX ERROR: main section, task auto '" + item['auto']['name'] + \
+                                "', init section --- only one variable assignment per list item is currently supported")
+                        full_var_nm = list(assignment.keys())[0]
+                        main_var_nm, state_var_nm = full_var_nm.split('.', 1)
+                        self.main_vars[main_var_nm]['state'][state_var_nm] = assignment[full_var_nm]
+                try:
+                    problem = ['(define (problem MYPROBLEM)', '(:domain MYDOMAIN)']
+                    objects = ['(:objects']
+                    init = ['(:init']
+                    goal = ['(:goal']
+                    for obj in item['auto']['objects']:
+                        # generate list of object
+                        objects.append(obj + ' - ' + self.main_vars[obj]['class'])
+                        # initialize objects
+                        for var_nm, var_val in self.main_vars[obj]['state'].items():
+                            prefix = '('
+                            postfix = ')'
+                            if isinstance(var_val, bool):
+                                if var_val == False:
+                                    prefix = '(not ('
+                                    postfix = '))'
+                                var_val = ''
+                            else:
+                                var_val = '_' + var_val
+                            init.append(prefix + self.main_vars[obj]['class'] + '_' + var_nm + var_val + ' ' + obj + postfix)
+                    objects.append(')')
+                    init.append(')')
+                    goal.append(')')
+                    body = problem + objects + init + goal
+                    body.append(')')
+                    print('\n'.join(body))
+                except KeyError:
+                    raise Exception("SYNTAX ERROR: auto section in main tasks should contain objects and goal definitions.")
+            elif 'break' in item:
+                return 'break'
+        return 'continue'
+
 
 def usage ():
     '''This is just usage message'''
@@ -365,56 +421,6 @@ def operator_condition_to_pddl(condition_sting, class_name, operator_name, class
                 raise Exception("SYNTAX ERROR: class " + class_nm + \
                     ", operator " + operator_name + " --- undefined variable " + var_nm + " in operator condition")
     return btree_to_pddl(BooleanParser(' '.join(tokenized_expr.tokens)).root)
-
-def exec_tasks_to_pddl (vars, tasks, classes_root):
-    for item in tasks:
-        # only unconditional loop (with break) implemented for now
-        if 'loop' in item:
-            loop_exit = 'continue'
-            while loop_exit != 'break':
-                loop_exit = exec_tasks_to_pddl (vars, item['loop'], classes_root)
-        elif 'auto' in item:
-            if 'init' in item['auto']:
-                # state variables initialization
-                for assignment in item['auto']['init']:
-                    # one assignment per list item
-                    if len(assignment) > 1:
-                        raise Exception("SYNTAX ERROR: main section, task auto '" + item['auto']['name'] + \
-                            "', init section --- only one variable assignment per list item is currently supported")
-                    full_var_nm = list(assignment.keys())[0]
-                    main_var_nm, state_var_nm = full_var_nm.split('.', 1)
-                    vars[main_var_nm]['state'][state_var_nm] = assignment[full_var_nm]
-            try:
-                problem = ['(define (problem MYPROBLEM)', '(:domain MYDOMAIN)']
-                objects = ['(:objects']
-                init = ['(:init']
-                goal = ['(:goal']
-                for obj in item['auto']['objects']:
-                    # generate list of object
-                    objects.append(obj + ' - ' + vars[obj]['class'])
-                    # initialize objects
-                    for var_nm, var_val in vars[obj]['state'].items():
-                        prefix = '('
-                        postfix = ')'
-                        if isinstance(var_val, bool):
-                            if var_val == False:
-                                prefix = '(not ('
-                                postfix = '))'
-                            var_val = ''
-                        else:
-                            var_val = '_' + var_val
-                        init.append(prefix + vars[obj]['class'] + '_' + var_nm + var_val + ' ' + obj + postfix)
-                objects.append(')')
-                init.append(')')
-                goal.append(')')
-                body = problem + objects + init + goal
-                body.append(')')
-                print('\n'.join(body))
-            except KeyError:
-                raise Exception("SYNTAX ERROR: auto section in main tasks should contain objects and goal definitions.")
-        elif 'break' in item:
-            return 'break'
-    return 'continue'
 
 def main (argv):
 # Parse main options
