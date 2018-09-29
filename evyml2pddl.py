@@ -97,7 +97,7 @@ class Evans:
                                     actions.append('(when')
                                     actions.append(pddl_cond)
                                     # multi-level conditional expressions are not supported for now
-                                    if 'if' in eff_def['then']:
+                                    if 'if' in eff_def['then'] or ('else' in eff_def and 'if' in eff_def['else']):
                                         raise Exception("ERROR: class " + cl_nm + \
                                             ", operator " + op_nm + " --- multilevel conditional statements not supported yet.")
                                     if len(eff_def['then']) > 1:
@@ -142,7 +142,7 @@ class Evans:
         self.pddl_domain = header + types + predicates + actions + [')']
 
     def parse_main(self):
-        ''' This procedure interpretes the main section of Evan YAML
+        ''' This procedure interpets the main section of Evan YAML
         '''
         try:
             # initialize variables
@@ -214,6 +214,13 @@ class Evans:
                             else:
                                 var_val = '_' + var_val
                             init.append(prefix + self.main_vars[obj]['class'] + '_' + var_nm + var_val + ' ' + obj + postfix)
+                    if len(item['auto']['goal']) > 1:
+                        goal.append('(and')
+                    for goal_item in item['auto']['goal']:
+                        if 'if' in goal_item:
+                            goal.append(self.goal_condition_to_pddl(goal_item['if'], item['auto']['name']))
+                    if len(item['auto']['goal']) > 1:
+                        goal.append(')')
                     objects.append(')')
                     init.append(')')
                     goal.append(')')
@@ -280,32 +287,42 @@ class Evans:
             return self.conditional_statement_to_pddl(condition_sting = condition_sting,\
                 class_name = class_name, context = self.classes[class_name]['operators'][operator_name]['parameters'])
         except Exception as err:
-            raise Exception("ERROR processing operator condition: class " + class_name + ", operator " + operator_name + " " + str(err))
+            raise Exception("ERROR processing operator condition: class " + class_name + ", operator " + operator_name + " --- " + str(err))
 
     def effect_condition_to_pddl(self, condition_sting, class_name, operator_name):
         try:
             return self.conditional_statement_to_pddl(condition_sting = condition_sting,\
                 class_name = class_name, context = self.classes[class_name]['operators'][operator_name]['parameters'])
         except Exception as err:
-            raise Exception("ERROR processing operator effect: class " + class_name + ", operator " + operator_name + " " + str(err))
+            raise Exception("ERROR processing operator effect: class " + class_name + ", operator " + operator_name + " --- " + str(err))
+
+    def goal_condition_to_pddl(self, condition_sting, auto_name):
+        try:
+            pddl_str = self.conditional_statement_to_pddl(condition_sting = condition_sting,\
+                class_name = None, context = self.main['exec']['vars'])
+            # no '?' symbols required in goal definition
+            return pddl_str.replace('?', '')
+        except Exception as err:
+            raise Exception("ERROR processing goal condition: auto task " + auto_name + " --- " + str(err))
 
     def conditional_statement_to_pddl(self, condition_sting, class_name, context):
         ''' This procedure parses conditional statement (operator's when, effect condition, and auto's goal)
             and converts it into PDDL
             Input:
                 - condition (sting)
-                - class name (string): name of the class, or main
-                - context reference (dict): operator's parameters/main's vars
+                - class name (string): name of the class where operator is defined, or main
+                - context reference (dict): reference to operator's parameters/main's vars
+            Output: PDDL formula
+            Note: the calling procedure must handle exceptions
         '''
         # parse logical expressions, expand predicates;
-        # add 'this' to the current class state variables;
         tokenized_expr = Tokenizer(condition_sting)
         for index, token in enumerate(tokenized_expr.tokens):
             if tokenized_expr.tokenTypes[index] == TokenType.VAR:
                 var_nm, param_nm, class_nm = var_to_canonical_form(variable_name = token, \
                     context = context, class_name = class_name)
                 if class_nm == None:
-                    raise Exception("--- undefined variable " + param_nm + " in context")
+                    raise Exception("Undefined variable " + param_nm + " used in condition")
                 # variable is searched in 'state' first, then in 'predicates';
                 # when found in 'predicates', variable is substituted by the predicate
                 if var_nm in self.classes[class_nm]['state']:
@@ -318,12 +335,16 @@ class Evans:
                             if pr_token in self.classes[class_nm]['state']:
                                 tokenized_pr.tokens[pr_index] = param_nm + '.' + class_nm + '_' + pr_token
                             else:
-                                raise Exception("--- undefined variable " + pr_token + " in predicate " + var_nm)
+                                err_str = "Undefined variable " + pr_token + " used in predicate " + var_nm
+                                if class_name != class_nm:
+                                    err_str += ", defined in class " + class_nm
+                                raise Exception(err_str)
                     tokenized_expr.tokens[index] = '('+ ' '.join(tokenized_pr.tokens) + ')'
                 else:
-                    raise Exception(" --- undefined state variable " + var_nm + " in condition")
+                    raise Exception("Undefined state variable or predicate " + var_nm + " used in condition")
         return btree_to_pddl(BooleanParser(' '.join(tokenized_expr.tokens)).root)
 
+# Free procedures
 def usage ():
     '''This is just usage message'''
     print ('evyml2pddl.py [-h | --help] [-o <outputfile> | --output=<outputfile>] input_file.yml')
@@ -387,7 +408,7 @@ def var_to_canonical_form(variable_name, context, class_name = None):
         Input:
             - variable name (string)
             - class where operator is defined (string)
-            - context where complex variable is defined, e.g. operator parameters (list)
+            - context where complex variable is defined, e.g. operator parameters (dict)
         Output: [state variabe name, prefix name (or 'this'), class name (or None if prefix not defined in the context)]
     '''
     prefix_name = 'this'

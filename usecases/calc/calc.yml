@@ -301,7 +301,7 @@ main:
               - display1.display_updated: False
             goal:
               - key1.key_processed: True
-              - if: stack1.stack_changed
+              - if: stack1.changed
                 then:
                   - display1.display_updated: True
         - break:
