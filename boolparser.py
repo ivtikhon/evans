@@ -94,7 +94,9 @@ class Tokenizer:
                         number = float(t)
                         self.tokenTypes.append(TokenType.NUM)
                     except:
-                        if re.search('^[a-zA-Z_.]+$', t):
+                        # expressions like one.two recognized as single token
+                        # TODO: the search below is not good as it accepts expressions like one..two.0123
+                        if re.search('^[a-zA-Z]+[a-zA-Z0-9_\.]*$', t):
                             self.tokenTypes.append(TokenType.VAR)
                         else:
                             self.tokenTypes.append(None)

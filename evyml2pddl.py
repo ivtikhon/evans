@@ -56,7 +56,7 @@ class Evans:
                             prd_name = '_'.join([cl_nm, var_nm, var_state])
                             predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
                     else:
-                        raise Exception("SYNTAX ERROR: class " + cl_nm + \
+                        raise Exception("ERROR: class " + cl_nm + \
                             ", variable " + var_nm + " --- variable type is expected to be either Boolean or list")
             if 'operators' in cl_def:
                 # operators are translated into PDDL actions
@@ -66,7 +66,7 @@ class Evans:
                     if 'parameters' in op_def:
                         actions.append(':parameters (?this - ' + cl_nm)
                         if not isinstance(op_def['parameters'], dict):
-                            raise Exception("SYNTAX ERROR: class " + cl_nm + \
+                            raise Exception("ERROR: class " + cl_nm + \
                                 ", operator " + op_nm + " --- parameters expected to be dictionary type")
                         for par_nm, par_type in op_def['parameters'].items():
                             actions.append('?'+ par_nm + ' - ' + par_type)
@@ -75,7 +75,7 @@ class Evans:
                     if 'when' in op_def:
                         actions.append(':precondition (and')
                         if not isinstance(op_def['when'], list):
-                            raise Exception("SYNTAX ERROR: class " + cl_nm + \
+                            raise Exception("ERROR: class " + cl_nm + \
                                 ", operator " + op_nm + " --- condition expected to be list type")
                         for cond_def in op_def['when']:
                             pddl_cond = self.operator_condition_to_pddl(condition_sting = cond_def, \
@@ -85,20 +85,20 @@ class Evans:
                     # parse operator's effect
                     if 'effect' in op_def:
                         if not isinstance(op_def['effect'], list):
-                            raise Exception("SYNTAX ERROR: class " + cl_nm + \
+                            raise Exception("ERROR: class " + cl_nm + \
                                 ", operator " + op_nm + " --- effect expected to be list type")
                         actions.append(':effect (and')
                         for eff_def in op_def['effect']:
                             if any (cond_elem in eff_def for cond_elem in ['if', 'then', 'else']):
                                 # conditional assignment
                                 try:
-                                    pddl_cond = self.operator_condition_to_pddl(condition_sting = eff_def['if'], \
+                                    pddl_cond = self.effect_condition_to_pddl(condition_sting = eff_def['if'], \
                                         class_name = cl_nm, operator_name = op_nm)
                                     actions.append('(when')
                                     actions.append(pddl_cond)
                                     # multi-level conditional expressions are not supported for now
                                     if 'if' in eff_def['then']:
-                                        raise Exception("SYNTAX ERROR: class " + cl_nm + \
+                                        raise Exception("ERROR: class " + cl_nm + \
                                             ", operator " + op_nm + " --- multilevel conditional statements not supported yet.")
                                     if len(eff_def['then']) > 1:
                                         actions.append('(and')
@@ -123,7 +123,7 @@ class Evans:
                                             actions.append(')')
                                         actions.append(')')
                                 except KeyError:
-                                    raise Exception("SYNTAX ERROR: class " + cl_nm + \
+                                    raise Exception("ERROR: class " + cl_nm + \
                                         ", operator " + op_nm + " --- conditional effect is expected to be in the if: ... then: ... else: format")
                             else:
                                 # unconditional assignment
@@ -135,7 +135,7 @@ class Evans:
             if 'attr' in cl_def:
                 for at_nm, at_def in cl_def['attr'].items():
                     if at_def not in self.classes:
-                        raise Exception("SYNTAX ERROR: class " + cl_nm + \
+                        raise Exception("ERROR: class " + cl_nm + \
                             ", attribute " + at_nm + ", attribute class " + at_def + " --- attribute class is not defined.")
         predicates.append(')')
         types.append(')')
@@ -166,11 +166,11 @@ class Evans:
                         for var_nm, var_def in self.classes[class_name]['attr'].items():
                             self.main_vars[v]['attr'][var_nm] = None
                 else:
-                    raise Exception("SYNTAX ERROR: main section, variable " + v + " is of unknown class " + class_name)
+                    raise Exception("ERROR: main section, variable " + v + " is of unknown class " + class_name)
             # parse tasks
             self.exec_tasks_to_pddl(self.main['exec']['tasks'])
         except KeyError:
-            raise Exception("SYNTAX ERROR: exec section in main should contain tasks and vars definitions.")
+            raise Exception("ERROR: exec section in main should contain tasks and vars definitions.")
 
     def exec_tasks_to_pddl (self, tasks):
         ''' This procedure translates the exec tasks in main into PDDL
@@ -189,7 +189,7 @@ class Evans:
                     for assignment in item['auto']['init']:
                         # one assignment per list item
                         if len(assignment) > 1:
-                            raise Exception("SYNTAX ERROR: main section, task auto '" + item['auto']['name'] + \
+                            raise Exception("ERROR: main section, task auto '" + item['auto']['name'] + \
                                 "', init section --- only one variable assignment per list item is currently supported")
                         full_var_nm = list(assignment.keys())[0]
                         main_var_nm, state_var_nm = full_var_nm.split('.', 1)
@@ -221,7 +221,7 @@ class Evans:
                     body.append(')')
                     print('\n'.join(body))
                 except KeyError:
-                    raise Exception("SYNTAX ERROR: auto section in main tasks should contain objects and goal definitions.")
+                    raise Exception("ERROR: auto section in main tasks should contain objects and goal definitions.")
             elif 'break' in item:
                 return 'break'
         return 'continue'
@@ -237,7 +237,7 @@ class Evans:
         pddl_str = []
         # assignment format: state_var: value (either Boolean or inline enum item)
         if len(effect_definition) > 1:
-            raise Exception("SYNTAX ERROR: class " + class_name + \
+            raise Exception("ERROR: class " + class_name + \
                 ", operator " + operator_name + " --- only one variable assignment per list item is currently supported in operator effect")
         unprocessed_var_nm = list(effect_definition.keys())[0]
         var_nm, param_nm, class_nm = \
@@ -245,10 +245,10 @@ class Evans:
                     context = self.classes[class_name]['operators'][operator_name]['parameters'], \
                     class_name = class_name)
         if class_nm == None:
-            raise Exception("SYNTAX ERROR: class " + class_name + \
+            raise Exception("ERROR: class " + class_name + \
                 ", operator " + operator_name + " --- undefined variable " + param_nm + " in operator parameters")
         if var_nm not in self.classes[class_nm]['state']:
-            raise Exception("SYNTAX ERROR: class " + class_name + \
+            raise Exception("ERROR: class " + class_name + \
                 ", operator " + operator_name + " --- undefined variable " + var_nm + " in operator effect")
         var_type = self.classes[class_nm]['state'][var_nm] # state variable type
         assignment_value = effect_definition[unprocessed_var_nm] # value to be assigned to state variable
@@ -271,13 +271,31 @@ class Evans:
                 pddl_str.append(assignment_str)
             pddl_str.append(')')
         else:
-            raise Exception("SYNTAX ERROR: class " + class_name + \
+            raise Exception("ERROR: class " + class_name + \
                 ", operator " + operator_name + ", variable " + var_nm + " --- unsupported variable type in operator effect")
         return pddl_str
 
     def operator_condition_to_pddl(self, condition_sting, class_name, operator_name):
-        ''' This procedure parses Evans YAML conditional statement and
-            converts it to PDDL
+        try:
+            return self.conditional_statement_to_pddl(condition_sting = condition_sting,\
+                class_name = class_name, context = self.classes[class_name]['operators'][operator_name]['parameters'])
+        except Exception as err:
+            raise Exception("ERROR processing operator condition: class " + class_name + ", operator " + operator_name + " " + str(err))
+
+    def effect_condition_to_pddl(self, condition_sting, class_name, operator_name):
+        try:
+            return self.conditional_statement_to_pddl(condition_sting = condition_sting,\
+                class_name = class_name, context = self.classes[class_name]['operators'][operator_name]['parameters'])
+        except Exception as err:
+            raise Exception("ERROR processing operator effect: class " + class_name + ", operator " + operator_name + " " + str(err))
+
+    def conditional_statement_to_pddl(self, condition_sting, class_name, context):
+        ''' This procedure parses conditional statement (operator's when, effect condition, and auto's goal)
+            and converts it into PDDL
+            Input:
+                - condition (sting)
+                - class name (string): name of the class, or main
+                - context reference (dict): operator's parameters/main's vars
         '''
         # parse logical expressions, expand predicates;
         # add 'this' to the current class state variables;
@@ -285,11 +303,9 @@ class Evans:
         for index, token in enumerate(tokenized_expr.tokens):
             if tokenized_expr.tokenTypes[index] == TokenType.VAR:
                 var_nm, param_nm, class_nm = var_to_canonical_form(variable_name = token, \
-                    context = self.classes[class_name]['operators'][operator_name]['parameters'], \
-                    class_name = class_name)
+                    context = context, class_name = class_name)
                 if class_nm == None:
-                    raise Exception("SYNTAX ERROR: class " + class_name + \
-                        ", operator " + operator_name + " --- undefined variable " + param_nm + " in operator parameters")
+                    raise Exception("--- undefined variable " + param_nm + " in context")
                 # variable is searched in 'state' first, then in 'predicates';
                 # when found in 'predicates', variable is substituted by the predicate
                 if var_nm in self.classes[class_nm]['state']:
@@ -297,15 +313,15 @@ class Evans:
                 elif var_nm in self.classes[class_nm]['predicates']:
                     tokenized_pr = Tokenizer(self.classes[class_nm]['predicates'][var_nm])
                     for pr_index, pr_token in enumerate(tokenized_pr.tokens):
-                        if tokenized_pr.tokenTypes[pr_index] == TokenType.VAR:
-                            # references from predicates to other predicates are not supported for now
-                            # TODO: add exception when undefined variable used in predicate
+                        if tokenized_pr.tokenTypes[pr_index] == TokenType.VAR and pr_token.title() not in ['True', 'False']:
+                            # TODO: references from predicates to other predicates not implemented yet
                             if pr_token in self.classes[class_nm]['state']:
                                 tokenized_pr.tokens[pr_index] = param_nm + '.' + class_nm + '_' + pr_token
+                            else:
+                                raise Exception("--- undefined variable " + pr_token + " in predicate " + var_nm)
                     tokenized_expr.tokens[index] = '('+ ' '.join(tokenized_pr.tokens) + ')'
                 else:
-                    raise Exception("SYNTAX ERROR: class " + class_nm + \
-                        ", operator " + operator_name + " --- undefined variable " + var_nm + " in operator condition")
+                    raise Exception(" --- undefined state variable " + var_nm + " in condition")
         return btree_to_pddl(BooleanParser(' '.join(tokenized_expr.tokens)).root)
 
 def usage ():
@@ -381,7 +397,8 @@ def var_to_canonical_form(variable_name, context, class_name = None):
         prefix_name, state_variable = variable_name.split('.', 1)
         if prefix_name not in context:
             class_name = None
-        class_name = context[prefix_name]
+        else:
+            class_name = context[prefix_name]
         variable_name = state_variable
     return [variable_name, prefix_name, class_name]
 
@@ -412,9 +429,9 @@ def main (argv):
             code = yaml.load(stream)
             # perform sanity check
             if any (major_section not in code for major_section in ['classes', 'main']):
-                raise Exception("SYNTAX ERROR: no '" + major_section + "' section found in source file.")
+                raise Exception("ERROR: no '" + major_section + "' section found in source file.")
             if 'exec' not in code['main']:
-                raise Exception("SYNTAX ERROR: no 'exec' section found in 'main'.")
+                raise Exception("ERROR: no 'exec' section found in 'main'.")
             evyml = Evans(code['classes'], code['main'])
             # parse classes
             evyml.parse_classes()
