@@ -193,6 +193,12 @@ class Evans:
                                 "', init section --- only one variable assignment per list item is currently supported")
                         full_var_nm = list(assignment.keys())[0]
                         main_var_nm, state_var_nm = full_var_nm.split('.', 1)
+                        if main_var_nm not in self.main_vars:
+                            raise Exception("ERROR: main section, task auto '" + item['auto']['name'] + \
+                                "', init section --- undefined variable " + main_var_nm)
+                        if state_var_nm not in self.classes[self.main_vars[main_var_nm]['class']]['state']:
+                            raise Exception("ERROR: main section, task auto '" + item['auto']['name'] + \
+                                "', init section --- undefined state variable " + state_var_nm)
                         self.main_vars[main_var_nm]['state'][state_var_nm] = assignment[full_var_nm]
                 try:
                     problem = ['(define (problem MYPROBLEM)', '(:domain MYDOMAIN)']

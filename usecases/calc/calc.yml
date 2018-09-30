@@ -238,7 +238,7 @@ classes:
 
   Display:
     state:
-      display_updated: Boolean
+      updated: Boolean
 
 main:
   # main section:
@@ -298,10 +298,10 @@ main:
             init:
               # one assignment per list item
               - key1.processed: False
-              - display1.display_updated: False
+              - display1.updated: False
             goal:
               - key1.processed: True
               - if: stack1.changed
                 then:
-                  - display1.display_updated: True
+                  - display1.updated: True
         - break:
