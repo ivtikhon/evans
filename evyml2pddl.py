@@ -52,6 +52,7 @@ class Evans:
                         prd_name = '_'.join([cl_nm, var_nm])
                         predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
                     elif isinstance(var_def, list):
+                        predicates.append('(' + '_'.join([cl_nm, var_nm, 'undef']) + ' ?this - ' + cl_nm + ')')
                         for var_state in var_def:
                             prd_name = '_'.join([cl_nm, var_nm, var_state])
                             predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
@@ -254,6 +255,7 @@ class Evans:
             context = self.main['exec']['vars']
             pddl_arr = self.assignment_statement_to_pddl(assignment_definition = goal_definition, \
                 class_name = None, context = context)
+            # no '?' symbols required in goal definition
             for index, pddl_str in enumerate(pddl_arr):
                 pddl_arr[index] = pddl_arr[index].replace('?', '')
             return pddl_arr
