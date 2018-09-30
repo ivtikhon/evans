@@ -218,7 +218,17 @@ class Evans:
                         goal.append('(and')
                     for goal_item in item['auto']['goal']:
                         if 'if' in goal_item:
+                            goal.append('(imply ')
                             goal.append(self.goal_condition_to_pddl(goal_item['if'], item['auto']['name']))
+                            if len(goal_item['then']) > 1:
+                                goal.append('(and')
+                            for goal_definition in goal_item['then']:
+                                goal.extend(self.goal_definition_to_pddl(goal_definition, item['auto']['name']))
+                            if len(goal_item['then']) > 1:
+                                goal.append(')')
+                            goal.append(')')
+                        else:
+                            goal.extend(self.goal_definition_to_pddl(goal_item, item['auto']['name']))
                     if len(item['auto']['goal']) > 1:
                         goal.append(')')
                     objects.append(')')
@@ -233,32 +243,47 @@ class Evans:
                 return 'break'
         return 'continue'
 
-    def operator_effect_to_pddl (self, effect_definition, class_name, operator_name):
+    def goal_definition_to_pddl(self, goal_definition, auto_name):
+        try:
+            context = self.main['exec']['vars']
+            pddl_arr = self.assignment_statement_to_pddl(assignment_definition = goal_definition, \
+                class_name = None, context = context)
+            for index, pddl_str in enumerate(pddl_arr):
+                pddl_arr[index] = pddl_arr[index].replace('?', '')
+            return pddl_arr
+        except Exception as err:
+            raise Exception("ERROR processing goal definition: auto task " + auto_name + ' --- ' + str(err))
+
+    def operator_effect_to_pddl(self, effect_definition, class_name, operator_name):
+        try:
+            context = self.classes[class_name]['operators'][operator_name]['parameters']
+            return self.assignment_statement_to_pddl(assignment_definition = effect_definition, \
+                class_name = class_name, context = context)
+        except Exception as err:
+            raise Exception("ERROR processing operator effect: class " + class_name + ", operator " + operator_name + ' --- ' + str(err))
+
+    def assignment_statement_to_pddl(self, assignment_definition, class_name, context):
         ''' This procedure converts operator assignment (effect) into PDDL formula.
             Input:
-                - assignment from operator effect (dictionary)
-                - class where operator is defined (string)
-                - operator name (string)
+                - assignment from operator effect or auto goal (dict)
+                - class where operator is defined or None for goal (string)
+                - context where variables are defined (dict)
             Output: PDDL formulae (list of strings)
         '''
         pddl_str = []
         # assignment format: state_var: value (either Boolean or inline enum item)
-        if len(effect_definition) > 1:
-            raise Exception("ERROR: class " + class_name + \
-                ", operator " + operator_name + " --- only one variable assignment per list item is currently supported in operator effect")
-        unprocessed_var_nm = list(effect_definition.keys())[0]
+        if len(assignment_definition) > 1:
+            raise Exception("Only one variable assignment per list item is currently supported")
+        unprocessed_var_nm = list(assignment_definition.keys())[0]
         var_nm, param_nm, class_nm = \
             var_to_canonical_form(variable_name = unprocessed_var_nm, \
-                    context = self.classes[class_name]['operators'][operator_name]['parameters'], \
-                    class_name = class_name)
+                    context = context, class_name = class_name)
         if class_nm == None:
-            raise Exception("ERROR: class " + class_name + \
-                ", operator " + operator_name + " --- undefined variable " + param_nm + " in operator parameters")
+            raise Exception("Undefined variable " + param_nm + " used in assignment")
         if var_nm not in self.classes[class_nm]['state']:
-            raise Exception("ERROR: class " + class_name + \
-                ", operator " + operator_name + " --- undefined variable " + var_nm + " in operator effect")
+            raise Exception("Undefined state variable " + var_nm + " used in assignment")
         var_type = self.classes[class_nm]['state'][var_nm] # state variable type
-        assignment_value = effect_definition[unprocessed_var_nm] # value to be assigned to state variable
+        assignment_value = assignment_definition[unprocessed_var_nm] # value to be assigned to state variable
         # state variable type is either Boolean...
         if isinstance(var_type, str) and var_type.title() == 'Boolean' and \
                 (isinstance(assignment_value, bool) or assignment_value.title() in ['True', 'False']):
@@ -278,8 +303,7 @@ class Evans:
                 pddl_str.append(assignment_str)
             pddl_str.append(')')
         else:
-            raise Exception("ERROR: class " + class_name + \
-                ", operator " + operator_name + ", variable " + var_nm + " --- unsupported variable type in operator effect")
+            raise Exception("Variable " + var_nm + " is not Boolean, nor list type defined")
         return pddl_str
 
     def operator_condition_to_pddl(self, condition_sting, class_name, operator_name):
@@ -310,7 +334,7 @@ class Evans:
             and converts it into PDDL
             Input:
                 - condition (sting)
-                - class name (string): name of the class where operator is defined, or main
+                - class name (string): name of the class where operator is defined, or None, if this is goal's condition
                 - context reference (dict): reference to operator's parameters/main's vars
             Output: PDDL formula
             Note: the calling procedure must handle exceptions

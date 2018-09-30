@@ -297,10 +297,10 @@ main:
               - alu1
             init:
               # one assignment per list item
-              - key1.key_processed: False
+              - key1.processed: False
               - display1.display_updated: False
             goal:
-              - key1.key_processed: True
+              - key1.processed: True
               - if: stack1.changed
                 then:
                   - display1.display_updated: True
