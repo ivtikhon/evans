@@ -52,7 +52,7 @@ class Evans:
                         prd_name = '_'.join([cl_nm, var_nm])
                         predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
                     elif isinstance(var_def, list):
-                        predicates.append('(' + '_'.join([cl_nm, var_nm, 'undef']) + ' ?this - ' + cl_nm + ')')
+                        var_def.append('undef')
                         for var_state in var_def:
                             prd_name = '_'.join([cl_nm, var_nm, var_state])
                             predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
