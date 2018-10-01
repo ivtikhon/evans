@@ -19,10 +19,10 @@ class Evans:
             'Char': {
                 'attr': {}
             },
-            'String': {
+            'Str': {
                 'attr': {}
             },
-            'Number': {
+            'Num': {
                 'attr': {}
             },
             'List': {
@@ -40,7 +40,7 @@ class Evans:
             Output: PDDL Domain (self.pddl_domain)
         '''
         header = ['(define (domain MYDOMAIN)', '(:requirements :adl)']
-        types = ['(types: ']
+        types = ['(:types ']
         predicates = ['(:predicates']
         actions = []
         for cl_nm, cl_def in self.classes.items():
@@ -101,28 +101,22 @@ class Evans:
                                     if 'if' in eff_def['then'] or ('else' in eff_def and 'if' in eff_def['else']):
                                         raise Exception("ERROR: class " + cl_nm + \
                                             ", operator " + op_nm + " --- multilevel conditional statements not supported yet.")
-                                    if len(eff_def['then']) > 1:
-                                        actions.append('(and')
+                                    actions.append('(and')
                                     for cond_eff in eff_def['then']:
                                         pddl_effect = self.operator_effect_to_pddl(effect_definition = cond_eff, \
                                             class_name = cl_nm, operator_name = op_nm)
                                         actions.extend(pddl_effect) # pddl_effect is an array of strings
-                                    if len(eff_def['then']) > 1:
-                                        actions.append(')')
-                                    actions.append(')')
+                                    actions.append('))')
                                     if 'else' in eff_def:
                                         actions.append('(when (not ')
                                         actions.append(pddl_cond)
                                         actions.append(')')
-                                        if len(eff_def['else']) > 1:
-                                            actions.append('(and')
+                                        actions.append('(and')
                                         for cond_eff in eff_def['else']:
                                             pddl_effect = self.operator_effect_to_pddl(effect_definition = cond_eff, \
                                                 class_name = cl_nm, operator_name = op_nm)
                                             actions.extend(pddl_effect)
-                                        if len(eff_def['else']) > 1:
-                                            actions.append(')')
-                                        actions.append(')')
+                                        actions.append('))')
                                 except KeyError:
                                     raise Exception("ERROR: class " + cl_nm + \
                                         ", operator " + op_nm + " --- conditional effect is expected to be in the if: ... then: ... else: format")
@@ -303,13 +297,11 @@ class Evans:
             pddl_str.append(assignment_str)
         # ...or inline enum (where all values are explisitly listed in state variable definition)
         elif isinstance(var_type, list) and assignment_value in var_type:
-            pddl_str.append('(and')
             for st_var_val in var_type:
                 assignment_str = '(' + class_nm + '_' + var_nm + '_' + st_var_val + ' ?' + param_nm + ')'
-                if st_var_val != assignment_value[1:-1]:
+                if st_var_val != assignment_value:
                     assignment_str = '(not ' + assignment_str + ')'
                 pddl_str.append(assignment_str)
-            pddl_str.append(')')
         else:
             raise Exception("Variable " + var_nm + " is not Boolean, nor list type defined")
         return pddl_str

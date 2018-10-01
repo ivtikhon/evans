@@ -51,7 +51,7 @@ classes:
             # types of state variables so far:
             #   - inline enum
             #   - Boolean
-            #   - Number (to be done)
+            #   - Num (to be done)
     predicates: # predicates in Evans are equivalent to PDDL's derived predicates, i.e. read only, can't be used for assignments;
                 # TODO: predicates in PDDL can have multiple arguments;
                 #       in Evans this can be implemented the same way as parameters in operators
@@ -126,7 +126,7 @@ classes:
 
   Alu:
     attr:
-      reg: Number
+      reg: Num
       op: Char
     methods:
       storeReg:
@@ -239,6 +239,18 @@ classes:
   Display:
     state:
       updated: Boolean
+    operators:
+      display_stack:
+        parameters:
+          s: Stack
+          k: Key
+        when:
+          - not updated
+          - k.processed
+          - s.changed
+        effect:
+          - updated: True
+          - s.changed: False
 
 main:
   # main section:
@@ -255,7 +267,7 @@ main:
   #       - plan: here we run planning
   #       TODO: think about recovery from unsuccessfull planning
   parameters:
-    input_file: String
+    input_file: Str
               # parameters of main are the program attributes,
               # the format is: -input_file='file name';
   exec:
@@ -266,7 +278,7 @@ main:
       display1: Display
       alu1: Alu
       key_val1: Char
-      key_type: String
+      key_type: Str
     tasks: # one task per list element
       - loop:  # unconditional (endless) loop; TODO implement loops with conditional exit
         # code section has write access to attributes and state variables of the objects defined in vars;
