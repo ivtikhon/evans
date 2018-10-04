@@ -45,12 +45,12 @@ classes:
       last_key: ['digit', 'point']  # state variable with explisitly listed values (inline enum);
                                     # 'undef' is the default value for enums
                                     # TODO: think how to declare other classes variables
-      dec_point: Boolean # False is the default value for Boolean type
-      changed: Boolean
-      tobe_cleaned: Boolean
+      dec_point: Bool # False is the default value for Bool type
+      changed: Bool
+      tobe_cleaned: Bool
             # types of state variables so far:
             #   - inline enum
-            #   - Boolean
+            #   - Bool
             #   - Num (to be done)
     predicates: # predicates in Evans are equivalent to PDDL's derived predicates, i.e. read only, can't be used for assignments;
                 # TODO: predicates in PDDL can have multiple arguments;
@@ -153,9 +153,9 @@ classes:
           elif op == '/':
             reg = st1 / reg
     state:
-      reg_stored: Boolean
-      op_executed: Boolean
-      op_stored: Boolean
+      reg_stored: Bool
+      op_executed: Bool
+      op_stored: Bool
     predicates:
       isOpExecuted: op_executed == True
       isOpStored: op_stored == True
@@ -217,7 +217,7 @@ classes:
           return k
     state:
       k_val: ['digit', 'point', 'op', 'eq', 'clear', 'erase']
-      processed: Boolean
+      processed: Bool
     predicates:
       isOp: k_val == 'op'
       isDigit: k_val == 'digit'
@@ -238,7 +238,7 @@ classes:
 
   Display:
     state:
-      updated: Boolean
+      updated: Bool
     operators:
       display_stack:
         parameters:
@@ -310,6 +310,7 @@ main:
             init:
               # one assignment per list item
               - key1.processed: False
+              - key1.k_val: digit
               - display1.updated: False
             goal:
               - key1.processed: True

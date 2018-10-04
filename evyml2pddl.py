@@ -6,6 +6,10 @@
 import sys, getopt
 import yaml
 import pprint
+import os
+import tempfile
+import subprocess
+import re
 from boolparser import *
 
 class Evans:
@@ -13,6 +17,7 @@ class Evans:
     main = None
     main_vars = None
     pddl_domain = None
+    domain_file = None
 
     def __init__(self, classes_root, main_root):
         embedded_classes = {
@@ -44,11 +49,11 @@ class Evans:
         predicates = ['(:predicates']
         actions = []
         for cl_nm, cl_def in self.classes.items():
-            types.append(cl_nm)
             if 'state' in cl_def:
+                types.append(cl_nm) # only classes with state variables should be listed as PDDL types
                 for var_nm, var_def in cl_def['state'].items():
-                    # only Boolean and inline enum types are supported for now
-                    if isinstance(var_def, str) and var_def.title() == 'Boolean':
+                    # only Bool and inline enum types are supported for now
+                    if isinstance(var_def, str) and var_def.title() == 'Bool':
                         prd_name = '_'.join([cl_nm, var_nm])
                         predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
                     elif isinstance(var_def, list):
@@ -58,7 +63,7 @@ class Evans:
                             predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
                     else:
                         raise Exception("ERROR: class " + cl_nm + \
-                            ", variable " + var_nm + " --- variable type is expected to be either Boolean or list")
+                            ", variable " + var_nm + " --- variable type is expected to be either Bool or list")
             if 'operators' in cl_def:
                 # operators are translated into PDDL actions
                 for op_nm, op_def in cl_def['operators'].items():
@@ -136,9 +141,8 @@ class Evans:
         types.append(')')
         self.pddl_domain = header + types + predicates + actions + [')']
 
-    def parse_main(self):
-        ''' This procedure interpets the main section of Evan YAML
-        '''
+    def interprete_main(self):
+        ''' This procedure interpets the main section of Evan YAML '''
         try:
             # initialize variables
             for v in self.main['exec']['vars']:
@@ -148,10 +152,10 @@ class Evans:
                     if 'state' in self.classes[class_name]:
                         self.main_vars[v]['state'] = {}
                         for var_nm, var_def in self.classes[class_name]['state'].items():
-                            # Boolean state variables are initialized with 'False';
+                            # Bool state variables are initialized with 'False';
                             # all other state variables are set to 'undef'
                             # TODO: initialize Number type with 0 (zero)
-                            if isinstance(var_def, str) and var_def.title() == 'Boolean':
+                            if isinstance(var_def, str) and var_def.title() == 'Bool':
                                 self.main_vars[v]['state'][var_nm] = False
                             else:
                                 self.main_vars[v]['state'][var_nm] = 'undef'
@@ -162,7 +166,7 @@ class Evans:
                             self.main_vars[v]['attr'][var_nm] = None
                 else:
                     raise Exception("ERROR: main section, variable " + v + " is of unknown class " + class_name)
-            # parse tasks
+            # parse and execute tasks
             self.exec_tasks_to_pddl(self.main['exec']['tasks'])
         except KeyError:
             raise Exception("ERROR: exec section in main should contain tasks and vars definitions.")
@@ -180,7 +184,7 @@ class Evans:
                     loop_exit = self.exec_tasks_to_pddl (item['loop'])
             elif 'auto' in item:
                 if 'init' in item['auto']:
-                    # state variables initialization
+                    # initialize state variables
                     for assignment in item['auto']['init']:
                         # one assignment per list item
                         if len(assignment) > 1:
@@ -195,6 +199,7 @@ class Evans:
                             raise Exception("ERROR: main section, task auto '" + item['auto']['name'] + \
                                 "', init section --- undefined state variable " + state_var_nm)
                         self.main_vars[main_var_nm]['state'][state_var_nm] = assignment[full_var_nm]
+                # generate PDDL code and run PDDL planner
                 try:
                     problem = ['(define (problem MYPROBLEM)', '(:domain MYDOMAIN)']
                     objects = ['(:objects']
@@ -202,21 +207,27 @@ class Evans:
                     goal = ['(:goal']
                     for obj in item['auto']['objects']:
                         # generate list of object
-                        objects.append(obj + ' - ' + self.main_vars[obj]['class'])
+                        class_nm = self.main_vars[obj]['class']
+                        objects.append(obj + ' - ' + class_nm)
                         # initialize objects
                         for var_nm, var_val in self.main_vars[obj]['state'].items():
-                            prefix = '('
-                            postfix = ')'
-                            if isinstance(var_val, bool):
-                                if var_val == False:
-                                    prefix = '(not ('
-                                    postfix = '))'
-                                var_val = ''
+                            state_var_definition = self.classes[class_nm]['state'][var_nm]
+                            if isinstance(state_var_definition, list): # inline enum
+                                for state_var_val in state_var_definition:
+                                    prefix = '('
+                                    postfix = ')'
+                                    if var_val != state_var_val:
+                                        prefix += 'not ('
+                                        postfix += ')'
+                                    init.append(prefix + class_nm + '_' + var_nm + '_' + state_var_val + ' ' + obj + postfix)
                             else:
-                                var_val = '_' + var_val
-                            init.append(prefix + self.main_vars[obj]['class'] + '_' + var_nm + var_val + ' ' + obj + postfix)
-                    if len(item['auto']['goal']) > 1:
-                        goal.append('(and')
+                                prefix = '('
+                                postfix = ')'
+                                if var_val == False:
+                                    prefix += 'not ('
+                                    postfix += ')'
+                                init.append(prefix + class_nm + '_' + var_nm + ' ' + obj + postfix)
+                    goal.append('(and')
                     for goal_item in item['auto']['goal']:
                         if 'if' in goal_item:
                             goal.append('(imply ')
@@ -230,14 +241,31 @@ class Evans:
                             goal.append(')')
                         else:
                             goal.extend(self.goal_definition_to_pddl(goal_item, item['auto']['name']))
-                    if len(item['auto']['goal']) > 1:
-                        goal.append(')')
-                    objects.append(')')
-                    init.append(')')
-                    goal.append(')')
-                    body = problem + objects + init + goal
-                    body.append(')')
-                    print('\n'.join(body))
+                    body = problem + objects + [')'] + init +[')'] + goal + [')))']
+                    with tempfile.NamedTemporaryFile(mode='w+t', prefix='pddl-problem-', delete=False) as fp:
+                        try:
+                            problem_file_name = fp.name
+                            fp.write('\n'.join(body))
+                            fp.close()
+                            # call PDDL planner
+                            args = '/opt/FF-v2.3/ff -p /tmp/ -o ' + os.path.basename(self.domain_file_name) + ' -f ' + os.path.basename(problem_file_name)
+                            print(args)
+                            with subprocess.Popen(args, cwd='/tmp/', shell=True, stdout=subprocess.PIPE, text=True) as planner:
+                                try:
+                                    soulution_found = False
+                                    for line in planner.stdout:
+                                        line = line.rstrip()
+                                        print(line)
+                                        # if 'found legal plan' in line:
+                                        #     soulution_found = True
+                                        # if soulution_found == True and re.search('\d\:', line):
+                                        #     num, line.split(':', 1)
+                                except subprocess.SubprocessError as suberr:
+                                    print (suberr)
+                        except IOError as err:
+                            print("ERROR creating temp file: " + err)
+                        # finally:
+                        #     os.remove(fp.name)
                 except KeyError:
                     raise Exception("ERROR: auto section in main tasks should contain objects and goal definitions.")
             elif 'break' in item:
@@ -245,6 +273,7 @@ class Evans:
         return 'continue'
 
     def goal_definition_to_pddl(self, goal_definition, auto_name):
+        ''' This procedure translates auto's goal into PDDL '''
         try:
             context = self.main['exec']['vars']
             pddl_arr = self.assignment_statement_to_pddl(assignment_definition = goal_definition, \
@@ -257,6 +286,7 @@ class Evans:
             raise Exception("ERROR processing goal definition: auto task " + auto_name + ' --- ' + str(err))
 
     def operator_effect_to_pddl(self, effect_definition, class_name, operator_name):
+        ''' This procedure translate operator's effect into PDDL '''
         try:
             context = self.classes[class_name]['operators'][operator_name]['parameters']
             return self.assignment_statement_to_pddl(assignment_definition = effect_definition, \
@@ -271,9 +301,10 @@ class Evans:
                 - class where operator is defined or None for goal (string)
                 - context where variables are defined (dict)
             Output: PDDL formulae (list of strings)
+            Note: the calling procedure must handle exceptions
         '''
         pddl_str = []
-        # assignment format: state_var: value (either Boolean or inline enum item)
+        # assignment format: state_var: value (either Bool or inline enum item)
         if len(assignment_definition) > 1:
             raise Exception("Only one variable assignment per list item is currently supported")
         unprocessed_var_nm = list(assignment_definition.keys())[0]
@@ -286,8 +317,8 @@ class Evans:
             raise Exception("Undefined state variable " + var_nm + " used in assignment")
         var_type = self.classes[class_nm]['state'][var_nm] # state variable type
         assignment_value = assignment_definition[unprocessed_var_nm] # value to be assigned to state variable
-        # state variable type is either Boolean...
-        if isinstance(var_type, str) and var_type.title() == 'Boolean' and \
+        # state variable type is either Bool...
+        if isinstance(var_type, str) and var_type.title() == 'Bool' and \
                 (isinstance(assignment_value, bool) or assignment_value.title() in ['True', 'False']):
             if isinstance(assignment_value, bool):
                 assignment_value = str(assignment_value)
@@ -303,10 +334,11 @@ class Evans:
                     assignment_str = '(not ' + assignment_str + ')'
                 pddl_str.append(assignment_str)
         else:
-            raise Exception("Variable " + var_nm + " is not Boolean, nor list type defined")
+            raise Exception("Variable " + var_nm + " is not Bool, nor list type defined")
         return pddl_str
 
     def operator_condition_to_pddl(self, condition_sting, class_name, operator_name):
+        ''' This procedure translates operator condition (when) into PDDL '''
         try:
             return self.conditional_statement_to_pddl(condition_sting = condition_sting,\
                 class_name = class_name, context = self.classes[class_name]['operators'][operator_name]['parameters'])
@@ -314,6 +346,7 @@ class Evans:
             raise Exception("ERROR processing operator condition: class " + class_name + ", operator " + operator_name + " --- " + str(err))
 
     def effect_condition_to_pddl(self, condition_sting, class_name, operator_name):
+        ''' This procedure translates operator's effect condition into PDDL '''
         try:
             return self.conditional_statement_to_pddl(condition_sting = condition_sting,\
                 class_name = class_name, context = self.classes[class_name]['operators'][operator_name]['parameters'])
@@ -321,6 +354,7 @@ class Evans:
             raise Exception("ERROR processing operator effect: class " + class_name + ", operator " + operator_name + " --- " + str(err))
 
     def goal_condition_to_pddl(self, condition_sting, auto_name):
+        ''' This procedure translates goal condition into PDDL'''
         try:
             pddl_str = self.conditional_statement_to_pddl(condition_sting = condition_sting,\
                 class_name = None, context = self.main['exec']['vars'])
@@ -480,10 +514,18 @@ def main (argv):
             evyml = Evans(code['classes'], code['main'])
             # parse classes
             evyml.parse_classes()
-            print('\n'.join(evyml.pddl_domain))
-            # parse main
-            evyml.parse_main()
-            # pprint.pprint(code['main'])
+            # create PDDL domain file
+            with tempfile.NamedTemporaryFile(mode='w+t', prefix='pddl-domain-', delete=False) as fp:
+                try:
+                    evyml.domain_file_name = fp.name
+                    fp.write('\n'.join(evyml.pddl_domain))
+                    fp.close()
+                    # parse & execute main
+                    evyml.interprete_main()
+                except IOError as err:
+                    print("ERROR creating temp file: " + err)
+                # finally:
+                #     os.remove(fp.name)
         except yaml.YAMLError as exc:
             print(exc)
             sys.exit(2)
