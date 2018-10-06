@@ -240,7 +240,7 @@ classes:
     state:
       updated: Bool
     operators:
-      display_stack:
+      print_stack:
         parameters:
           s: Stack
           k: Key

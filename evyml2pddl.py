@@ -183,8 +183,8 @@ class Evans:
                 while loop_exit != 'break':
                     loop_exit = self.exec_tasks_to_pddl (item['loop'])
             elif 'auto' in item:
+                # initialize variables
                 if 'init' in item['auto']:
-                    # initialize state variables
                     for assignment in item['auto']['init']:
                         # one assignment per list item
                         if len(assignment) > 1:
@@ -199,7 +199,7 @@ class Evans:
                             raise Exception("ERROR: main section, task auto '" + item['auto']['name'] + \
                                 "', init section --- undefined state variable " + state_var_nm)
                         self.main_vars[main_var_nm]['state'][state_var_nm] = assignment[full_var_nm]
-                # generate PDDL code and run PDDL planner
+                # generate PDDL problem code
                 try:
                     problem = ['(define (problem MYPROBLEM)', '(:domain MYDOMAIN)']
                     objects = ['(:objects']
@@ -242,30 +242,31 @@ class Evans:
                         else:
                             goal.extend(self.goal_definition_to_pddl(goal_item, item['auto']['name']))
                     body = problem + objects + [')'] + init +[')'] + goal + [')))']
+                    # create PDDL problem file
                     with tempfile.NamedTemporaryFile(mode='w+t', prefix='pddl-problem-', delete=False) as fp:
-                        try:
-                            problem_file_name = fp.name
-                            fp.write('\n'.join(body))
-                            fp.close()
-                            # call PDDL planner
-                            args = '/opt/FF-v2.3/ff -p /tmp/ -o ' + os.path.basename(self.domain_file_name) + ' -f ' + os.path.basename(problem_file_name)
-                            print(args)
-                            with subprocess.Popen(args, cwd='/tmp/', shell=True, stdout=subprocess.PIPE, text=True) as planner:
-                                try:
-                                    soulution_found = False
-                                    for line in planner.stdout:
-                                        line = line.rstrip()
-                                        print(line)
-                                        # if 'found legal plan' in line:
-                                        #     soulution_found = True
-                                        # if soulution_found == True and re.search('\d\:', line):
-                                        #     num, line.split(':', 1)
-                                except subprocess.SubprocessError as suberr:
-                                    print (suberr)
-                        except IOError as err:
-                            print("ERROR creating temp file: " + err)
-                        # finally:
-                        #     os.remove(fp.name)
+                        problem_file_name = fp.name
+                        fp.write('\n'.join(body))
+                        fp.close()
+                        # call PDDL planner
+                        args = '/opt/fast-downward/fast-downward.py ' + os.path.basename(self.domain_file_name) + \
+                            ' ' + os.path.basename(problem_file_name) + ' ' + \
+                            '--evaluator "hff=ff()" --search "lazy_greedy([hff], preferred=[hff])"'
+                        with subprocess.Popen(args, cwd='/tmp', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as planner:
+                            solution_found = False
+                            for line in planner.stdout:
+                                line = line.decode().rstrip()
+                                if 'Solution found!' in line:
+                                    solution_found = True
+                            if solution_found:
+                                with open('/tmp/sas_plan', 'rt') as planfile:
+                                    for line in planfile:
+                                        print(line.rstrip())
+                            else:
+                                raise Exception("FAILURE: PDDL planner found no solution for task auto " + item['auto']['name'])
+                        # clean up
+                        for tmpfl in ['/tmp/sas_plan', '/tmp/output.sas', problem_file_name]:
+                            os.remove(tmpfl)
+
                 except KeyError:
                     raise Exception("ERROR: auto section in main tasks should contain objects and goal definitions.")
             elif 'break' in item:
@@ -524,8 +525,8 @@ def main (argv):
                     evyml.interprete_main()
                 except IOError as err:
                     print("ERROR creating temp file: " + err)
-                # finally:
-                #     os.remove(fp.name)
+                finally:
+                    os.remove(fp.name)
         except yaml.YAMLError as exc:
             print(exc)
             sys.exit(2)
