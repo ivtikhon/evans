@@ -18,6 +18,8 @@ class Evans:
     main_vars = None
     pddl_domain = None
     domain_file = None
+    tempdir = None
+    planner = None
 
     def __init__(self, classes_root, main_root):
         embedded_classes = {
@@ -38,6 +40,12 @@ class Evans:
         self.main = main_root
         self.classes.update(embedded_classes)
         self.main_vars = {}
+        self.planner = {}
+        self.tempdir = '/tmp'
+        self.planner['path'] = '/opt/fast-downward/fast-downward.py'
+        self.planner['options'] = '--evaluator "hff=ff()" --search "lazy_greedy([hff], preferred=[hff])"'
+        self.planner['stdout'] = False
+        self.planner['plan_file'] = '/tmp/sas_plan'
 
     def parse_classes(self):
         ''' This procedure translates Evans classes into PDDL
@@ -243,30 +251,31 @@ class Evans:
                             goal.extend(self.goal_definition_to_pddl(goal_item, item['auto']['name']))
                     body = problem + objects + [')'] + init +[')'] + goal + [')))']
                     # create PDDL problem file
-                    with tempfile.NamedTemporaryFile(mode='w+t', prefix='pddl-problem-', delete=False) as fp:
+                    with tempfile.NamedTemporaryFile(mode='w+t', prefix='pddl-problem-', dir=self.tempdir, delete=False) as fp:
                         problem_file_name = fp.name
                         fp.write('\n'.join(body))
                         fp.close()
                         # call PDDL planner
-                        args = '/opt/fast-downward/fast-downward.py ' + os.path.basename(self.domain_file_name) + \
+                        args = self.planner['path'] + ' ' + os.path.basename(self.domain_file_name) + \
                             ' ' + os.path.basename(problem_file_name) + ' ' + \
-                            '--evaluator "hff=ff()" --search "lazy_greedy([hff], preferred=[hff])"'
-                        with subprocess.Popen(args, cwd='/tmp', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as planner:
+                            self.planner['options']
+                        with subprocess.Popen(args, cwd=self.tempdir, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as planner:
                             solution_found = False
-                            for line in planner.stdout:
-                                line = line.decode().rstrip()
-                                if 'Solution found!' in line:
-                                    solution_found = True
-                            if solution_found:
-                                with open('/tmp/sas_plan', 'rt') as planfile:
+                            planner.wait()
+                            if self.planner['stdout']:
+                                for line in planner.stdout:
+                                    line = line.decode().rstrip()
+                                    print(line)
+                            if planner.returncode == 0:
+                                with open(self.planner['plan_file'], 'rt') as planfile:
                                     for line in planfile:
-                                        print(line.rstrip())
+                                        if not line.startswith(';'):
+                                            print(line.rstrip().strip('()'))
                             else:
                                 raise Exception("FAILURE: PDDL planner found no solution for task auto " + item['auto']['name'])
                         # clean up
-                        for tmpfl in ['/tmp/sas_plan', '/tmp/output.sas', problem_file_name]:
-                            os.remove(tmpfl)
-
+                            os.remove(problem_file_name)
+                            subprocess.run([self.planner['path'], '--cleanup'], cwd=self.tempdir)
                 except KeyError:
                     raise Exception("ERROR: auto section in main tasks should contain objects and goal definitions.")
             elif 'break' in item:
@@ -516,7 +525,7 @@ def main (argv):
             # parse classes
             evyml.parse_classes()
             # create PDDL domain file
-            with tempfile.NamedTemporaryFile(mode='w+t', prefix='pddl-domain-', delete=False) as fp:
+            with tempfile.NamedTemporaryFile(mode='w+t', prefix='pddl-domain-', dir=evyml.tempdir, delete=False) as fp:
                 try:
                     evyml.domain_file_name = fp.name
                     fp.write('\n'.join(evyml.pddl_domain))
