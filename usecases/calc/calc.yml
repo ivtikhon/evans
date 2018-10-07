@@ -26,21 +26,21 @@ classes:
         parameters:
           k: Key # can be data or hybrid types
         body: |
-          s.append(k.getValue())
+          self.s.append(k.getValue())
 
       pushReg:
         parameters:
           a: Alu
         body: |
-          s.append(str(a.getReg()).split())
+          self.s.append(str(a.getReg()).split())
 
       getValue:
         body: |
-          return ''.join(s)
+          return ''.join(self.s)
 
       clean:
         body: |
-          s.clear()
+          self.s.clear()
     state:
       last_key: ['digit', 'point']  # state variable with explisitly listed values (inline enum);
                                     # 'undef' is the default value for enums
@@ -284,19 +284,19 @@ main:
         # code section has write access to attributes and state variables of the objects defined in vars;
         # main parameters are read-only
         - code: |
-            # TODO: read STDIN and assign to key_val1
+            key_val1 = input('calc: ')
             key1['attr']['k'] = key_val1  # attribute assignment
-            if key_val1 in ['0','1','2', '3', '4', '5', '6', '7', '8', '9']:
+            if isdigit(key_val1):
               key1['state']['k_val'] = 'digit'  # state variable assignment
-            elif key1_value == '.':
+            elif key_val1 == '.':
               key1['state']['k_val'] = 'point'
-            elif key1_value in ['+', '-', '/', '*']:
+            elif key_val1 in ['+', '-', '/', '*']:
               key1['state']['k_val'] = 'op'
-            elif key1_value == '=':
+            elif key_val1 == '=':
               key1['state']['k_val'] = 'eq'
-            elif key1_value == 'C':
+            elif key_val1 == 'C':
                 key1['state']['k_val'] = 'clear'
-            elif key1_value == 'R':
+            elif key_val1 == 'R':
               key1['state']['k_val'] = 'erase'
         - auto:
             name: 'Simple calculator'

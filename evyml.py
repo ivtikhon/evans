@@ -14,6 +14,7 @@ from boolparser import *
 
 class Evans:
     classes = None
+    builtin_classes = None
     main = None
     main_vars = None
     pddl_domain = None
@@ -22,23 +23,37 @@ class Evans:
     planner = None
 
     def __init__(self, classes_root, main_root):
-        embedded_classes = {
+        self.builtin_classes = {
             'Char': {
-                'attr': {}
+                'attr': {
+                    'a': None
+                },
+                'methods': {
+                    '__init__': {
+                        'parameters': {},
+                        'body': "self.a = ''"
+                    }
+                }
             },
             'Str': {
-                'attr': {}
+                'attr': {
+                    'a': None
+                }
             },
             'Num': {
-                'attr': {}
+                'attr': {
+                    'a': None
+                }
             },
             'List': {
-                'attr': {}
+                'attr': {
+                    'a': None
+                }
             }
         }
         self.classes = classes_root
         self.main = main_root
-        self.classes.update(embedded_classes)
+        self.classes.update(self.builtin_classes)
         self.main_vars = {}
         self.planner = {}
         self.tempdir = '/tmp'
@@ -48,15 +63,17 @@ class Evans:
         self.planner['plan_file'] = '/tmp/sas_plan'
 
     def parse_classes(self):
-        ''' This procedure translates Evans classes into PDDL
+        ''' This procedure translates Evans classes into PDDL and Python
             Input: Evans classes in YAML (self.classes)
-            Output: PDDL Domain (self.pddl_domain)
+            Output: PDDL Domain (self.pddl_domain), Python code
         '''
         header = ['(define (domain MYDOMAIN)', '(:requirements :adl)']
         types = ['(:types ']
         predicates = ['(:predicates']
         actions = []
+        python_code = []
         for cl_nm, cl_def in self.classes.items():
+            python_code.append('class ' + cl_nm + ':')
             if 'state' in cl_def:
                 types.append(cl_nm) # only classes with state variables should be listed as PDDL types
                 for var_nm, var_def in cl_def['state'].items():
@@ -82,9 +99,13 @@ class Evans:
                         if not isinstance(op_def['parameters'], dict):
                             raise Exception("ERROR: class " + cl_nm + \
                                 ", operator " + op_nm + " --- parameters expected to be dictionary type")
+                        # create reverse lookup list of parameters to search by number (for Python code generation)
+                        param_by_number = ['self']
                         for par_nm, par_type in op_def['parameters'].items():
                             actions.append('?'+ par_nm + ' - ' + par_type)
+                            param_by_number.append(par_nm)
                         actions.append(')')
+                        cl_def['operators'][op_nm]['param_by_number'] = param_by_number # reverse lookup list of parameters
                     # parse operator's condition
                     if 'when' in op_def:
                         actions.append(':precondition (and')
@@ -142,12 +163,29 @@ class Evans:
                     actions.append(')')
             if 'attr' in cl_def:
                 for at_nm, at_def in cl_def['attr'].items():
-                    if at_def not in self.classes:
+                    if cl_nm not in self.builtin_classes and at_def not in self.classes:
                         raise Exception("ERROR: class " + cl_nm + \
                             ", attribute " + at_nm + ", attribute class " + at_def + " --- attribute class is not defined.")
+                    python_code.append('    ' + at_nm + ' = None')
+            if 'methods' in cl_def:
+                for method_nm, method_def in cl_def['methods'].items():
+                    method = '    def ' + method_nm + '(self'
+                    if 'parameters' in method_def:
+                        for param_nm, param_type in method_def['parameters'].items():
+                            method += ', ' + param_nm
+                    python_code.append(method + '):')
+                    if 'body' in method_def:
+                        for body_line in method_def['body'].split('\n'):
+                            python_code.append('        ' + body_line)
+                    else:
+                        python_code.append('        pass')
+            if ('attr' not in cl_def or len(cl_def['attr']) == 0) and \
+                    ('methods' not in cl_def or len(cl_def['methods']) == 0):
+                python_code.append('    pass')
         predicates.append(')')
         types.append(')')
         self.pddl_domain = header + types + predicates + actions + [')']
+        print('\n'.join(python_code))
 
     def interprete_main(self):
         ''' This procedure interpets the main section of Evan YAML '''
@@ -266,7 +304,7 @@ class Evans:
                                 for line in planner.stdout:
                                     line = line.decode().rstrip()
                                     print(line)
-                            if planner.returncode == 0:
+                            if planner.returncode == 0: # planner geterated a plan
                                 with open(self.planner['plan_file'], 'rt') as planfile:
                                     for line in planfile:
                                         if not line.startswith(';'):
@@ -526,16 +564,13 @@ def main (argv):
             evyml.parse_classes()
             # create PDDL domain file
             with tempfile.NamedTemporaryFile(mode='w+t', prefix='pddl-domain-', dir=evyml.tempdir, delete=False) as fp:
-                try:
-                    evyml.domain_file_name = fp.name
-                    fp.write('\n'.join(evyml.pddl_domain))
-                    fp.close()
-                    # parse & execute main
-                    evyml.interprete_main()
-                except IOError as err:
-                    print("ERROR creating temp file: " + err)
-                finally:
-                    os.remove(fp.name)
+                evyml.domain_file_name = fp.name
+                fp.write('\n'.join(evyml.pddl_domain))
+                fp.close()
+                # parse & execute main
+                # evyml.interprete_main()
+                # clean up
+                os.remove(fp.name)
         except yaml.YAMLError as exc:
             print(exc)
             sys.exit(2)
