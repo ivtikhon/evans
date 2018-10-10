@@ -18,13 +18,13 @@
 classes:
   Stack:
     attr:
-      s: List
+      s: list
     methods:  # the actual methods should be written in some language (e.g. Python) for now;
               # after plan is created, the interpreter will generate code and then execute it;
               # later, when the Evans syntax is designed, the intermediate code generation phase won't be necessary;
       pushKey:
         parameters:
-          k: Key # can be data or hybrid types
+          k: Key
         body: |
           self.s.append(k.getValue())
 
@@ -32,7 +32,7 @@ classes:
         parameters:
           a: Alu
         body: |
-          self.s.append(str(a.getReg()).split())
+          self.s.extend(str(a.getReg()).split())
 
       getValue:
         body: |
@@ -126,32 +126,32 @@ classes:
 
   Alu:
     attr:
-      reg: Num
-      op: Char
+      reg: float
+      op: str
     methods:
       storeReg:
         parameters:
           s: Stack
         body: |
-          reg = float(s.getValue())
+          self.reg = float(s.getValue())
       storeOp:
         parameters:
           k: Key
         body: |
-          op = k.getValue()
+          self.op = k.getValue()
       execOp:
         parameters:
           s: Stack
         body: |
           st1 = float(s.getValue())
-          if op == '+':
-            reg = st1 + reg
-          elif op == '-':
-            reg = st1 + reg
-          elif op == '*':
-            reg = st1 * reg
-          elif op == '/':
-            reg = st1 / reg
+          if self.op == '+':
+            self.reg += st1
+          elif self.op == '-':
+            self.reg -= st1
+          elif self.op == '*':
+            self.reg *= st1
+          elif self.op == '/':
+            self.reg /= st1
     state:
       reg_stored: Bool
       op_executed: Bool
@@ -210,11 +210,16 @@ classes:
 
   Key:
     attr:
-      k: Char
+      k: str
     methods:
       getValue:
         body: |
-          return k
+          return self.k
+      setValue:
+        parameters:
+          val: str
+        body: |
+          self.k = val
     state:
       k_val: ['digit', 'point', 'op', 'eq', 'clear', 'erase']
       processed: Bool
@@ -277,27 +282,26 @@ main:
       key1: Key
       display1: Display
       alu1: Alu
-      key_val1: Char
-      key_type: Str
+      key_val1: str
     tasks: # one task per list element
       - loop:  # unconditional (endless) loop; TODO implement loops with conditional exit
         # code section has write access to attributes and state variables of the objects defined in vars;
         # main parameters are read-only
         - code: |
             key_val1 = input('calc: ')
-            key1['attr']['k'] = key_val1  # attribute assignment
+            key1.setValue(key_val1)  # attribute assignment
             if isdigit(key_val1):
-              key1['state']['k_val'] = 'digit'  # state variable assignment
+              key1.setState('k_val', 'digit')  # state variable assignment
             elif key_val1 == '.':
-              key1['state']['k_val'] = 'point'
+              key1.setState('k_val', 'point')
             elif key_val1 in ['+', '-', '/', '*']:
-              key1['state']['k_val'] = 'op'
+              key1.setState('k_val', 'op')
             elif key_val1 == '=':
-              key1['state']['k_val'] = 'eq'
+              key1.setState('k_val', 'eq')
             elif key_val1 == 'C':
-                key1['state']['k_val'] = 'clear'
+                key1.setState('k_val', 'clear')
             elif key_val1 == 'R':
-              key1['state']['k_val'] = 'erase'
+              key1.setState('k_val', 'erase')
         - auto:
             name: 'Simple calculator'
             objects:  # here we just list the objects, participating in automatic planning;

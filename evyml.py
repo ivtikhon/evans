@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Evans YAML to PDDL converter
+# Evans YAML interpreter
 # Written by Igor Tikhonin in 2018
 
 import sys, getopt
@@ -23,37 +23,9 @@ class Evans:
     planner = None
 
     def __init__(self, classes_root, main_root):
-        self.builtin_classes = {
-            'Char': {
-                'attr': {
-                    'a': None
-                },
-                'methods': {
-                    '__init__': {
-                        'parameters': {},
-                        'body': "self.a = ''"
-                    }
-                }
-            },
-            'Str': {
-                'attr': {
-                    'a': None
-                }
-            },
-            'Num': {
-                'attr': {
-                    'a': None
-                }
-            },
-            'List': {
-                'attr': {
-                    'a': None
-                }
-            }
-        }
+        self.builtin_classes = ['list', 'str', 'int', 'float']
         self.classes = classes_root
         self.main = main_root
-        self.classes.update(self.builtin_classes)
         self.main_vars = {}
         self.planner = {}
         self.tempdir = '/tmp'
@@ -162,11 +134,23 @@ class Evans:
                         actions.append(')')
                     actions.append(')')
             if 'attr' in cl_def:
+                init_def = ['    __init__(self):']
                 for at_nm, at_def in cl_def['attr'].items():
-                    if cl_nm not in self.builtin_classes and at_def not in self.classes:
+                    if at_def not in self.builtin_classes: # only built-in types are allowed for now
                         raise Exception("ERROR: class " + cl_nm + \
                             ", attribute " + at_nm + ", attribute class " + at_def + " --- attribute class is not defined.")
                     python_code.append('    ' + at_nm + ' = None')
+                    if at_def == 'list':
+                        init_def.append('        self.' + at_nm + ' = []')
+                    elif at_def == 'str':
+                        init_def.append('        self.' + at_nm + ' = ""')
+                    elif at_def == 'int':
+                        init_def.append('        self.' + at_nm + ' = 0')
+                    elif at_def == 'float':
+                        init_def.append('        self.' + at_nm + ' = 0.0')
+                    else:
+                        init_def.append('        self.' + at_nm + ' = None')
+                python_code.extend(init_def)
             if 'methods' in cl_def:
                 for method_nm, method_def in cl_def['methods'].items():
                     method = '    def ' + method_nm + '(self'
@@ -176,6 +160,8 @@ class Evans:
                     python_code.append(method + '):')
                     if 'body' in method_def:
                         for body_line in method_def['body'].split('\n'):
+                            if body_line == '': # skip empty lines
+                                continue
                             python_code.append('        ' + body_line)
                     else:
                         python_code.append('        pass')
