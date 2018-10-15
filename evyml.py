@@ -177,8 +177,8 @@ class Evans:
         ''' This procedure interpets the main section of Evan YAML '''
         try:
             # initialize variables
-            for v in self.main['exec']['vars']:
-                class_name = self.main['exec']['vars'][v]
+            for v in self.main['vars']:
+                class_name = self.main['vars'][v]
                 self.main_vars[v] = {'class': class_name}
                 if class_name in self.classes:
                     if 'state' in self.classes[class_name]:
@@ -199,13 +199,13 @@ class Evans:
                 else:
                     raise Exception("ERROR: main section, variable " + v + " is of unknown class " + class_name)
             # parse and execute tasks
-            self.exec_tasks_to_pddl(self.main['exec']['tasks'])
+            self.main_tasks_to_pddl(self.main['tasks'])
         except KeyError:
-            raise Exception("ERROR: exec section in main should contain tasks and vars definitions.")
+            raise Exception("ERROR: main should contain tasks and vars definitions.")
 
-    def exec_tasks_to_pddl (self, tasks):
-        ''' This procedure translates the exec tasks in main into PDDL
-            Input: list of exec tasks
+    def main_tasks_to_pddl (self, tasks):
+        ''' This procedure translates tasks in main into PDDL
+            Input: list of tasks
             Output: none; the return value is used to pass the 'break' signal from the inner loop
         '''
         for item in tasks:
@@ -213,9 +213,9 @@ class Evans:
             if 'loop' in item:
                 loop_exit = 'continue'
                 while loop_exit != 'break':
-                    loop_exit = self.exec_tasks_to_pddl (item['loop'])
-            elif 'auto' in item:
+                    loop_exit = self.main_tasks_to_pddl (item['loop'])
                 # initialize variables
+            elif 'auto' in item:
                 if 'init' in item['auto']:
                     for assignment in item['auto']['init']:
                         # one assignment per list item
@@ -309,7 +309,7 @@ class Evans:
     def goal_definition_to_pddl(self, goal_definition, auto_name):
         ''' This procedure translates auto's goal into PDDL '''
         try:
-            context = self.main['exec']['vars']
+            context = self.main['vars']
             pddl_arr = self.assignment_statement_to_pddl(assignment_definition = goal_definition, \
                 class_name = None, context = context)
             # no '?' symbols required in goal definition
@@ -391,7 +391,7 @@ class Evans:
         ''' This procedure translates goal condition into PDDL'''
         try:
             pddl_str = self.conditional_statement_to_pddl(condition_sting = condition_sting,\
-                class_name = None, context = self.main['exec']['vars'])
+                class_name = None, context = self.main['vars'])
             # no '?' symbols required in goal definition
             return pddl_str.replace('?', '')
         except Exception as err:
@@ -543,8 +543,8 @@ def main (argv):
             # perform sanity check
             if any (major_section not in code for major_section in ['classes', 'main']):
                 raise Exception("ERROR: no '" + major_section + "' section found in source file.")
-            if 'exec' not in code['main']:
-                raise Exception("ERROR: no 'exec' section found in 'main'.")
+            if 'tasks' not in code['main']:
+                raise Exception("ERROR: no 'tasks' section found in 'main'.")
             evyml = Evans(code['classes'], code['main'])
             # parse classes
             evyml.parse_classes()

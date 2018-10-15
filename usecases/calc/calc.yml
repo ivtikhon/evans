@@ -269,56 +269,88 @@ main:
   #   - exec has 'vars' section, where variables are declared
   #   - 'tasks' section:
   #       - code: here we initialize state variables and attributes;
-  #       - plan: here we run planning
+  #       - auto: here we run planning and execution of the obtained plan
   #       TODO: think about recovery from unsuccessfull planning
   parameters:
-    input_file: Str
+    input_file: str
               # parameters of main are the program attributes,
               # the format is: -input_file='file name';
-  exec:
-    # either vars and tasks are defined, or just an array of calls of methods
-    vars:
-      stack1: Stack
-      key1: Key
-      display1: Display
-      alu1: Alu
-      key_val1: str
-    tasks: # one task per list element
-      - loop:  # unconditional (endless) loop; TODO implement loops with conditional exit
-        # code section has write access to attributes and state variables of the objects defined in vars;
-        # main parameters are read-only
-        - code: |
-            key_val1 = input('calc: ')
-            key1.setValue(key_val1)  # attribute assignment
-            if isdigit(key_val1):
-              key1.setState('k_val', 'digit')  # state variable assignment
-            elif key_val1 == '.':
-              key1.setState('k_val', 'point')
-            elif key_val1 in ['+', '-', '/', '*']:
-              key1.setState('k_val', 'op')
-            elif key_val1 == '=':
-              key1.setState('k_val', 'eq')
-            elif key_val1 == 'C':
-                key1.setState('k_val', 'clear')
-            elif key_val1 == 'R':
-              key1.setState('k_val', 'erase')
-        - auto:
-            name: 'Simple calculator'
-            objects:  # here we just list the objects, participating in automatic planning;
-                      # the objects were defined in the var section and
-                      # (partially) initialized in the code section
-              - stack1
-              - key1
-              - display1
-              - alu1
-            init:
-              # one assignment per list item
-              - key1.processed: False
-              - key1.k_val: digit
-              - display1.updated: False
-            goal:
-              - key1.processed: True
-              - if: stack1.changed
-                then:
-                  - display1.updated: True
-        - break:
+  vars:
+    # the purpose of the objects is to keep the object characteristics (attributes and states);
+    # state variables are used for planning, and attributes are used at the execution phase
+    stack1: Stack
+    key1: Key
+    display1: Display
+    alu1: Alu
+    key_val1: str
+    retval: bool
+  tasks: # one task per list element
+    - loop:  # unconditional (endless) loop; TODO implement loops with conditional exit
+      # read stdin
+      - input:
+          prompt: 'calc: '
+          ret: var::key_val1
+      # initialize attributes and state variables based on input
+      - assign:
+          var::key1['attr']['k']: var::key_val1 # attribute assignment
+      - str_isdigit:
+          str: var::key_val1
+          ret: var::retval
+      - assign:
+          var::key1['state']['k_val']: 'digit'
+        when: var::retval == True
+      - str_cmp:
+          left: var::key_val1
+          right: '.'
+          ret: var::retval
+      - assign:
+          var::key1['state']['k_val']: 'point'
+        when: var::retval == True
+      - str_in:
+          left: var::key_val1
+          right: ['+', '-', '/', '*']
+          ret: var::retval
+      - assign:
+          var::key1['state']['k_val']: 'op'
+        when: var::retval == True
+      - str_cmp:
+          left: var::key_val1
+          right: '='
+          ret: var::retval
+      - assign:
+          var::key1['state']['k_val']: 'eq'
+        when: var::retval == True
+      - str_cmp:
+          left: var::key_val1
+          right: 'C'
+          ret: var::retval
+      - assign:
+          var::key1['state']['k_val']: 'clear'
+        when: var::retval == True
+      - str_cmp:
+          left: var::key_val1
+          right: 'R'
+          ret: var::retval
+      - assign:
+          var::key1['state']['k_val']: 'erase'
+        when: var::retval == True
+      # trigger automated actions (planning and execution of generated plan)
+      - auto:
+          name: 'Simple calculator'
+          objects:  # here we just list the objects, participating in automatic planning;
+                    # the objects were defined in the var section and
+            - stack1
+            - key1
+            - display1
+            - alu1
+          init:
+            # one assignment per list item
+            - key1.processed: False
+            - key1.k_val: digit
+            - display1.updated: False
+          goal:
+            - key1.processed: True
+            - if: stack1.changed
+              then:
+                - display1.updated: True
+      - break:
