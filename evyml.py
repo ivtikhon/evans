@@ -23,7 +23,7 @@ class Evans:
     planner = None
 
     def __init__(self, classes_root, main_root):
-        self.builtin_classes = ['list', 'str', 'int', 'float']
+        self.builtin_classes = ['list', 'str', 'int', 'float', 'bool']
         self.classes = classes_root
         self.main = main_root
         self.main_vars = {}
@@ -148,6 +148,8 @@ class Evans:
                         init_def.append('        self.' + at_nm + ' = 0')
                     elif at_def == 'float':
                         init_def.append('        self.' + at_nm + ' = 0.0')
+                    elif at_def == 'bool':
+                        init_def.append('        self.' + at_nm + ' = False')
                     else:
                         init_def.append('        self.' + at_nm + ' = None')
                 python_code.extend(init_def)
@@ -196,14 +198,16 @@ class Evans:
                         self.main_vars[v]['attr'] = {}
                         for var_nm, var_def in self.classes[class_name]['attr'].items():
                             self.main_vars[v]['attr'][var_nm] = None
+                elif class_name in self.builtin_classes:
+                    pass # TODO the structure of variables of built-in classes is not yet clear
                 else:
                     raise Exception("ERROR: main section, variable " + v + " is of unknown class " + class_name)
             # parse and execute tasks
-            self.main_tasks_to_pddl(self.main['tasks'])
+            self.interprete_main_tasks(self.main['tasks'])
         except KeyError:
             raise Exception("ERROR: main should contain tasks and vars definitions.")
 
-    def main_tasks_to_pddl (self, tasks):
+    def interprete_main_tasks (self, tasks):
         ''' This procedure translates tasks in main into PDDL
             Input: list of tasks
             Output: none; the return value is used to pass the 'break' signal from the inner loop
@@ -213,98 +217,101 @@ class Evans:
             if 'loop' in item:
                 loop_exit = 'continue'
                 while loop_exit != 'break':
-                    loop_exit = self.main_tasks_to_pddl (item['loop'])
-                # initialize variables
+                    loop_exit = self.interprete_main_tasks (item['loop'])
             elif 'auto' in item:
-                if 'init' in item['auto']:
-                    for assignment in item['auto']['init']:
-                        # one assignment per list item
-                        if len(assignment) > 1:
-                            raise Exception("ERROR: main section, task auto '" + item['auto']['name'] + \
-                                "', init section --- only one variable assignment per list item is currently supported")
-                        full_var_nm = list(assignment.keys())[0]
-                        main_var_nm, state_var_nm = full_var_nm.split('.', 1)
-                        if main_var_nm not in self.main_vars:
-                            raise Exception("ERROR: main section, task auto '" + item['auto']['name'] + \
-                                "', init section --- undefined variable " + main_var_nm)
-                        if state_var_nm not in self.classes[self.main_vars[main_var_nm]['class']]['state']:
-                            raise Exception("ERROR: main section, task auto '" + item['auto']['name'] + \
-                                "', init section --- undefined state variable " + state_var_nm)
-                        self.main_vars[main_var_nm]['state'][state_var_nm] = assignment[full_var_nm]
-                # generate PDDL problem code
-                try:
-                    problem = ['(define (problem MYPROBLEM)', '(:domain MYDOMAIN)']
-                    objects = ['(:objects']
-                    init = ['(:init']
-                    goal = ['(:goal']
-                    for obj in item['auto']['objects']:
-                        # generate list of object
-                        class_nm = self.main_vars[obj]['class']
-                        objects.append(obj + ' - ' + class_nm)
-                        # initialize objects
-                        for var_nm, var_val in self.main_vars[obj]['state'].items():
-                            state_var_definition = self.classes[class_nm]['state'][var_nm]
-                            if isinstance(state_var_definition, list): # inline enum
-                                for state_var_val in state_var_definition:
-                                    prefix = '('
-                                    postfix = ')'
-                                    if var_val != state_var_val:
-                                        prefix += 'not ('
-                                        postfix += ')'
-                                    init.append(prefix + class_nm + '_' + var_nm + '_' + state_var_val + ' ' + obj + postfix)
-                            else:
-                                prefix = '('
-                                postfix = ')'
-                                if var_val == False:
-                                    prefix += 'not ('
-                                    postfix += ')'
-                                init.append(prefix + class_nm + '_' + var_nm + ' ' + obj + postfix)
-                    goal.append('(and')
-                    for goal_item in item['auto']['goal']:
-                        if 'if' in goal_item:
-                            goal.append('(imply ')
-                            goal.append(self.goal_condition_to_pddl(goal_item['if'], item['auto']['name']))
-                            if len(goal_item['then']) > 1:
-                                goal.append('(and')
-                            for goal_definition in goal_item['then']:
-                                goal.extend(self.goal_definition_to_pddl(goal_definition, item['auto']['name']))
-                            if len(goal_item['then']) > 1:
-                                goal.append(')')
-                            goal.append(')')
-                        else:
-                            goal.extend(self.goal_definition_to_pddl(goal_item, item['auto']['name']))
-                    body = problem + objects + [')'] + init +[')'] + goal + [')))']
-                    # create PDDL problem file
-                    with tempfile.NamedTemporaryFile(mode='w+t', prefix='pddl-problem-', dir=self.tempdir, delete=False) as fp:
-                        problem_file_name = fp.name
-                        fp.write('\n'.join(body))
-                        fp.close()
-                        # call PDDL planner
-                        args = self.planner['path'] + ' ' + os.path.basename(self.domain_file_name) + \
-                            ' ' + os.path.basename(problem_file_name) + ' ' + \
-                            self.planner['options']
-                        with subprocess.Popen(args, cwd=self.tempdir, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as planner:
-                            solution_found = False
-                            planner.wait()
-                            if self.planner['stdout']:
-                                for line in planner.stdout:
-                                    line = line.decode().rstrip()
-                                    print(line)
-                            if planner.returncode == 0: # planner geterated a plan
-                                with open(self.planner['plan_file'], 'rt') as planfile:
-                                    for line in planfile:
-                                        if not line.startswith(';'):
-                                            print(line.rstrip().strip('()'))
-                            else:
-                                raise Exception("FAILURE: PDDL planner found no solution for task auto " + item['auto']['name'])
-                        # clean up
-                            os.remove(problem_file_name)
-                            subprocess.run([self.planner['path'], '--cleanup'], cwd=self.tempdir)
-                except KeyError:
-                    raise Exception("ERROR: auto section in main tasks should contain objects and goal definitions.")
+                self.interprete_task_auto(item['auto'])
             elif 'break' in item:
                 return 'break'
         return 'continue'
+
+    def interprete_task_auto(self, auto):
+        # initialize variables
+        if 'init' in auto:
+            for assignment in auto['init']:
+                # one assignment per list item
+                if len(assignment) > 1:
+                    raise Exception("ERROR: main section, task auto '" + auto['name'] + \
+                        "', init section --- only one variable assignment per list item is currently supported")
+                full_var_nm = list(assignment.keys())[0]
+                main_var_nm, state_var_nm = full_var_nm.split('.', 1)
+                if main_var_nm not in self.main_vars:
+                    raise Exception("ERROR: main section, task auto '" + auto['name'] + \
+                        "', init section --- undefined variable " + main_var_nm)
+                if state_var_nm not in self.classes[self.main_vars[main_var_nm]['class']]['state']:
+                    raise Exception("ERROR: main section, task auto '" + auto['name'] + \
+                        "', init section --- undefined state variable " + state_var_nm)
+                self.main_vars[main_var_nm]['state'][state_var_nm] = assignment[full_var_nm]
+        # generate PDDL problem code
+        try:
+            problem = ['(define (problem MYPROBLEM)', '(:domain MYDOMAIN)']
+            objects = ['(:objects']
+            init = ['(:init']
+            goal = ['(:goal']
+            for obj in auto['objects']:
+                # generate list of object
+                class_nm = self.main_vars[obj]['class']
+                objects.append(obj + ' - ' + class_nm)
+                # initialize objects
+                for var_nm, var_val in self.main_vars[obj]['state'].items():
+                    state_var_definition = self.classes[class_nm]['state'][var_nm]
+                    if isinstance(state_var_definition, list): # inline enum
+                        for state_var_val in state_var_definition:
+                            prefix = '('
+                            postfix = ')'
+                            if var_val != state_var_val:
+                                prefix += 'not ('
+                                postfix += ')'
+                            init.append(prefix + class_nm + '_' + var_nm + '_' + state_var_val + ' ' + obj + postfix)
+                    else:
+                        prefix = '('
+                        postfix = ')'
+                        if var_val == False:
+                            prefix += 'not ('
+                            postfix += ')'
+                        init.append(prefix + class_nm + '_' + var_nm + ' ' + obj + postfix)
+            goal.append('(and')
+            for goal_item in auto['goal']:
+                if 'if' in goal_item:
+                    goal.append('(imply ')
+                    goal.append(self.goal_condition_to_pddl(goal_item['if'], auto['name']))
+                    if len(goal_item['then']) > 1:
+                        goal.append('(and')
+                    for goal_definition in goal_item['then']:
+                        goal.extend(self.goal_definition_to_pddl(goal_definition, auto['name']))
+                    if len(goal_item['then']) > 1:
+                        goal.append(')')
+                    goal.append(')')
+                else:
+                    goal.extend(self.goal_definition_to_pddl(goal_item, auto['name']))
+            body = problem + objects + [')'] + init +[')'] + goal + [')))']
+            # create PDDL problem file
+            with tempfile.NamedTemporaryFile(mode='w+t', prefix='pddl-problem-', dir=self.tempdir, delete=False) as fp:
+                problem_file_name = fp.name
+                fp.write('\n'.join(body))
+                fp.close()
+                # call PDDL planner
+                args = self.planner['path'] + ' ' + os.path.basename(self.domain_file_name) + \
+                    ' ' + os.path.basename(problem_file_name) + ' ' + \
+                    self.planner['options']
+                with subprocess.Popen(args, cwd=self.tempdir, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as planner:
+                    solution_found = False
+                    planner.wait()
+                    if self.planner['stdout']:
+                        for line in planner.stdout:
+                            line = line.decode().rstrip()
+                            print(line)
+                    if planner.returncode == 0: # planner geterated a plan
+                        with open(self.planner['plan_file'], 'rt') as planfile:
+                            for line in planfile:
+                                if not line.startswith(';'):
+                                    print(line.rstrip().strip('()'))
+                    else:
+                        raise Exception("FAILURE: PDDL planner found no solution for task auto " + auto['name'])
+                # clean up
+                os.remove(problem_file_name)
+                subprocess.run([self.planner['path'], '--cleanup'], cwd=self.tempdir)
+        except KeyError:
+            raise Exception("ERROR: auto section in main tasks should contain objects and goal definitions.")
 
     def goal_definition_to_pddl(self, goal_definition, auto_name):
         ''' This procedure translates auto's goal into PDDL '''
@@ -553,8 +560,9 @@ def main (argv):
                 evyml.domain_file_name = fp.name
                 fp.write('\n'.join(evyml.pddl_domain))
                 fp.close()
+                # pprint.pprint(code['main']['tasks'])
                 # parse & execute main
-                # evyml.interprete_main()
+                evyml.interprete_main()
                 # clean up
                 os.remove(fp.name)
         except yaml.YAMLError as exc:

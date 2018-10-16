@@ -287,47 +287,47 @@ main:
   tasks: # one task per list element
     - loop:  # unconditional (endless) loop; TODO implement loops with conditional exit
       # read stdin
-      - input:
+      - sys::input:
           prompt: 'calc: '
           ret: var::key_val1
       # initialize attributes and state variables based on input
       - assign:
           var::key1['attr']['k']: var::key_val1 # attribute assignment
-      - str_isdigit:
+      - str::isdigit:
           str: var::key_val1
           ret: var::retval
       - assign:
           var::key1['state']['k_val']: 'digit'
         when: var::retval == True
-      - str_cmp:
+      - str::cmp:
           left: var::key_val1
           right: '.'
           ret: var::retval
       - assign:
           var::key1['state']['k_val']: 'point'
         when: var::retval == True
-      - str_in:
+      - sys::in:
           left: var::key_val1
           right: ['+', '-', '/', '*']
           ret: var::retval
       - assign:
           var::key1['state']['k_val']: 'op'
         when: var::retval == True
-      - str_cmp:
+      - str::cmp:
           left: var::key_val1
           right: '='
           ret: var::retval
       - assign:
           var::key1['state']['k_val']: 'eq'
         when: var::retval == True
-      - str_cmp:
+      - str::cmp:
           left: var::key_val1
           right: 'C'
           ret: var::retval
       - assign:
           var::key1['state']['k_val']: 'clear'
         when: var::retval == True
-      - str_cmp:
+      - str::cmp:
           left: var::key_val1
           right: 'R'
           ret: var::retval
