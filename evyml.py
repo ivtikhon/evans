@@ -176,7 +176,7 @@ class Evans:
         print('\n'.join(python_code))
 
     def interprete_main(self):
-        ''' This procedure interpets the main section of Evan YAML '''
+        ''' This procedure interpretes the main section of Evan YAML '''
         try:
             # initialize variables
             for v in self.main['vars']:
@@ -208,7 +208,7 @@ class Evans:
             raise Exception("ERROR: main should contain tasks and vars definitions.")
 
     def interprete_main_tasks (self, tasks):
-        ''' This procedure translates tasks in main into PDDL
+        ''' This procedure interpretes tasks in main
             Input: list of tasks
             Output: none; the return value is used to pass the 'break' signal from the inner loop
         '''
@@ -220,11 +220,16 @@ class Evans:
                     loop_exit = self.interprete_main_tasks (item['loop'])
             elif 'auto' in item:
                 self.interprete_task_auto(item['auto'])
+            elif 'assign' in item:
+                pass
             elif 'break' in item:
                 return 'break'
         return 'continue'
 
     def interprete_task_auto(self, auto):
+        ''' This procedure interpretes the auto task, i.e. translates it into PDDL, runs planning,
+            and then executes the obtained plan.
+        '''
         # initialize variables
         if 'init' in auto:
             for assignment in auto['init']:

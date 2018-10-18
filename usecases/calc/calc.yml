@@ -289,51 +289,51 @@ main:
       # read stdin
       - sys::input:
           prompt: 'calc: '
-          ret: var::key_val1
+          ret: ref::key_val1
       # initialize attributes and state variables based on input
       - assign:
-          var::key1['attr']['k']: var::key_val1 # attribute assignment
-      - str::isdigit:
-          str: var::key_val1
-          ret: var::retval
+          key1.attr.k: ref::key_val1 # attribute assignment
+      - str_isdigit:
+          str: ref::key_val1
+          ret: ref::retval
       - assign:
-          var::key1['state']['k_val']: 'digit'
-        when: var::retval == True
-      - str::cmp:
-          left: var::key_val1
+          key1.state.k_val: 'digit'
+        when: ref::retval == True
+      - str_cmp:
+          left: ref::key_val1
           right: '.'
-          ret: var::retval
+          ret: ref::retval
       - assign:
-          var::key1['state']['k_val']: 'point'
-        when: var::retval == True
+          key1.state.k_val: 'point'
+        when: ref::retval == True
       - sys::in:
-          left: var::key_val1
+          left: ref::key_val1
           right: ['+', '-', '/', '*']
-          ret: var::retval
+          ret: ref::retval
       - assign:
-          var::key1['state']['k_val']: 'op'
-        when: var::retval == True
-      - str::cmp:
-          left: var::key_val1
+          key1.state.k_val: 'op'
+        when: ref::retval == True
+      - str_cmp:
+          left: ref::key_val1
           right: '='
-          ret: var::retval
+          ret: ref::retval
       - assign:
-          var::key1['state']['k_val']: 'eq'
-        when: var::retval == True
-      - str::cmp:
-          left: var::key_val1
+          key1.state.k_val: 'eq'
+        when: ref::retval == True
+      - str_cmp:
+          left: ref::key_val1
           right: 'C'
-          ret: var::retval
+          ret: ref::retval
       - assign:
-          var::key1['state']['k_val']: 'clear'
-        when: var::retval == True
-      - str::cmp:
-          left: var::key_val1
+          key1.state.k_val: 'clear'
+        when: ref::retval == True
+      - str_cmp:
+          left: ref::key_val1
           right: 'R'
-          ret: var::retval
+          ret: ref::retval
       - assign:
-          var::key1['state']['k_val']: 'erase'
-        when: var::retval == True
+          key1.state.k_val: 'erase'
+        when: ref::retval == True
       # trigger automated actions (planning and execution of generated plan)
       - auto:
           name: 'Simple calculator'
