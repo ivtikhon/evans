@@ -282,55 +282,55 @@ main:
     key1: Key
     display1: Display
     alu1: Alu
-    key_val1: str
+    key_val1: str # built-in classes don't have internal structure (for now)
     retval: bool
   tasks: # one task per list element
     - loop:  # unconditional (endless) loop; TODO implement loops with conditional exit
       # read stdin
-      - sys::input:
+      - input:
           prompt: 'calc: '
-          ret: ref::key_val1
+          ret: key_val1
       # initialize attributes and state variables based on input
-      - assign:
+      - assign: # on the left side is always variable, so we don't need to mark it as reference
           key1.attr.k: ref::key_val1 # attribute assignment
       - str_isdigit:
           str: ref::key_val1
-          ret: ref::retval
+          ret: retval # returned value is always asigned to a variable, there is no need to mark it as reference
       - assign:
           key1.state.k_val: 'digit'
         when: ref::retval == True
       - str_cmp:
           left: ref::key_val1
           right: '.'
-          ret: ref::retval
+          ret: retval
       - assign:
           key1.state.k_val: 'point'
         when: ref::retval == True
-      - sys::in:
+      - is_member:
           left: ref::key_val1
           right: ['+', '-', '/', '*']
-          ret: ref::retval
+          ret: retval
       - assign:
           key1.state.k_val: 'op'
         when: ref::retval == True
       - str_cmp:
           left: ref::key_val1
           right: '='
-          ret: ref::retval
+          ret: retval
       - assign:
           key1.state.k_val: 'eq'
         when: ref::retval == True
       - str_cmp:
           left: ref::key_val1
           right: 'C'
-          ret: ref::retval
+          ret: retval
       - assign:
           key1.state.k_val: 'clear'
         when: ref::retval == True
       - str_cmp:
           left: ref::key_val1
           right: 'R'
-          ret: ref::retval
+          ret: retval
       - assign:
           key1.state.k_val: 'erase'
         when: ref::retval == True

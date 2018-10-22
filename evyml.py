@@ -21,6 +21,7 @@ class Evans:
     domain_file = None
     tempdir = None
     planner = None
+    var_ref = None
 
     def __init__(self, classes_root, main_root):
         self.builtin_classes = ['list', 'str', 'int', 'float', 'bool']
@@ -33,6 +34,7 @@ class Evans:
         self.planner['options'] = '--evaluator "hff=ff()" --search "lazy_greedy([hff], preferred=[hff])"'
         self.planner['stdout'] = False
         self.planner['plan_file'] = '/tmp/sas_plan'
+        self.var_ref = 'ref::'
 
     def parse_classes(self):
         ''' This procedure translates Evans classes into PDDL and Python
@@ -181,8 +183,8 @@ class Evans:
             # initialize variables
             for v in self.main['vars']:
                 class_name = self.main['vars'][v]
-                self.main_vars[v] = {'class': class_name}
                 if class_name in self.classes:
+                    self.main_vars[v] = {'class': class_name}
                     if 'state' in self.classes[class_name]:
                         self.main_vars[v]['state'] = {}
                         for var_nm, var_def in self.classes[class_name]['state'].items():
@@ -199,7 +201,7 @@ class Evans:
                         for var_nm, var_def in self.classes[class_name]['attr'].items():
                             self.main_vars[v]['attr'][var_nm] = None
                 elif class_name in self.builtin_classes:
-                    pass # TODO the structure of variables of built-in classes is not yet clear
+                    self.main_vars[v] = None # Built-in classes are trivial; don't have internal structure
                 else:
                     raise Exception("ERROR: main section, variable " + v + " is of unknown class " + class_name)
             # parse and execute tasks
@@ -213,6 +215,11 @@ class Evans:
             Output: none; the return value is used to pass the 'break' signal from the inner loop
         '''
         for item in tasks:
+            if 'when' in item:
+                if any (condition_task in item for condition_task in ['assign']):
+                    pass
+                else:
+                    raise Exception("ERROR: coditional statement 'when' is not supported for task " + str(item))
             # only unconditional loop (with break) implemented for now
             if 'loop' in item:
                 loop_exit = 'continue'
@@ -221,7 +228,22 @@ class Evans:
             elif 'auto' in item:
                 self.interprete_task_auto(item['auto'])
             elif 'assign' in item:
-                pass
+                # parse simple assignment in main
+                # format: 'variable' : 'string' | 'ref::variable'
+                for assignment_key, assignment_value in item['assign'].items():
+                    var_context = get_var_ref_byname(assignment_key, self.main_vars)
+                    value = assignment_value
+                    if var_context == None:
+                        raise Exception("ERROR: main tasks --- unrecognized variable reference in assignment: " + assignment_key)
+                    if assignment_value.startswith(self.var_ref):
+                        # parse var reference
+                        assignment_var_name = assignment_value.rpartition(self.var_ref)[2]
+                        assignment_context = get_var_ref_byname(assignment_var_name, self.main_vars)
+                        if assignment_context == None:
+                            raise Exception("ERROR: main tasks --- unrecognized variable reference in assignment: " + assignment_value)
+                        value = assignment_context[assignment_var_name.rpartition('.')[2]]
+                    var_context[assignment_key.rpartition('.')[2]] = value
+                    pprint.pprint(var_context)
             elif 'break' in item:
                 return 'break'
         return 'continue'
@@ -526,6 +548,21 @@ def var_to_canonical_form(variable_name, context, class_name = None):
             class_name = context[prefix_name]
         variable_name = state_variable
     return [variable_name, prefix_name, class_name]
+
+def get_var_ref_byname(var_name, context):
+    ''' This procedure parses a dotted variable and return a reference to its context
+    '''
+    ref = None
+    compound_var_name = var_name.split('.')
+    compound_var_length = len(compound_var_name)
+    if compound_var_length > 0:
+        for index, var_element in enumerate(compound_var_name):
+            if var_element in context:
+                if index == compound_var_length - 1:
+                    ref = context
+                    break
+                context = context[var_element]
+    return ref
 
 def main (argv):
 # Parse main options
