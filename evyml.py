@@ -201,7 +201,7 @@ class Evans:
                         for var_nm, var_def in self.classes[class_name]['attr'].items():
                             self.main_vars[v]['attr'][var_nm] = None
                 elif class_name in self.builtin_classes:
-                    self.main_vars[v] = None # Built-in classes are trivial; don't have internal structure
+                    self.main_vars[v] = None # built-in classes don't have internal structure for now
                 else:
                     raise Exception("ERROR: main section, variable " + v + " is of unknown class " + class_name)
             # parse and execute tasks
@@ -229,24 +229,78 @@ class Evans:
                 self.interprete_task_auto(item['auto'])
             elif 'assign' in item:
                 # parse simple assignment in main
-                # format: 'variable' : 'string' | 'ref::variable'
+                # format: 'ref::variable' : 'string' | 'ref::variable'
                 for assignment_key, assignment_value in item['assign'].items():
-                    var_context = get_var_ref_byname(assignment_key, self.main_vars)
-                    value = assignment_value
-                    if var_context == None:
-                        raise Exception("ERROR: main tasks --- unrecognized variable reference in assignment: " + assignment_key)
-                    if assignment_value.startswith(self.var_ref):
-                        # parse var reference
-                        assignment_var_name = assignment_value.rpartition(self.var_ref)[2]
-                        assignment_context = get_var_ref_byname(assignment_var_name, self.main_vars)
-                        if assignment_context == None:
-                            raise Exception("ERROR: main tasks --- unrecognized variable reference in assignment: " + assignment_value)
-                        value = assignment_context[assignment_var_name.rpartition('.')[2]]
-                    var_context[assignment_key.rpartition('.')[2]] = value
-                    pprint.pprint(var_context)
+                    var_context, var_elem = self.get_task_parameter_var(assignment_key, 'assign')
+                    var_context[var_elem] = self.get_task_parameter_value(assignment_value, 'assign')
+                    pprint.pprint(var_context[var_elem])
+            elif 'str_isdigit' in item:
+                pass
+            elif 'str_iseq' in item:
+                # format:
+                #   left: 'string' | 'ref::variable'
+                #   right: 'string' | 'ref::variable'
+                #   ret: 'ref::variable'
+                if 'ret' in item['str_iseq']:
+                    ret_context, ret_elem = self.get_task_parameter_var(item['str_iseq']['ret'], 'str_iseq')
+                    left = self.get_task_parameter_value(item['str_iseq']['left'], 'str_iseq')
+                    right = self.get_task_parameter_value(item['str_iseq']['right'], 'str_iseq')
+                    ret_context[ret_elem] = (left == right)
             elif 'break' in item:
                 return 'break'
         return 'continue'
+
+    def parse_task_parameter(self, parameter):
+        ''' This procedure parses parameter of a main task and, if it is a variable, i.e.,
+            it contains a reference marker (ref::), the procedure returns a tuple with a reference
+            to the context where the variable is defined and the last part of (compound) variable name;
+            otherwise, the parameter string is returned.
+        '''
+        if parameter.startswith(self.var_ref):
+            ref = var = None
+            context = self.main_vars
+            var_name = parameter.rpartition(self.var_ref)[2]
+            compound_var_name = var_name.split('.')
+            compound_var_length = len(compound_var_name)
+            for index, var_element in enumerate(compound_var_name):
+                if var_element in context:
+                    if index == compound_var_length - 1:
+                        ref = context
+                        var = var_element
+                        break
+                    context = context[var_element]
+            return (ref, var)
+        else:
+            return parameter
+
+    def get_task_parameter_var(self, parameter, task_name):
+        ''' This procedure parses a task parameter and, if the parameter is a variable,
+            the procedure returns a tuple with a reference to the variable context, and the last
+            part of (compound) variable name.
+        '''
+        context = last_element = None
+        value = self.parse_task_parameter(parameter)
+        if isinstance(value, tuple):
+            context = value[0]
+            last_element = value[1]
+            if context == None:
+                raise Exception("ERROR: main tasks --- unrecognized variable reference in task " + task_name + ": " + parameter)
+        else:
+            raise Exception("ERROR: main tasks --- variable reference doesn't contain 'ref::' marker in task " + task_name + ": " + parameter)
+        return (context, last_element)
+
+    def get_task_parameter_value(self, parameter, task_name):
+        ''' This procedure returns value of a task parameter; whether the parameter a variable,
+            the variable value is returned, or if it is a string, the procedure returns the string.
+        '''
+        value = self.parse_task_parameter(parameter)
+        if isinstance(value, tuple):
+            context = value[0]
+            last_element = value[1]
+            if context == None:
+                raise Exception("ERROR: main tasks --- unrecognized variable reference in task " + task_name + ": " + parameter)
+            value = context[last_element]
+        return value
 
     def interprete_task_auto(self, auto):
         ''' This procedure interpretes the auto task, i.e. translates it into PDDL, runs planning,
@@ -549,20 +603,6 @@ def var_to_canonical_form(variable_name, context, class_name = None):
         variable_name = state_variable
     return [variable_name, prefix_name, class_name]
 
-def get_var_ref_byname(var_name, context):
-    ''' This procedure parses a dotted variable and return a reference to its context
-    '''
-    ref = None
-    compound_var_name = var_name.split('.')
-    compound_var_length = len(compound_var_name)
-    if compound_var_length > 0:
-        for index, var_element in enumerate(compound_var_name):
-            if var_element in context:
-                if index == compound_var_length - 1:
-                    ref = context
-                    break
-                context = context[var_element]
-    return ref
 
 def main (argv):
 # Parse main options
