@@ -228,23 +228,21 @@ class Evans:
             elif 'auto' in item:
                 self.interprete_task_auto(item['auto'])
             elif 'assign' in item:
-                # parse simple assignment in main
-                # format: 'ref::variable' : 'string' | 'ref::variable'
                 for assignment_key, assignment_value in item['assign'].items():
                     var_context, var_elem = self.get_task_parameter_var(assignment_key, 'assign')
                     var_context[var_elem] = self.get_task_parameter_value(assignment_value, 'assign')
-                    pprint.pprint(var_context[var_elem])
             elif 'str_isdigit' in item:
-                pass
+                task = 'str_isdigit'
+                if 'ret' in item[task]:
+                    ret_context, ret_elem = self.get_task_parameter_var(item[task]['ret'], task)
+                    str = self.get_task_parameter_value(item[task]['str'], task)
+                    ret_context[ret_elem] = str.isdigit()
             elif 'str_iseq' in item:
-                # format:
-                #   left: 'string' | 'ref::variable'
-                #   right: 'string' | 'ref::variable'
-                #   ret: 'ref::variable'
-                if 'ret' in item['str_iseq']:
-                    ret_context, ret_elem = self.get_task_parameter_var(item['str_iseq']['ret'], 'str_iseq')
-                    left = self.get_task_parameter_value(item['str_iseq']['left'], 'str_iseq')
-                    right = self.get_task_parameter_value(item['str_iseq']['right'], 'str_iseq')
+                task = 'str_iseq'
+                if 'ret' in item[task]:
+                    ret_context, ret_elem = self.get_task_parameter_var(item[task]['ret'], task)
+                    left = self.get_task_parameter_value(item[task]['left'], task)
+                    right = self.get_task_parameter_value(item[task]['right'], task)
                     ret_context[ret_elem] = (left == right)
             elif 'break' in item:
                 return 'break'

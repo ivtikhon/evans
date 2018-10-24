@@ -297,7 +297,7 @@ main:
           ref::key1.attr.k: ref::key_val1 # attribute assignment
       - str_isdigit:
           str: ref::key_val1
-          ret: retval # returned value is always asigned to a variable, there is no need to mark it as reference
+          ret: ref::retval
       - assign:
           ref::key1.state.k_val: 'digit'
         when: ref::retval == True
