@@ -282,65 +282,30 @@ main:
     key1: Key
     display1: Display
     alu1: Alu
-    key_val1: str
-    retval: bool
+    key_val1: str #
+    key_state1: str
   tasks: # one task per list element
     - loop:  # unconditional (endless) loop; TODO implement loops with conditional exit
-      # read stdin
-      # - input:
-      #     prompt: 'calc: '
-      #     ret: key_val1
-      - assign:
-          ref::key_val1: '1'
-      # initialize attributes and state variables based on input
-      - assign: # on the left side is always variable, so we don't need to mark it as reference
-          ref::key1.attr.k: ref::key_val1 # attribute assignment
-      - str_isdigit:
-          str: ref::key_val1
-          ret: ref::retval
-      - assign:
-          ref::key1.state.k_val: 'digit'
-        when: ref::retval == True
-      - str_iseq:
-          left: ref::key_val1
-          right: '.'
-          ret: ref::retval
-      - assign:
-          ref::key1.state.k_val: 'point'
-        when: ref::retval == True
-      - is_member:
-          left: ref::key_val1
-          right: ['+', '-', '/', '*']
-          ret: retval
-      - assign:
-          ref::key1.state.k_val: 'op'
-        when: ref::retval == True
-      - str_iseq:
-          left: ref::key_val1
-          right: '='
-          ret: ref::retval
-      - assign:
-          ref::key1.state.k_val: 'eq'
-        when: ref::retval == True
-      - str_iseq:
-          left: ref::key_val1
-          right: 'C'
-          ret: ref::retval
-      - assign:
-          ref::key1.state.k_val: 'clear'
-        when: ref::retval == True
-      - str_iseq:
-          left: ref::key_val1
-          right: 'R'
-          ret: ref::retval
-      - assign:
-          ref::key1.state.k_val: 'erase'
-        when: ref::retval == True
+      # code section has write access to attributes of variables defined in the vars section
+      - code: |
+          key_val1 = read('calc')
+          key1.k = key_val1
+          if key_val1.isdigit():
+              key_state1 = 'digit'
+          elif key_val1 == '.':
+              key_state1 = 'point'
+          elif key_val1 == '=':
+              key_state1 = 'eq'
+          elif key_val1 == 'C':
+              key_state1 = 'clear'
+          elif key_val1 == 'R':
+              key_state1 = 'erase'
+          elif key_val1 in ['+', '-', '/', '*']:
+              key_state1 = 'op'
       # trigger automated actions (planning and execution of generated plan)
       - auto:
           name: 'Simple calculator'
           objects:  # here we just list the objects, participating in automatic planning;
-                    # the objects were defined in the var section and
             - stack1
             - key1
             - display1

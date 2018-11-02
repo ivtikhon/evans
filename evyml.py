@@ -10,6 +10,7 @@ import os
 import tempfile
 import subprocess
 import re
+import importlib
 from boolparser import *
 
 class Evans:
@@ -18,10 +19,12 @@ class Evans:
     main = None
     main_vars = None
     pddl_domain = None
+    evymlib_module = None
     domain_file = None
     tempdir = None
     planner = None
     var_ref = None
+    tasks_max_depth = None
 
     def __init__(self, classes_root, main_root):
         self.builtin_classes = ['list', 'str', 'int', 'float', 'bool']
@@ -35,11 +38,12 @@ class Evans:
         self.planner['stdout'] = False
         self.planner['plan_file'] = '/tmp/sas_plan'
         self.var_ref = 'ref::'
+        self.tasks_max_depth = 50
 
     def parse_classes(self):
         ''' This procedure translates Evans classes into PDDL and Python
             Input: Evans classes in YAML (self.classes)
-            Output: PDDL Domain (self.pddl_domain), Python code
+            Output: PDDL Domain (self.pddl_domain), Python code (self.evymlib_module)
         '''
         header = ['(define (domain MYDOMAIN)', '(:requirements :adl)']
         types = ['(:types ']
@@ -136,7 +140,7 @@ class Evans:
                         actions.append(')')
                     actions.append(')')
             if 'attr' in cl_def:
-                init_def = ['    __init__(self):']
+                init_def = ['    def __init__(self):']
                 for at_nm, at_def in cl_def['attr'].items():
                     if at_def not in self.builtin_classes: # only built-in types are allowed for now
                         raise Exception("ERROR: class " + cl_nm + \
@@ -175,7 +179,7 @@ class Evans:
         predicates.append(')')
         types.append(')')
         self.pddl_domain = header + types + predicates + actions + [')']
-        print('\n'.join(python_code))
+        self.evymlib_module = python_code
 
     def interprete_main(self):
         ''' This procedure interpretes the main section of Evan YAML '''
@@ -209,43 +213,65 @@ class Evans:
         except KeyError:
             raise Exception("ERROR: main should contain tasks and vars definitions.")
 
-    def interprete_main_tasks (self, tasks):
+    def interprete_main_tasks (self, tasks, upper_level = 'main', depth = 1):
         ''' This procedure interpretes tasks in main
             Input: list of tasks
             Output: none; the return value is used to pass the 'break' signal from the inner loop
         '''
+        # Depth check is just a precation
+        if depth >= self.tasks_max_depth:
+            raise Exception('FATAL: maximum depth of inner tasks has reached: ' + self.tasks_max_depth)
         for item in tasks:
-            if 'when' in item:
-                if any (condition_task in item for condition_task in ['assign']):
-                    pass
-                else:
-                    raise Exception("ERROR: coditional statement 'when' is not supported for task " + str(item))
+            # if 'when' in item:
+            #     if any (condition_task in item for condition_task in ['assign', 'break']):
+            #         pass
+            #     else:
+            #         raise Exception("ERROR: coditional statement 'when' is not supported for task " + str(item))
             # only unconditional loop (with break) implemented for now
             if 'loop' in item:
                 loop_exit = 'continue'
                 while loop_exit != 'break':
-                    loop_exit = self.interprete_main_tasks (item['loop'])
+                    loop_exit = self.interprete_main_tasks (item['loop'], 'loop', depth + 1)
+            elif 'code' in item:
+                with tempfile.NamedTemporaryFile(mode='w+t', prefix='python-code-', dir=self.tempdir, delete=False) as fp:
+                    try:
+                        code = ['def code_task():']
+                        for line in item['code'].split('\n'):
+                            code.append('    ' + line.rstrip())
+                        fp.write('\n'.join(code))
+                    finally:
+                        pass
+                        # os.remove(fp.name)
             elif 'auto' in item:
                 self.interprete_task_auto(item['auto'])
-            elif 'assign' in item:
-                for assignment_key, assignment_value in item['assign'].items():
-                    var_context, var_elem = self.get_task_parameter_var(assignment_key, 'assign')
-                    var_context[var_elem] = self.get_task_parameter_value(assignment_value, 'assign')
-            elif 'str_isdigit' in item:
-                task = 'str_isdigit'
-                if 'ret' in item[task]:
-                    ret_context, ret_elem = self.get_task_parameter_var(item[task]['ret'], task)
-                    str = self.get_task_parameter_value(item[task]['str'], task)
-                    ret_context[ret_elem] = str.isdigit()
-            elif 'str_iseq' in item:
-                task = 'str_iseq'
-                if 'ret' in item[task]:
-                    ret_context, ret_elem = self.get_task_parameter_var(item[task]['ret'], task)
-                    left = self.get_task_parameter_value(item[task]['left'], task)
-                    right = self.get_task_parameter_value(item[task]['right'], task)
-                    ret_context[ret_elem] = (left == right)
+            # elif 'assign' in item:
+            #     # ref::variable: 'string' | ref::variable
+            #     for assignment_key, assignment_value in item['assign'].items():
+            #         var_context, var_elem = self.get_task_parameter_var(assignment_key, 'assign')
+            #         var_context[var_elem] = self.get_task_parameter_value(assignment_value, 'assign')
+            # elif 'str_isdigit' in item:
+            #     # str: 'string' | ref::variable
+            #     # ret: ref::variable
+            #     task = 'str_isdigit'
+            #     if 'ret' in item[task]:
+            #         ret_context, ret_elem = self.get_task_parameter_var(item[task]['ret'], task)
+            #         str = self.get_task_parameter_value(item[task]['str'], task)
+            #         ret_context[ret_elem] = str.isdigit()
+            # elif 'str_iseq' in item:
+            #     # left: string' | ref::variable
+            #     # right: string' | ref::variable
+            #     # ret: ref::variable
+            #     task = 'str_iseq'
+            #     if 'ret' in item[task]:
+            #         ret_context, ret_elem = self.get_task_parameter_var(item[task]['ret'], task)
+            #         left = self.get_task_parameter_value(item[task]['left'], task)
+            #         right = self.get_task_parameter_value(item[task]['right'], task)
+            #         ret_context[ret_elem] = (left == right)
             elif 'break' in item:
-                return 'break'
+                if upper_level == 'loop':
+                    return 'break'
+                else:
+                    raise Exception("ERROR: 'break' task in main can be used in loop context only")
         return 'continue'
 
     def parse_task_parameter(self, parameter):
@@ -635,16 +661,26 @@ def main (argv):
             evyml = Evans(code['classes'], code['main'])
             # parse classes
             evyml.parse_classes()
+            # create temp directory for Evymlib module file
+            moddir = tempfile.TemporaryDirectory(prefix='evymlib-', dir=evyml.tempdir)
+            # create Evymlib module
+            codefl = open(moddir.name + '/evymlib.py', mode='w+t')
+            codefl.write('\n'.join(evyml.evymlib_module))
+            codefl.close()
+            # import Evymlib module
+            sys.path.append(moddir.name)
+            modref = importlib.import_module('evymlib')
+            print(dir(modref))
             # create PDDL domain file
-            with tempfile.NamedTemporaryFile(mode='w+t', prefix='pddl-domain-', dir=evyml.tempdir, delete=False) as fp:
-                evyml.domain_file_name = fp.name
-                fp.write('\n'.join(evyml.pddl_domain))
-                fp.close()
-                # pprint.pprint(code['main']['tasks'])
-                # parse & execute main
-                evyml.interprete_main()
-                # clean up
-                os.remove(fp.name)
+            domainfl = tempfile.NamedTemporaryFile(mode='w+t', prefix='pddl-domain-', dir=evyml.tempdir, delete=False)
+            evyml.domain_file_name = domainfl.name
+            domainfl.write('\n'.join(evyml.pddl_domain))
+            domainfl.close()
+            moddir.cleanup()
+            # parse & execute main
+            evyml.interprete_main()
+            # clean up
+            os.remove(domainfl.name)
         except yaml.YAMLError as exc:
             print(exc)
             sys.exit(2)
