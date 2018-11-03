@@ -20,7 +20,9 @@ class Evans:
     main_vars = None
     pddl_domain = None
     evymlib_module = None
-    domain_file = None
+    evymlib_code = None
+    evymlib = None
+    domain_file_name = None
     tempdir = None
     planner = None
     var_ref = None
@@ -39,17 +41,19 @@ class Evans:
         self.planner['plan_file'] = '/tmp/sas_plan'
         self.var_ref = 'ref::'
         self.tasks_max_depth = 50
+        self.evymlib_module = 'evymlib'
 
     def parse_classes(self):
         ''' This procedure translates Evans classes into PDDL and Python
             Input: Evans classes in YAML (self.classes)
-            Output: PDDL Domain (self.pddl_domain), Python code (self.evymlib_module)
+            Output: PDDL Domain (self.pddl_domain), Python code (self.evymlib_code)
         '''
         header = ['(define (domain MYDOMAIN)', '(:requirements :adl)']
         types = ['(:types ']
         predicates = ['(:predicates']
         actions = []
         python_code = []
+        python_functions = []
         for cl_nm, cl_def in self.classes.items():
             python_code.append('class ' + cl_nm + ':')
             if 'state' in cl_def:
@@ -70,10 +74,14 @@ class Evans:
             if 'operators' in cl_def:
                 # operators are translated into PDDL actions
                 for op_nm, op_def in cl_def['operators'].items():
+                    # PDDL action
                     actions.append('(:action ' + cl_nm + '_' + op_nm)
+                    # corresponding Python function
+                    func_def = 'def ' + cl_nm + '_' + op_nm + '('
                     # parse operator's parameters
                     if 'parameters' in op_def:
                         actions.append(':parameters (?this - ' + cl_nm)
+                        func_def += 'this'
                         if not isinstance(op_def['parameters'], dict):
                             raise Exception("ERROR: class " + cl_nm + \
                                 ", operator " + op_nm + " --- parameters expected to be dictionary type")
@@ -81,9 +89,12 @@ class Evans:
                         param_by_number = ['self']
                         for par_nm, par_type in op_def['parameters'].items():
                             actions.append('?'+ par_nm + ' - ' + par_type)
+                            func_def += ', ' + par_nm
                             param_by_number.append(par_nm)
                         actions.append(')')
                         cl_def['operators'][op_nm]['param_by_number'] = param_by_number # reverse lookup list of parameters
+                    python_functions.append(func_def.lower() + '):')
+                    python_functions.append('    pass')
                     # parse operator's condition
                     if 'when' in op_def:
                         actions.append(':precondition (and')
@@ -179,7 +190,8 @@ class Evans:
         predicates.append(')')
         types.append(')')
         self.pddl_domain = header + types + predicates + actions + [')']
-        self.evymlib_module = python_code
+        self.evymlib_code = python_code + python_functions
+        pprint.pprint(self.evymlib_code)
 
     def interprete_main(self):
         ''' This procedure interpretes the main section of Evan YAML '''
@@ -201,9 +213,7 @@ class Evans:
                                 self.main_vars[v]['state'][var_nm] = 'undef'
                     # attributes are initialized with 'None' for now
                     if 'attr' in self.classes[class_name]:
-                        self.main_vars[v]['attr'] = {}
-                        for var_nm, var_def in self.classes[class_name]['attr'].items():
-                            self.main_vars[v]['attr'][var_nm] = None
+                        self.main_vars[v]['attr'] = getattr(self.evymlib, class_name)()
                 elif class_name in self.builtin_classes:
                     self.main_vars[v] = None # built-in classes don't have internal structure for now
                 else:
@@ -661,26 +671,25 @@ def main (argv):
             evyml = Evans(code['classes'], code['main'])
             # parse classes
             evyml.parse_classes()
-            # create temp directory for Evymlib module file
-            moddir = tempfile.TemporaryDirectory(prefix='evymlib-', dir=evyml.tempdir)
+            # create temp directory for evymlib module file
+            moddir = tempfile.TemporaryDirectory(prefix=evyml.evymlib_module + '-', dir=evyml.tempdir)
             # create Evymlib module
-            codefl = open(moddir.name + '/evymlib.py', mode='w+t')
-            codefl.write('\n'.join(evyml.evymlib_module))
+            codefl = open(moddir.name + '/' + evyml.evymlib_module +'.py', mode='w+t')
+            codefl.write('\n'.join(evyml.evymlib_code))
             codefl.close()
             # import Evymlib module
             sys.path.append(moddir.name)
-            modref = importlib.import_module('evymlib')
-            print(dir(modref))
+            evyml.evymlib = importlib.import_module(evyml.evymlib_module)
             # create PDDL domain file
             domainfl = tempfile.NamedTemporaryFile(mode='w+t', prefix='pddl-domain-', dir=evyml.tempdir, delete=False)
             evyml.domain_file_name = domainfl.name
             domainfl.write('\n'.join(evyml.pddl_domain))
             domainfl.close()
-            moddir.cleanup()
             # parse & execute main
             evyml.interprete_main()
             # clean up
             os.remove(domainfl.name)
+            moddir.cleanup()
         except yaml.YAMLError as exc:
             print(exc)
             sys.exit(2)
