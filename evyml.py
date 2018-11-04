@@ -94,7 +94,6 @@ class Evans:
                         actions.append(')')
                         cl_def['operators'][op_nm]['param_by_number'] = param_by_number # reverse lookup list of parameters
                     python_functions.append(func_def.lower() + '):')
-                    python_functions.append('    pass')
                     # parse operator's condition
                     if 'when' in op_def:
                         actions.append(':precondition (and')
@@ -150,6 +149,32 @@ class Evans:
                                 actions.extend(effect_in_pddl)
                         actions.append(')')
                     actions.append(')')
+                    if 'exec' in op_def:
+                        if not isinstance(op_def['exec'], list):
+                            raise Exception("ERROR: class " + cl_nm + \
+                                ", operator " + op_nm + " --- exec items expected to be list type")
+                        for exec_def in op_def['exec']:
+                            if len(exec_def) > 1:
+                                raise Exception("ERROR: class " + cl_nm + + \
+                                    ", operator " + op_nm + " --- only one exec call per list item is currently supported")
+                            method_name = list(exec_def.keys())[0]
+                            method_body = '    this.' + method_name + '('
+                            if exec_def[method_name] != None:
+                                method_params = ''.join(exec_def[method_name].split()) # remove whitespaces
+                                add_comma = False
+                                for param in method_params.split(','):
+                                    if 'parameters' in op_def and param in op_def['parameters']:
+                                        method_body += param + "['attr']"
+                                        if add_comma:
+                                            method_body += ','
+                                        else:
+                                            add_comma = True
+                                    else:
+                                        raise Exception("ERROR: class " + cl_nm + + \
+                                            ", operator " + op_nm + " --- undefined variable in exec section: " + param)
+                            python_functions.append(method_body + ')')
+                    else:
+                        python_functions.append('    pass')
             if 'attr' in cl_def:
                 init_def = ['    def __init__(self):']
                 for at_nm, at_def in cl_def['attr'].items():
