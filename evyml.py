@@ -19,11 +19,12 @@ class Evans:
     main = None
     main_vars = None
     pddl_domain = None
+    domain_file_name = None
     evymlib_module = None
     evymlib_code = None
     evymlib = None
-    domain_file_name = None
     tempdir = None
+    module_dir = None
     planner = None
     var_ref = None
     tasks_max_depth = None
@@ -154,11 +155,12 @@ class Evans:
                             raise Exception("ERROR: class " + cl_nm + \
                                 ", operator " + op_nm + " --- exec items expected to be list type")
                         for exec_def in op_def['exec']:
+                            # one action at a time
                             if len(exec_def) > 1:
                                 raise Exception("ERROR: class " + cl_nm + + \
-                                    ", operator " + op_nm + " --- only one exec call per list item is currently supported")
+                                    ", operator " + op_nm + " --- only one exec call per list item is supported")
                             method_name = list(exec_def.keys())[0]
-                            method_body = '    this.' + method_name + '('
+                            method_body = "    this['attr']." + method_name + '('
                             if exec_def[method_name] != None:
                                 method_params = ''.join(exec_def[method_name].split()) # remove whitespaces
                                 add_comma = False
@@ -224,8 +226,8 @@ class Evans:
             # initialize variables
             for v in self.main['vars']:
                 class_name = self.main['vars'][v]
-                if class_name in self.classes:
-                    self.main_vars[v] = {'class': class_name}
+                self.main_vars[v] = {'class': class_name}
+                if class_name in self.classes: # user defined class
                     if 'state' in self.classes[class_name]:
                         self.main_vars[v]['state'] = {}
                         for var_nm, var_def in self.classes[class_name]['state'].items():
@@ -236,11 +238,10 @@ class Evans:
                                 self.main_vars[v]['state'][var_nm] = False
                             else:
                                 self.main_vars[v]['state'][var_nm] = 'undef'
-                    # attributes are initialized with 'None' for now
                     if 'attr' in self.classes[class_name]:
                         self.main_vars[v]['attr'] = getattr(self.evymlib, class_name)()
-                elif class_name in self.builtin_classes:
-                    self.main_vars[v] = None # built-in classes don't have internal structure for now
+                elif class_name in self.builtin_classes: # built-in class
+                    self.main_vars[v]['attr'] = type(class_name)()
                 else:
                     raise Exception("ERROR: main section, variable " + v + " is of unknown class " + class_name)
             # parse and execute tasks
@@ -268,15 +269,32 @@ class Evans:
                 while loop_exit != 'break':
                     loop_exit = self.interprete_main_tasks (item['loop'], 'loop', depth + 1)
             elif 'code' in item:
-                with tempfile.NamedTemporaryFile(mode='w+t', prefix='python-code-', dir=self.tempdir, delete=False) as fp:
-                    try:
-                        code = ['def code_task():']
-                        for line in item['code'].split('\n'):
-                            code.append('    ' + line.rstrip())
-                        fp.write('\n'.join(code))
-                    finally:
-                        pass
-                        # os.remove(fp.name)
+                module_name = None
+                if 'module_name' not in item:
+                    module_name = 'codetask'
+                    # generate Python module
+                    code = []
+                    fun_def = 'def code_task('
+                    for k, v in self.main_vars.items():
+                        if v != None and 'attr' in v:
+                            fun_def += k + ','
+                    code.append(fun_def[:-1] + '):')
+                    for line in item['code'].split('\n'):
+                        code.append('    ' + line.rstrip())
+                    return_def = '    return {'
+                    for k, v in self.main_vars.items():
+                        if v != None and 'attr' in v:
+                            return_def += "'" + k + "': " + k + ','
+                    code.append(return_def[:-1] + '}')
+                    codefl = open(self.module_dir + '/' + module_name + '.py', mode='w+t')
+                    codefl.write('\n'.join(code))
+                    codefl.close()
+                    item['module_name'] = module_name
+                else:
+                    module_name = item['module_name']
+                # import generated module
+                codemod = importlib.import_module(module_name)
+                pprint.pprint(dir(codemod))
             elif 'auto' in item:
                 self.interprete_task_auto(item['auto'])
             # elif 'assign' in item:
@@ -371,7 +389,7 @@ class Evans:
                 # one assignment per list item
                 if len(assignment) > 1:
                     raise Exception("ERROR: main section, task auto '" + auto['name'] + \
-                        "', init section --- only one variable assignment per list item is currently supported")
+                        "', init section --- only one variable assignment per list item is supported")
                 full_var_nm = list(assignment.keys())[0]
                 main_var_nm, state_var_nm = full_var_nm.split('.', 1)
                 if main_var_nm not in self.main_vars:
@@ -487,7 +505,7 @@ class Evans:
         pddl_str = []
         # assignment format: state_var: value (either Bool or inline enum item)
         if len(assignment_definition) > 1:
-            raise Exception("Only one variable assignment per list item is currently supported")
+            raise Exception("Only one variable assignment per list item is supported")
         unprocessed_var_nm = list(assignment_definition.keys())[0]
         var_nm, param_nm, class_nm = \
             var_to_canonical_form(variable_name = unprocessed_var_nm, \
@@ -696,14 +714,15 @@ def main (argv):
             evyml = Evans(code['classes'], code['main'])
             # parse classes
             evyml.parse_classes()
-            # create temp directory for evymlib module file
+            # create temp directory for dynamically generated modules
             moddir = tempfile.TemporaryDirectory(prefix=evyml.evymlib_module + '-', dir=evyml.tempdir)
+            evyml.module_dir = moddir.name
             # create Evymlib module
-            codefl = open(moddir.name + '/' + evyml.evymlib_module +'.py', mode='w+t')
+            codefl = open(evyml.module_dir + '/' + evyml.evymlib_module +'.py', mode='w+t')
             codefl.write('\n'.join(evyml.evymlib_code))
             codefl.close()
             # import Evymlib module
-            sys.path.append(moddir.name)
+            sys.path.append(evyml.module_dir)
             evyml.evymlib = importlib.import_module(evyml.evymlib_module)
             # create PDDL domain file
             domainfl = tempfile.NamedTemporaryFile(mode='w+t', prefix='pddl-domain-', dir=evyml.tempdir, delete=False)

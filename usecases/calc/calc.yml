@@ -288,7 +288,7 @@ main:
     - loop:  # unconditional (endless) loop; TODO implement loops with conditional exit
       # code section has write access to attributes of variables defined in the vars section
       - code: |
-          key_val1 = read('calc')
+          key_val1 = read('enter here: ')
           key1.k = key_val1
           if key_val1.isdigit():
               key_state1 = 'digit'
