@@ -283,25 +283,28 @@ main:
     display1: Display
     alu1: Alu
     key_val1: str #
-    key_state1: str
   tasks: # one task per list element
     - loop:  # unconditional (endless) loop; TODO implement loops with conditional exit
-      # code section has write access to attributes of variables defined in the vars section
+      # code section has access to attributes and states of the variables defined in the vars section
       - code: |
-          key_val1 = read('enter here: ')
-          key1.k = key_val1
+          # read stdin, analyze the key, assign its value
+          key_val1 = input('enter here: ')
+          key1.attr.k = key_val1
           if key_val1.isdigit():
-              key_state1 = 'digit'
+              key1.state.k_val = 'digit'
           elif key_val1 == '.':
-              key_state1 = 'point'
+              key1.state.k_val = 'point'
           elif key_val1 == '=':
-              key_state1 = 'eq'
+              key1.state.k_val = 'eq'
           elif key_val1 == 'C':
-              key_state1 = 'clear'
+              key1.state.k_val = 'clear'
           elif key_val1 == 'R':
-              key_state1 = 'erase'
+              key1.state.k_val = 'erase'
           elif key_val1 in ['+', '-', '/', '*']:
-              key_state1 = 'op'
+              key1.state.k_val = 'op'
+          # initialize planning state
+          key1.state.processed = "False"
+          display1.state.updated = "False"
       # trigger automated actions (planning and execution of generated plan)
       - auto:
           name: 'Simple calculator'
@@ -310,11 +313,6 @@ main:
             - key1
             - display1
             - alu1
-          init:
-            # one assignment per list item
-            - key1.processed: False
-            - key1.k_val: digit
-            - display1.updated: False
           goal:
             - key1.processed: True
             - if: stack1.changed

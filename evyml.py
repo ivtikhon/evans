@@ -11,6 +11,7 @@ import tempfile
 import subprocess
 import re
 import importlib
+import uuid
 from boolparser import *
 
 class Evans:
@@ -57,8 +58,11 @@ class Evans:
         python_functions = []
         for cl_nm, cl_def in self.classes.items():
             python_code.append('class ' + cl_nm + ':')
+            python_init = ['    def __init__(self):']
             if 'state' in cl_def:
                 types.append(cl_nm) # only classes with state variables should be listed as PDDL types
+                python_code.append('    class State:')
+                python_init.append('        self.state = State()')
                 for var_nm, var_def in cl_def['state'].items():
                     # only Bool and inline enum types are supported for now
                     if isinstance(var_def, str) and var_def.title() == 'Bool':
@@ -72,6 +76,7 @@ class Evans:
                     else:
                         raise Exception("ERROR: class " + cl_nm + \
                             ", variable " + var_nm + " --- variable type is expected to be either Bool or list")
+                    python_code.append('        ' + var_nm + ' = None')
             if 'operators' in cl_def:
                 # operators are translated into PDDL actions
                 for op_nm, op_def in cl_def['operators'].items():
@@ -160,13 +165,13 @@ class Evans:
                                 raise Exception("ERROR: class " + cl_nm + + \
                                     ", operator " + op_nm + " --- only one exec call per list item is supported")
                             method_name = list(exec_def.keys())[0]
-                            method_body = "    this['attr']." + method_name + '('
+                            method_body = "    this.attr." + method_name + '('
                             if exec_def[method_name] != None:
                                 method_params = ''.join(exec_def[method_name].split()) # remove whitespaces
                                 add_comma = False
                                 for param in method_params.split(','):
                                     if 'parameters' in op_def and param in op_def['parameters']:
-                                        method_body += param + "['attr']"
+                                        method_body += param + ".attr"
                                         if add_comma:
                                             method_body += ','
                                         else:
@@ -178,28 +183,28 @@ class Evans:
                     else:
                         python_functions.append('    pass')
             if 'attr' in cl_def:
-                init_def = ['    def __init__(self):']
+                python_code.append('    class Attr:')
+                python_init.append('        self.attr = Attr()')
                 for at_nm, at_def in cl_def['attr'].items():
                     if at_def not in self.builtin_classes: # only built-in types are allowed for now
                         raise Exception("ERROR: class " + cl_nm + \
                             ", attribute " + at_nm + ", attribute class " + at_def + " --- attribute class is not defined.")
-                    python_code.append('    ' + at_nm + ' = None')
+                    python_code.append('        ' + at_nm + ' = None')
                     if at_def == 'list':
-                        init_def.append('        self.' + at_nm + ' = []')
+                        python_init.append('        self.attr.' + at_nm + ' = []')
                     elif at_def == 'str':
-                        init_def.append('        self.' + at_nm + ' = ""')
+                        python_init.append('        self.attr.' + at_nm + ' = ""')
                     elif at_def == 'int':
-                        init_def.append('        self.' + at_nm + ' = 0')
+                        python_init.append('        self.attr.' + at_nm + ' = 0')
                     elif at_def == 'float':
-                        init_def.append('        self.' + at_nm + ' = 0.0')
+                        python_init.append('        self.attr.' + at_nm + ' = 0.0')
                     elif at_def == 'bool':
-                        init_def.append('        self.' + at_nm + ' = False')
+                        python_init.append('        self.attr.' + at_nm + ' = False')
                     else:
-                        init_def.append('        self.' + at_nm + ' = None')
-                python_code.extend(init_def)
+                        python_init.append('        self.attr.' + at_nm + ' = None')
             if 'methods' in cl_def:
                 for method_nm, method_def in cl_def['methods'].items():
-                    method = '    def ' + method_nm + '(self'
+                    method = '        def ' + method_nm + '(self'
                     if 'parameters' in method_def:
                         for param_nm, param_type in method_def['parameters'].items():
                             method += ', ' + param_nm
@@ -208,17 +213,20 @@ class Evans:
                         for body_line in method_def['body'].split('\n'):
                             if body_line == '': # skip empty lines
                                 continue
-                            python_code.append('        ' + body_line)
+                            python_code.append('            ' + body_line)
                     else:
                         python_code.append('        pass')
             if ('attr' not in cl_def or len(cl_def['attr']) == 0) and \
-                    ('methods' not in cl_def or len(cl_def['methods']) == 0):
-                python_code.append('    pass')
+                    ('methods' not in cl_def or len(cl_def['methods']) == 0) and \
+                    ('state' not in cl_def or len(cl_def['state']) == 0):
+                python_code.append('        pass')
+            else:
+                python_code.extend(python_init)
         predicates.append(')')
         types.append(')')
         self.pddl_domain = header + types + predicates + actions + [')']
         self.evymlib_code = python_code + python_functions
-        pprint.pprint(self.evymlib_code)
+        print('\n'.join(self.evymlib_code))
 
     def interprete_main(self):
         ''' This procedure interpretes the main section of Evan YAML '''
@@ -226,10 +234,11 @@ class Evans:
             # initialize variables
             for v in self.main['vars']:
                 class_name = self.main['vars'][v]
-                self.main_vars[v] = {'class': class_name}
+                # self.main_vars[v] = {'class': class_name}
                 if class_name in self.classes: # user defined class
+                    self.main_vars[v] = type(class_name, (), {})()
                     if 'state' in self.classes[class_name]:
-                        self.main_vars[v]['state'] = {}
+                        setattr(self.main_vars[v], 'state', None)
                         for var_nm, var_def in self.classes[class_name]['state'].items():
                             # Bool state variables are initialized with 'False';
                             # all other state variables are set to 'undef'
@@ -239,9 +248,9 @@ class Evans:
                             else:
                                 self.main_vars[v]['state'][var_nm] = 'undef'
                     if 'attr' in self.classes[class_name]:
-                        self.main_vars[v]['attr'] = getattr(self.evymlib, class_name)()
+                        setattr(self.main_vars[v], 'attr', getattr(self.evymlib, class_name)())
                 elif class_name in self.builtin_classes: # built-in class
-                    self.main_vars[v]['attr'] = type(class_name)()
+                    self.main_vars[v] = type(class_name)()
                 else:
                     raise Exception("ERROR: main section, variable " + v + " is of unknown class " + class_name)
             # parse and execute tasks
@@ -254,15 +263,10 @@ class Evans:
             Input: list of tasks
             Output: none; the return value is used to pass the 'break' signal from the inner loop
         '''
-        # Depth check is just a precation
+        # Depth check is just a precaution
         if depth >= self.tasks_max_depth:
             raise Exception('FATAL: maximum depth of inner tasks has reached: ' + self.tasks_max_depth)
         for item in tasks:
-            # if 'when' in item:
-            #     if any (condition_task in item for condition_task in ['assign', 'break']):
-            #         pass
-            #     else:
-            #         raise Exception("ERROR: coditional statement 'when' is not supported for task " + str(item))
             # only unconditional loop (with break) implemented for now
             if 'loop' in item:
                 loop_exit = 'continue'
@@ -270,11 +274,12 @@ class Evans:
                     loop_exit = self.interprete_main_tasks (item['loop'], 'loop', depth + 1)
             elif 'code' in item:
                 module_name = None
+                # genetrate code task module
                 if 'module_name' not in item:
-                    module_name = 'codetask'
-                    # generate Python module
+                    module_name = str(uuid.uuid1())
                     code = []
-                    fun_def = 'def code_task('
+                    code_task = 'code_task'
+                    fun_def = 'def ' + code_task + '('
                     for k, v in self.main_vars.items():
                         if v != None and 'attr' in v:
                             fun_def += k + ','
@@ -293,91 +298,26 @@ class Evans:
                 else:
                     module_name = item['module_name']
                 # import generated module
-                codemod = importlib.import_module(module_name)
-                pprint.pprint(dir(codemod))
+                # code_mod = importlib.import_module(module_name)
+                # # prepare code task parameters
+                # code_param = {}
+                # for k, v in self.main_vars.items():
+                #     if v != None and 'attr' in v:
+                #         code_param[k] = v['attr']
+                # # execute code task
+                # code_retval = code_mod.code_task(**code_param)
+                # # sync values of vars
+                # for k, v in code_retval.items():
+                #     if id(v) != id(self.main_vars[k]['attr']):
+                #         self.main_vars[k]['attr'] = v
             elif 'auto' in item:
                 self.interprete_task_auto(item['auto'])
-            # elif 'assign' in item:
-            #     # ref::variable: 'string' | ref::variable
-            #     for assignment_key, assignment_value in item['assign'].items():
-            #         var_context, var_elem = self.get_task_parameter_var(assignment_key, 'assign')
-            #         var_context[var_elem] = self.get_task_parameter_value(assignment_value, 'assign')
-            # elif 'str_isdigit' in item:
-            #     # str: 'string' | ref::variable
-            #     # ret: ref::variable
-            #     task = 'str_isdigit'
-            #     if 'ret' in item[task]:
-            #         ret_context, ret_elem = self.get_task_parameter_var(item[task]['ret'], task)
-            #         str = self.get_task_parameter_value(item[task]['str'], task)
-            #         ret_context[ret_elem] = str.isdigit()
-            # elif 'str_iseq' in item:
-            #     # left: string' | ref::variable
-            #     # right: string' | ref::variable
-            #     # ret: ref::variable
-            #     task = 'str_iseq'
-            #     if 'ret' in item[task]:
-            #         ret_context, ret_elem = self.get_task_parameter_var(item[task]['ret'], task)
-            #         left = self.get_task_parameter_value(item[task]['left'], task)
-            #         right = self.get_task_parameter_value(item[task]['right'], task)
-            #         ret_context[ret_elem] = (left == right)
             elif 'break' in item:
                 if upper_level == 'loop':
                     return 'break'
                 else:
                     raise Exception("ERROR: 'break' task in main can be used in loop context only")
         return 'continue'
-
-    def parse_task_parameter(self, parameter):
-        ''' This procedure parses parameter of a main task and, if it is a variable, i.e.,
-            it contains a reference marker (ref::), the procedure returns a tuple with a reference
-            to the context where the variable is defined and the last part of (compound) variable name;
-            otherwise, the parameter string is returned.
-        '''
-        if parameter.startswith(self.var_ref):
-            ref = var = None
-            context = self.main_vars
-            var_name = parameter.rpartition(self.var_ref)[2]
-            compound_var_name = var_name.split('.')
-            compound_var_length = len(compound_var_name)
-            for index, var_element in enumerate(compound_var_name):
-                if var_element in context:
-                    if index == compound_var_length - 1:
-                        ref = context
-                        var = var_element
-                        break
-                    context = context[var_element]
-            return (ref, var)
-        else:
-            return parameter
-
-    def get_task_parameter_var(self, parameter, task_name):
-        ''' This procedure parses a task parameter and, if the parameter is a variable,
-            the procedure returns a tuple with a reference to the variable context, and the last
-            part of (compound) variable name.
-        '''
-        context = last_element = None
-        value = self.parse_task_parameter(parameter)
-        if isinstance(value, tuple):
-            context = value[0]
-            last_element = value[1]
-            if context == None:
-                raise Exception("ERROR: main tasks --- unrecognized variable reference in task " + task_name + ": " + parameter)
-        else:
-            raise Exception("ERROR: main tasks --- variable reference doesn't contain 'ref::' marker in task " + task_name + ": " + parameter)
-        return (context, last_element)
-
-    def get_task_parameter_value(self, parameter, task_name):
-        ''' This procedure returns value of a task parameter; whether the parameter a variable,
-            the variable value is returned, or if it is a string, the procedure returns the string.
-        '''
-        value = self.parse_task_parameter(parameter)
-        if isinstance(value, tuple):
-            context = value[0]
-            last_element = value[1]
-            if context == None:
-                raise Exception("ERROR: main tasks --- unrecognized variable reference in task " + task_name + ": " + parameter)
-            value = context[last_element]
-        return value
 
     def interprete_task_auto(self, auto):
         ''' This procedure interpretes the auto task, i.e. translates it into PDDL, runs planning,
