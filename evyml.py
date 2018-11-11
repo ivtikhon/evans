@@ -62,17 +62,19 @@ class Evans:
             if 'state' in cl_def:
                 types.append(cl_nm) # only classes with state variables should be listed as PDDL types
                 python_code.append('    class State:')
-                python_init.append('        self.state = State()')
+                python_init.append('        self.state = self.State()')
                 for var_nm, var_def in cl_def['state'].items():
                     # only Bool and inline enum types are supported for now
                     if isinstance(var_def, str) and var_def.title() == 'Bool':
                         prd_name = '_'.join([cl_nm, var_nm])
                         predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
+                        python_init.append('        self.state.' + var_nm + ' = False')
                     elif isinstance(var_def, list):
                         var_def.append('undef')
                         for var_state in var_def:
                             prd_name = '_'.join([cl_nm, var_nm, var_state])
                             predicates.append('(' + prd_name + ' ?this - ' + cl_nm + ')')
+                        python_init.append('        self.state.' + var_nm + ' = "undef"')
                     else:
                         raise Exception("ERROR: class " + cl_nm + \
                             ", variable " + var_nm + " --- variable type is expected to be either Bool or list")
@@ -184,11 +186,11 @@ class Evans:
                         python_functions.append('    pass')
             if 'attr' in cl_def:
                 python_code.append('    class Attr:')
-                python_init.append('        self.attr = Attr()')
+                python_init.append('        self.attr = self.Attr()')
                 for at_nm, at_def in cl_def['attr'].items():
                     if at_def not in self.builtin_classes: # only built-in types are allowed for now
                         raise Exception("ERROR: class " + cl_nm + \
-                            ", attribute " + at_nm + ", attribute class " + at_def + " --- attribute class is not defined.")
+                            ", attribute " + at_nm + ", attribute class " + at_def + " --- unsupported attribute class")
                     python_code.append('        ' + at_nm + ' = None')
                     if at_def == 'list':
                         python_init.append('        self.attr.' + at_nm + ' = []')
@@ -234,21 +236,8 @@ class Evans:
             # initialize variables
             for v in self.main['vars']:
                 class_name = self.main['vars'][v]
-                # self.main_vars[v] = {'class': class_name}
                 if class_name in self.classes: # user defined class
-                    self.main_vars[v] = type(class_name, (), {})()
-                    if 'state' in self.classes[class_name]:
-                        setattr(self.main_vars[v], 'state', None)
-                        for var_nm, var_def in self.classes[class_name]['state'].items():
-                            # Bool state variables are initialized with 'False';
-                            # all other state variables are set to 'undef'
-                            # TODO: initialize Number type with 0 (zero)
-                            if isinstance(var_def, str) and var_def.title() == 'Bool':
-                                self.main_vars[v]['state'][var_nm] = False
-                            else:
-                                self.main_vars[v]['state'][var_nm] = 'undef'
-                    if 'attr' in self.classes[class_name]:
-                        setattr(self.main_vars[v], 'attr', getattr(self.evymlib, class_name)())
+                    self.main_vars[v] = getattr(self.evymlib, class_name)()
                 elif class_name in self.builtin_classes: # built-in class
                     self.main_vars[v] = type(class_name)()
                 else:
@@ -274,42 +263,52 @@ class Evans:
                     loop_exit = self.interprete_main_tasks (item['loop'], 'loop', depth + 1)
             elif 'code' in item:
                 module_name = None
-                # genetrate code task module
+                # generate code task module
                 if 'module_name' not in item:
                     module_name = str(uuid.uuid1())
                     code = []
                     code_task = 'code_task'
                     fun_def = 'def ' + code_task + '('
                     for k, v in self.main_vars.items():
-                        if v != None and 'attr' in v:
-                            fun_def += k + ','
+                        fun_def += k + ','
                     code.append(fun_def[:-1] + '):')
                     for line in item['code'].split('\n'):
                         code.append('    ' + line.rstrip())
                     return_def = '    return {'
                     for k, v in self.main_vars.items():
-                        if v != None and 'attr' in v:
-                            return_def += "'" + k + "': " + k + ','
+                        return_def += "'" + k + "': " + k + ','
                     code.append(return_def[:-1] + '}')
                     codefl = open(self.module_dir + '/' + module_name + '.py', mode='w+t')
                     codefl.write('\n'.join(code))
                     codefl.close()
                     item['module_name'] = module_name
+                    print('\n'.join(code))
                 else:
                     module_name = item['module_name']
                 # import generated module
-                # code_mod = importlib.import_module(module_name)
-                # # prepare code task parameters
-                # code_param = {}
-                # for k, v in self.main_vars.items():
-                #     if v != None and 'attr' in v:
-                #         code_param[k] = v['attr']
-                # # execute code task
-                # code_retval = code_mod.code_task(**code_param)
-                # # sync values of vars
-                # for k, v in code_retval.items():
-                #     if id(v) != id(self.main_vars[k]['attr']):
-                #         self.main_vars[k]['attr'] = v
+                code_mod = importlib.import_module(module_name)
+                # prepare code task parameters
+                code_param = {}
+                for k, v in self.main_vars.items():
+                    code_param[k] = v
+                    print('var: ' + k)
+                    if hasattr(v, 'attr'):
+                        pprint.pprint(v.attr.__dict__)
+                    if hasattr(v, 'state'):
+                        pprint.pprint(v.state.__dict__)
+                # execute code task
+                code_retval = code_mod.code_task(**code_param)
+                # sync vars
+                for k, v in code_retval.items():
+                    if id(v) != id(self.main_vars[k]):
+                        print('syncing var: ' + k)
+                        self.main_vars[k] = v
+                    else:
+                        print('var: ' + k)
+                    if hasattr(v, 'attr'):
+                        pprint.pprint(v.attr.__dict__)
+                    if hasattr(v, 'state'):
+                        pprint.pprint(v.state.__dict__)
             elif 'auto' in item:
                 self.interprete_task_auto(item['auto'])
             elif 'break' in item:
@@ -323,22 +322,6 @@ class Evans:
         ''' This procedure interpretes the auto task, i.e. translates it into PDDL, runs planning,
             and then executes the obtained plan.
         '''
-        # initialize variables
-        if 'init' in auto:
-            for assignment in auto['init']:
-                # one assignment per list item
-                if len(assignment) > 1:
-                    raise Exception("ERROR: main section, task auto '" + auto['name'] + \
-                        "', init section --- only one variable assignment per list item is supported")
-                full_var_nm = list(assignment.keys())[0]
-                main_var_nm, state_var_nm = full_var_nm.split('.', 1)
-                if main_var_nm not in self.main_vars:
-                    raise Exception("ERROR: main section, task auto '" + auto['name'] + \
-                        "', init section --- undefined variable " + main_var_nm)
-                if state_var_nm not in self.classes[self.main_vars[main_var_nm]['class']]['state']:
-                    raise Exception("ERROR: main section, task auto '" + auto['name'] + \
-                        "', init section --- undefined state variable " + state_var_nm)
-                self.main_vars[main_var_nm]['state'][state_var_nm] = assignment[full_var_nm]
         # generate PDDL problem code
         try:
             problem = ['(define (problem MYPROBLEM)', '(:domain MYDOMAIN)']
@@ -347,10 +330,10 @@ class Evans:
             goal = ['(:goal']
             for obj in auto['objects']:
                 # generate list of object
-                class_nm = self.main_vars[obj]['class']
+                class_nm = self.main['vars'][obj]
                 objects.append(obj + ' - ' + class_nm)
                 # initialize objects
-                for var_nm, var_val in self.main_vars[obj]['state'].items():
+                for var_nm, var_val in self.main_vars[obj].state.__dict__.items():
                     state_var_definition = self.classes[class_nm]['state'][var_nm]
                     if isinstance(state_var_definition, list): # inline enum
                         for state_var_val in state_var_definition:
@@ -387,6 +370,7 @@ class Evans:
                 problem_file_name = fp.name
                 fp.write('\n'.join(body))
                 fp.close()
+                print('\n'.join(body))
                 # call PDDL planner
                 args = self.planner['path'] + ' ' + os.path.basename(self.domain_file_name) + \
                     ' ' + os.path.basename(problem_file_name) + ' ' + \
@@ -398,11 +382,12 @@ class Evans:
                         for line in planner.stdout:
                             line = line.decode().rstrip()
                             print(line)
-                    if planner.returncode == 0: # planner geterated a plan
+                    if planner.returncode == 0: # planner generated a plan
                         with open(self.planner['plan_file'], 'rt') as planfile:
                             for line in planfile:
-                                if not line.startswith(';'):
-                                    print(line.rstrip().strip('()'))
+                                print(line.rstrip())
+                                # if not line.startswith(';'):
+                                    # print(line.rstrip().strip('()'))
                     else:
                         raise Exception("FAILURE: PDDL planner found no solution for task auto " + auto['name'])
                 # clean up

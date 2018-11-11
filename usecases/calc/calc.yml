@@ -303,8 +303,8 @@ main:
           elif key_val1 in ['+', '-', '/', '*']:
               key1.state.k_val = 'op'
           # initialize planning state
-          key1.state.processed = "False"
-          display1.state.updated = "False"
+          key1.state.processed = False
+          display1.state.updated = False
       # trigger automated actions (planning and execution of generated plan)
       - auto:
           name: 'Simple calculator'
