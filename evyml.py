@@ -29,6 +29,7 @@ class Evans:
     planner = None
     var_ref = None
     tasks_max_depth = None
+    debug_opt = None
 
     def __init__(self, classes_root, main_root):
         self.builtin_classes = ['list', 'str', 'int', 'float', 'bool']
@@ -39,11 +40,11 @@ class Evans:
         self.tempdir = '/tmp'
         self.planner['path'] = '/opt/fast-downward/fast-downward.py'
         self.planner['options'] = '--evaluator "hff=ff()" --search "lazy_greedy([hff], preferred=[hff])"'
-        self.planner['stdout'] = False
         self.planner['plan_file'] = '/tmp/sas_plan'
         self.var_ref = 'ref::'
         self.tasks_max_depth = 50
         self.evymlib_module = 'evymlib'
+        self.debug_opt = []
 
     def parse_classes(self):
         ''' This procedure translates Evans classes into PDDL and Python
@@ -94,7 +95,7 @@ class Evans:
                             raise Exception("ERROR: class " + cl_nm + \
                                 ", operator " + op_nm + " --- parameters expected to be dictionary type")
                         # create reverse lookup list of parameters to search by number (for Python code generation)
-                        param_by_number = ['self']
+                        param_by_number = ['this']
                         for par_nm, par_type in op_def['parameters'].items():
                             actions.append('?'+ par_nm + ' - ' + par_type)
                             func_def += ', ' + par_nm
@@ -184,9 +185,10 @@ class Evans:
                             python_functions.append(method_body + ')')
                     else:
                         python_functions.append('    pass')
-            if 'attr' in cl_def:
+            if 'attr' in cl_def or 'methods' in cl_def:
                 python_code.append('    class Attr:')
                 python_init.append('        self.attr = self.Attr()')
+            if 'attr' in cl_def:
                 for at_nm, at_def in cl_def['attr'].items():
                     if at_def not in self.builtin_classes: # only built-in types are allowed for now
                         raise Exception("ERROR: class " + cl_nm + \
@@ -228,24 +230,9 @@ class Evans:
         types.append(')')
         self.pddl_domain = header + types + predicates + actions + [')']
         self.evymlib_code = python_code + python_functions
-        print('\n'.join(self.evymlib_code))
-
-    def interprete_main(self):
-        ''' This procedure interpretes the main section of Evan YAML '''
-        try:
-            # initialize variables
-            for v in self.main['vars']:
-                class_name = self.main['vars'][v]
-                if class_name in self.classes: # user defined class
-                    self.main_vars[v] = getattr(self.evymlib, class_name)()
-                elif class_name in self.builtin_classes: # built-in class
-                    self.main_vars[v] = type(class_name)()
-                else:
-                    raise Exception("ERROR: main section, variable " + v + " is of unknown class " + class_name)
-            # parse and execute tasks
-            self.interprete_main_tasks(self.main['tasks'])
-        except KeyError:
-            raise Exception("ERROR: main should contain tasks and vars definitions.")
+        if 'evymlib_code' in self.debug_opt:
+            print('=== Evymlib code ===')
+            print('\n'.join(self.evymlib_code))
 
     def interprete_main_tasks (self, tasks, upper_level = 'main', depth = 1):
         ''' This procedure interpretes tasks in main
@@ -282,7 +269,9 @@ class Evans:
                     codefl.write('\n'.join(code))
                     codefl.close()
                     item['module_name'] = module_name
-                    print('\n'.join(code))
+                    if 'code_tasks' in self.debug_opt:
+                        print('=== Code task ===')
+                        print('\n'.join(code))
                 else:
                     module_name = item['module_name']
                 # import generated module
@@ -291,24 +280,12 @@ class Evans:
                 code_param = {}
                 for k, v in self.main_vars.items():
                     code_param[k] = v
-                    print('var: ' + k)
-                    if hasattr(v, 'attr'):
-                        pprint.pprint(v.attr.__dict__)
-                    if hasattr(v, 'state'):
-                        pprint.pprint(v.state.__dict__)
                 # execute code task
                 code_retval = code_mod.code_task(**code_param)
-                # sync vars
+                # sync (trivial) vars
                 for k, v in code_retval.items():
                     if id(v) != id(self.main_vars[k]):
-                        print('syncing var: ' + k)
                         self.main_vars[k] = v
-                    else:
-                        print('var: ' + k)
-                    if hasattr(v, 'attr'):
-                        pprint.pprint(v.attr.__dict__)
-                    if hasattr(v, 'state'):
-                        pprint.pprint(v.state.__dict__)
             elif 'auto' in item:
                 self.interprete_task_auto(item['auto'])
             elif 'break' in item:
@@ -370,24 +347,40 @@ class Evans:
                 problem_file_name = fp.name
                 fp.write('\n'.join(body))
                 fp.close()
-                print('\n'.join(body))
+                if 'pddl_problem' in self.debug_opt:
+                    print('=== PDDL problem ===')
+                    print('\n'.join(body))
                 # call PDDL planner
                 args = self.planner['path'] + ' ' + os.path.basename(self.domain_file_name) + \
-                    ' ' + os.path.basename(problem_file_name) + ' ' + \
-                    self.planner['options']
+                    ' ' + os.path.basename(problem_file_name) + ' ' + self.planner['options']
                 with subprocess.Popen(args, cwd=self.tempdir, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as planner:
-                    solution_found = False
                     planner.wait()
-                    if self.planner['stdout']:
+                    if 'planner_stdout' in self.debug_opt:
+                        print('=== Planner output ===')
                         for line in planner.stdout:
                             line = line.decode().rstrip()
                             print(line)
                     if planner.returncode == 0: # planner generated a plan
                         with open(self.planner['plan_file'], 'rt') as planfile:
                             for line in planfile:
-                                print(line.rstrip())
-                                # if not line.startswith(';'):
-                                    # print(line.rstrip().strip('()'))
+                                if line.startswith(';'):
+                                    continue
+                                if 'plan' in self.debug_opt:
+                                    print(line.rstrip()[1:-1])
+                                func_and_params = line.rstrip()[1:-1].split(' ')
+                                func_name = func_and_params[0]
+                                cl_name, sep, op_name = func_name.partition('_')
+                                # recover class name from operator name
+                                for cls in self.classes.keys():
+                                    if cl_name.lower() == cls.lower():
+                                        cl_name = cls
+                                        break
+                                func = getattr(self.evymlib, func_name)
+                                func_param = {}
+                                for index, param in enumerate(func_and_params[1:]):
+                                    param_nm = self.classes[cl_name]['operators'][op_name]['param_by_number'][index]
+                                    func_param[param_nm] = self.main_vars[param]
+                                func(**func_param)
                     else:
                         raise Exception("FAILURE: PDDL planner found no solution for task auto " + auto['name'])
                 # clean up
@@ -427,7 +420,35 @@ class Evans:
             Output: PDDL formulae (list of strings)
             Note: the calling procedure must handle exceptions
         '''
-        pddl_str = []
+        try:
+            pddl_str = []
+            var_nm, param_nm, class_nm, assignment_value = \
+                self.parse_assignment_statement(assignment_definition, class_name, context)
+            var_type = self.classes[class_nm]['state'][var_nm]
+            if isinstance(var_type, str) and var_type.title() == 'Bool':
+                assignment_str = '(' + class_nm + '_' + var_nm + ' ?' + param_nm + ')'
+                if assignment_value.title() == 'False':
+                    assignment_str = '(not ' + assignment_str + ')'
+                pddl_str.append(assignment_str)
+            else:
+                for st_var_val in var_type:
+                    assignment_str = '(' + class_nm + '_' + var_nm + '_' + st_var_val + ' ?' + param_nm + ')'
+                    if st_var_val != assignment_value:
+                        assignment_str = '(not ' + assignment_str + ')'
+                    pddl_str.append(assignment_str)
+        except Exception as err:
+            raise err
+        return pddl_str
+
+    def parse_assignment_statement(self, assignment_definition, class_name, context):
+        ''' This procedure parses operator's effect
+            Input:
+                - assignment from operator effect or auto goal (dict)
+                - class where operator is defined or None for goal (string)
+                - context where variables are defined (dict)
+            Output: variable name, parameter name, class name, and value to assign (tuple)
+            Note: the calling procedure must handle exceptions
+        '''
         # assignment format: state_var: value (either Bool or inline enum item)
         if len(assignment_definition) > 1:
             raise Exception("Only one variable assignment per list item is supported")
@@ -446,20 +467,13 @@ class Evans:
                 (isinstance(assignment_value, bool) or assignment_value.title() in ['True', 'False']):
             if isinstance(assignment_value, bool):
                 assignment_value = str(assignment_value)
-            assignment_str = '(' + class_nm + '_' + var_nm + ' ?' + param_nm + ')'
-            if assignment_value.title() == 'False':
-                assignment_str = '(not ' + assignment_str + ')'
-            pddl_str.append(assignment_str)
         # ...or inline enum (where all values are explisitly listed in state variable definition)
-        elif isinstance(var_type, list) and assignment_value in var_type:
-            for st_var_val in var_type:
-                assignment_str = '(' + class_nm + '_' + var_nm + '_' + st_var_val + ' ?' + param_nm + ')'
-                if st_var_val != assignment_value:
-                    assignment_str = '(not ' + assignment_str + ')'
-                pddl_str.append(assignment_str)
+        elif isinstance(var_type, list):
+            if assignment_value not in var_type:
+                raise Exception("Undefined value " + assignment_value + " is assigned on variable " + var_nm)
         else:
             raise Exception("Variable " + var_nm + " is not Bool, nor list type defined")
-        return pddl_str
+        return (var_nm, param_nm, class_nm, assignment_value)
 
     def operator_condition_to_pddl(self, condition_sting, class_name, operator_name):
         ''' This procedure translates operator condition (when) into PDDL '''
@@ -529,7 +543,7 @@ class Evans:
 # Free procedures
 def usage ():
     '''This is just usage message'''
-    print ('evyml2pddl.py [-h | --help] [-o <outputfile> | --output=<outputfile>] input_file.yml')
+    print ('evyml2pddl.py [-h | --help] [-d <debug options> | --output=<debug options>] input_file.yml')
 
 def btree_to_pddl (root):
     ''' This procedure translates logical expression, supplied in a form of binary tree,
@@ -609,18 +623,18 @@ def var_to_canonical_form(variable_name, context, class_name = None):
 def main (argv):
 # Parse main options
     try:
-        opts, args = getopt.getopt(argv, "ho:", ["help", "output="])
+        opts, args = getopt.getopt(argv, "hd:", ["help", "debug="])
     except getopt.GetoptError:
         usage()
         sys.exit(2)
-    output = None
     input = None
+    debug = None
     for o, a in opts:
         if o in ("-h", "--help"):
             usage()
             sys.exit()
-        elif o in ("-o", "--output"):
-            output = a
+        elif o in ("-d", "--debug"):
+            debug = a
     if len(args) == 1:
         input = args[0]
     else:
@@ -637,6 +651,8 @@ def main (argv):
             if 'tasks' not in code['main']:
                 raise Exception("ERROR: no 'tasks' section found in 'main'.")
             evyml = Evans(code['classes'], code['main'])
+            if debug != None:
+                evyml.debug_opt = debug
             # parse classes
             evyml.parse_classes()
             # create temp directory for dynamically generated modules
@@ -654,8 +670,23 @@ def main (argv):
             evyml.domain_file_name = domainfl.name
             domainfl.write('\n'.join(evyml.pddl_domain))
             domainfl.close()
+            if 'pddl_domain' in evyml.debug_opt:
+                print('\n'.join(evyml.pddl_domain))
             # parse & execute main
-            evyml.interprete_main()
+            try:
+                # initialize variables
+                for v in evyml.main['vars']:
+                    class_name = evyml.main['vars'][v]
+                    if class_name in evyml.classes: # user defined class
+                        evyml.main_vars[v] = getattr(evyml.evymlib, class_name)()
+                    elif class_name in evyml.builtin_classes: # built-in class
+                        evyml.main_vars[v] = type(class_name)()
+                    else:
+                        raise Exception("ERROR: main section, variable " + v + " is of unknown class " + class_name)
+                # parse and execute tasks
+                evyml.interprete_main_tasks(evyml.main['tasks'])
+            except KeyError:
+                raise Exception("ERROR: main should contain tasks and vars definitions.")
             # clean up
             os.remove(domainfl.name)
             moddir.cleanup()

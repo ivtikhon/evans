@@ -19,9 +19,8 @@ classes:
   Stack:
     attr:
       s: list
-    methods:  # the actual methods should be written in some language (e.g. Python) for now;
-              # after plan is created, the interpreter will generate code and then execute it;
-              # later, when the Evans syntax is designed, the intermediate code generation phase won't be necessary;
+    methods:  # the actual methods should be written in Python for now;
+              # after plan is created, the interpreter generates code and then executes it;
       pushKey:
         parameters:
           k: Key
@@ -242,10 +241,16 @@ classes:
           - processed: True
 
   Display:
+    methods:
+      showStack:
+        parameters:
+          s: Stack
+        body: |
+          print(s.getValue())
     state:
       updated: Bool
     operators:
-      print_stack:
+      show_stack:
         parameters:
           s: Stack
           k: Key
@@ -256,17 +261,11 @@ classes:
         effect:
           - updated: True
           - s.changed: False
+        exec:
+          - showStack: s
 
 main:
-  # main section:
-  #   - main can read the list of arguments;
-  #   - there should be methods to read/write from/to files (sockets, streams);
-  #   - there should be some way to loop over actions;
-  #   - main can trigger planning
-  #   - there should be a way to dump the planning state (into json format)
-  #   - variables can be defined in 'parameters' and exec 'vars'
-  # exec section:
-  #   - exec has 'vars' section, where variables are declared
+  #   - 'vars' section, where variables are declared
   #   - 'tasks' section:
   #       - code: here we initialize state variables and attributes;
   #       - auto: here we run planning and execution of the obtained plan
@@ -296,12 +295,14 @@ main:
               key1.state.k_val = 'point'
           elif key_val1 == '=':
               key1.state.k_val = 'eq'
-          elif key_val1 == 'C':
+          elif key_val1 == 'c':
               key1.state.k_val = 'clear'
-          elif key_val1 == 'R':
+          elif key_val1 == 'r':
               key1.state.k_val = 'erase'
           elif key_val1 in ['+', '-', '/', '*']:
               key1.state.k_val = 'op'
+          elif key_val1 == 'q':
+            exit()
           # initialize planning state
           key1.state.processed = False
           display1.state.updated = False
@@ -318,4 +319,4 @@ main:
             - if: stack1.changed
               then:
                 - display1.updated: True
-      - break:
+      # - break:
