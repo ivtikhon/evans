@@ -153,9 +153,17 @@ class Evans:
                                         ", operator " + op_nm + " --- conditional effect is expected to be in the if: ... then: ... else: format")
                             else:
                                 # unconditional assignment
-                                effect_in_pddl = self.operator_effect_to_pddl(effect_definition = eff_def, \
-                                    class_name = cl_nm, operator_name = op_nm)
-                                actions.extend(effect_in_pddl)
+                                try:
+                                    context = None
+                                    if 'parameters' in op_def:
+                                        context = op_def['parameters']
+                                    assignment_code = self.parse_assignment_statement(assignment_definition = eff_def, \
+                                        class_name = cl_nm, context = context, output_format = 'all')
+                                    actions.extend(assignment_code['pddl'])
+                                    for python_code_line in assignment_code['python']:
+                                        python_functions.append('    ' + python_code_line)
+                                except Exception as err:
+                                    raise Exception("ERROR processing operator effect: class " + cl_nm + ", operator " + op_nm + ' --- ' + str(err))
                         actions.append(')')
                     actions.append(')')
                     if 'exec' in op_def:
@@ -393,7 +401,7 @@ class Evans:
         ''' This procedure translates auto's goal into PDDL '''
         try:
             context = self.main['vars']
-            pddl_arr = self.assignment_statement_to_pddl(assignment_definition = goal_definition, \
+            pddl_arr = self.parse_assignment_statement(assignment_definition = goal_definition, \
                 class_name = None, context = context)
             # no '?' symbols required in goal definition
             for index, pddl_str in enumerate(pddl_arr):
@@ -406,49 +414,22 @@ class Evans:
         ''' This procedure translate operator's effect into PDDL '''
         try:
             context = self.classes[class_name]['operators'][operator_name]['parameters']
-            return self.assignment_statement_to_pddl(assignment_definition = effect_definition, \
+            return self.parse_assignment_statement(assignment_definition = effect_definition, \
                 class_name = class_name, context = context)
         except Exception as err:
             raise Exception("ERROR processing operator effect: class " + class_name + ", operator " + operator_name + ' --- ' + str(err))
 
-    def assignment_statement_to_pddl(self, assignment_definition, class_name, context):
-        ''' This procedure converts operator assignment (effect) into PDDL formula.
-            Input:
-                - assignment from operator effect or auto goal (dict)
-                - class where operator is defined or None for goal (string)
-                - context where variables are defined (dict)
-            Output: PDDL formulae (list of strings)
-            Note: the calling procedure must handle exceptions
-        '''
-        try:
-            pddl_str = []
-            var_nm, param_nm, class_nm, assignment_value = \
-                self.parse_assignment_statement(assignment_definition, class_name, context)
-            var_type = self.classes[class_nm]['state'][var_nm]
-            if isinstance(var_type, str) and var_type.title() == 'Bool':
-                assignment_str = '(' + class_nm + '_' + var_nm + ' ?' + param_nm + ')'
-                if assignment_value.title() == 'False':
-                    assignment_str = '(not ' + assignment_str + ')'
-                pddl_str.append(assignment_str)
-            else:
-                for st_var_val in var_type:
-                    assignment_str = '(' + class_nm + '_' + var_nm + '_' + st_var_val + ' ?' + param_nm + ')'
-                    if st_var_val != assignment_value:
-                        assignment_str = '(not ' + assignment_str + ')'
-                    pddl_str.append(assignment_str)
-        except Exception as err:
-            raise err
-        return pddl_str
-
-    def parse_assignment_statement(self, assignment_definition, class_name, context):
+    def parse_assignment_statement(self, assignment_definition, class_name, context, output_format = 'pddl'):
         ''' This procedure parses operator's effect
             Input:
                 - assignment from operator effect or auto goal (dict)
                 - class where operator is defined or None for goal (string)
                 - context where variables are defined (dict)
-            Output: variable name, parameter name, class name, and value to assign (tuple)
+            Output: PDDL code or Python code, or both
             Note: the calling procedure must handle exceptions
         '''
+        pddl_code = []
+        python_code = []
         # assignment format: state_var: value (either Bool or inline enum item)
         if len(assignment_definition) > 1:
             raise Exception("Only one variable assignment per list item is supported")
@@ -467,13 +448,36 @@ class Evans:
                 (isinstance(assignment_value, bool) or assignment_value.title() in ['True', 'False']):
             if isinstance(assignment_value, bool):
                 assignment_value = str(assignment_value)
+            if output_format in ['pddl', 'all']:
+                assignment_str = '(' + class_nm + '_' + var_nm + ' ?' + param_nm + ')'
+                if assignment_value.title() == 'False':
+                    assignment_str = '(not ' + assignment_str + ')'
+                pddl_code.append(assignment_str)
+            if output_format in ['python', 'all']:
+                python_code.append(param_nm + '.state.' + var_nm + ' = ' + assignment_value)
         # ...or inline enum (where all values are explisitly listed in state variable definition)
         elif isinstance(var_type, list):
-            if assignment_value not in var_type:
-                raise Exception("Undefined value " + assignment_value + " is assigned on variable " + var_nm)
+            if output_format in ['pddl', 'all']:
+                if assignment_value in var_type:
+                    for st_var_val in var_type:
+                        assignment_str = '(' + class_nm + '_' + var_nm + '_' + st_var_val + ' ?' + param_nm + ')'
+                        if st_var_val != assignment_value:
+                            assignment_str = '(not ' + assignment_str + ')'
+                        pddl_code.append(assignment_str)
+                else:
+                    raise Exception("Undefined value " + assignment_value + " is assigned on variable " + var_nm)
+            if output_format in ['python', 'all']:
+                python_code.append(param_nm + '.state.' + var_nm + ' = "' + assignment_value + '"')
         else:
             raise Exception("Variable " + var_nm + " is not Bool, nor list type defined")
-        return (var_nm, param_nm, class_nm, assignment_value)
+        if output_format == 'pddl':
+            return pddl_code
+        elif output_format == 'python':
+            return python_code
+        elif output_format == 'all':
+            return {'python': python_code, 'pddl': pddl_code}
+        else:
+            raise Exception("Unknown output format: " + output_format)
 
     def operator_condition_to_pddl(self, condition_sting, class_name, operator_name):
         ''' This procedure translates operator condition (when) into PDDL '''
