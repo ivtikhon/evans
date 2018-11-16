@@ -120,40 +120,49 @@ class Evans:
                             raise Exception("ERROR: class " + cl_nm + \
                                 ", operator " + op_nm + " --- effect expected to be list type")
                         actions.append(':effect (and')
-                        for eff_def in op_def['effect']:
+                        indent = 1
+                        effect_list = op_def['effect'][:] # create a copy of effect definition
+                        for index, eff_def in enumerate(effect_list):
+                            # dict -> assignment
+                            # int -> indent
+                            # string -> PDDL condition
+                            if isinstance(eff_def, int):
+                                indent += eff_def
+                                continue
+                            elif isinstance(eff_def, str):
+                                actions.append(eff_def)
+                                continue
                             if any (cond_elem in eff_def for cond_elem in ['if', 'then', 'else']):
                                 # conditional assignment
                                 try:
                                     pddl_cond = self.effect_condition_to_pddl(condition_sting = eff_def['if'], \
                                         class_name = cl_nm, operator_name = op_nm)
-                                    actions.append('(when')
-                                    actions.append(pddl_cond)
-                                    # multi-level conditional expressions are not supported for now
-                                    if 'if' in eff_def['then'] or ('else' in eff_def and 'if' in eff_def['else']):
-                                        raise Exception("ERROR: class " + cl_nm + \
-                                            ", operator " + op_nm + " --- multilevel conditional statements not supported yet.")
-                                    actions.append('(and')
-                                    for cond_eff in eff_def['then']:
-                                        pddl_effect = self.operator_effect_to_pddl(effect_definition = cond_eff, \
-                                            class_name = cl_nm, operator_name = op_nm)
-                                        actions.extend(pddl_effect) # pddl_effect is an array of strings
-                                    actions.append('))')
+                                    # unfold condition body
+                                    then_list = eff_def['then'][:]
+                                    then_list.reverse()
+                                    effect_list.insert(index + 1, -1)
+                                    effect_list.insert(index + 1, '))')
+                                    for cond_eff in then_list:
+                                        effect_list.insert(index + 1, cond_eff)
+                                    effect_list.insert(index + 1, 1)
+                                    effect_list.insert(index + 1, '(when ' + pddl_cond + ' (and')
                                     if 'else' in eff_def:
-                                        actions.append('(when (not ')
-                                        actions.append(pddl_cond)
-                                        actions.append(')')
-                                        actions.append('(and')
-                                        for cond_eff in eff_def['else']:
-                                            pddl_effect = self.operator_effect_to_pddl(effect_definition = cond_eff, \
-                                                class_name = cl_nm, operator_name = op_nm)
-                                            actions.extend(pddl_effect)
-                                        actions.append('))')
+                                        # unfold condition alternative
+                                        effect_list.insert(index + 1, -1)
+                                        effect_list.insert(index + 1, '))')
+                                        else_list = eff_def['else'][:]
+                                        else_list.reverse()
+                                        for cond_eff in else_list:
+                                            effect_list.insert(index + 1, cond_eff)
+                                        effect_list.insert(index + 1, 1)
+                                        effect_list.insert(index + 1, '(when (not ' + pddl_cond + ') (and')
                                 except KeyError:
                                     raise Exception("ERROR: class " + cl_nm + \
-                                        ", operator " + op_nm + " --- conditional effect is expected to be in the if: ... then: ... else: format")
+                                        ", operator " + op_nm + " --- conditional effect is expected to be in the if-then-else format")
                             else:
                                 # unconditional assignment
                                 try:
+                                    indent = 1  # NOTE: remove this
                                     context = None
                                     if 'parameters' in op_def:
                                         context = op_def['parameters']
@@ -161,7 +170,7 @@ class Evans:
                                         class_name = cl_nm, context = context, output_format = 'all')
                                     actions.extend(assignment_code['pddl'])
                                     for python_code_line in assignment_code['python']:
-                                        python_functions.append('    ' + python_code_line)
+                                        python_functions.append('    ' * indent + python_code_line)
                                 except Exception as err:
                                     raise Exception("ERROR processing operator effect: class " + cl_nm + ", operator " + op_nm + ' --- ' + str(err))
                         actions.append(')')
@@ -482,7 +491,7 @@ class Evans:
     def operator_condition_to_pddl(self, condition_sting, class_name, operator_name):
         ''' This procedure translates operator condition (when) into PDDL '''
         try:
-            return self.conditional_statement_to_pddl(condition_sting = condition_sting,\
+            return self.parse_conditional_statement(condition_sting = condition_sting,\
                 class_name = class_name, context = self.classes[class_name]['operators'][operator_name]['parameters'])
         except Exception as err:
             raise Exception("ERROR processing operator condition: class " + class_name + ", operator " + operator_name + " --- " + str(err))
@@ -490,7 +499,7 @@ class Evans:
     def effect_condition_to_pddl(self, condition_sting, class_name, operator_name):
         ''' This procedure translates operator's effect condition into PDDL '''
         try:
-            return self.conditional_statement_to_pddl(condition_sting = condition_sting,\
+            return self.parse_conditional_statement(condition_sting = condition_sting,\
                 class_name = class_name, context = self.classes[class_name]['operators'][operator_name]['parameters'])
         except Exception as err:
             raise Exception("ERROR processing operator effect: class " + class_name + ", operator " + operator_name + " --- " + str(err))
@@ -498,14 +507,14 @@ class Evans:
     def goal_condition_to_pddl(self, condition_sting, auto_name):
         ''' This procedure translates goal condition into PDDL'''
         try:
-            pddl_str = self.conditional_statement_to_pddl(condition_sting = condition_sting,\
+            pddl_str = self.parse_conditional_statement(condition_sting = condition_sting,\
                 class_name = None, context = self.main['vars'])
             # no '?' symbols required in goal definition
             return pddl_str.replace('?', '')
         except Exception as err:
             raise Exception("ERROR processing goal condition: auto task " + auto_name + " --- " + str(err))
 
-    def conditional_statement_to_pddl(self, condition_sting, class_name, context):
+    def parse_conditional_statement(self, condition_sting, class_name, context, output_format = 'pddl'):
         ''' This procedure parses conditional statement (operator's when, effect condition, and auto's goal)
             and converts it into PDDL
             Input:
@@ -584,7 +593,7 @@ def btree_to_pddl (root):
             else:
                 cmp = cmp[1:-1]  # strp quotes from strings
             if cmp != None:
-                # add state variable name to predicate name
+                # add state to predicate name
                 if ' ?' in var:
                     predic, param = var.split(' ?', 1)
                     var = predic + '_' + cmp + ' ?' + param
