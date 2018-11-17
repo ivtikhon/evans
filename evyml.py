@@ -331,12 +331,19 @@ class Evans:
             objects = ['(:objects']
             init = ['(:init']
             goal = ['(:goal']
+            if 'vars' in self.debug_opt:
+                print("=== Vars ===")
             for obj in auto['objects']:
                 # generate list of object
                 class_nm = self.main['vars'][obj]
                 objects.append(obj + ' - ' + class_nm)
+                if 'vars' in self.debug_opt:
+                    print(obj + ':')
+                    print('  state:')
                 # initialize objects
                 for var_nm, var_val in self.main_vars[obj].state.__dict__.items():
+                    if 'vars' in self.debug_opt:
+                        print('    ' + var_nm + ': ' + str(var_val))
                     state_var_definition = self.classes[class_nm]['state'][var_nm]
                     if isinstance(state_var_definition, list): # inline enum
                         for state_var_val in state_var_definition:
@@ -387,6 +394,8 @@ class Evans:
                             line = line.decode().rstrip()
                             print(line)
                     if planner.returncode == 0: # planner generated a plan
+                        if 'plan' in self.debug_opt:
+                            print('=== Plan ==')
                         with open(self.planner['plan_file'], 'rt') as planfile:
                             for line in planfile:
                                 if line.startswith(';'):

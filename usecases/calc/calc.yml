@@ -115,10 +115,13 @@ classes:
           - k.isOp or k.isEq
           - not k.processed
         effect:
-          - k.processed: True
+          - if: k.isEq
+            then:
+              - k.processed: True
           - changed: True
           - a.reg_stored: False
           - tobe_cleaned: True
+          - a.op_executed: False
         exec:
           - clean:
           - pushReg: a
@@ -204,7 +207,7 @@ classes:
           - not isOpExecuted
         effect:
           - op_executed: True
-          - if: k.isEq
+          - if: k.isEq or k.isOp
             then:
               - op_stored: False
         exec:
