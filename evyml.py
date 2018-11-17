@@ -125,18 +125,37 @@ class Evans:
                         for index, eff_def in enumerate(effect_list):
                             # dict -> assignment
                             # int -> indent
-                            # string -> PDDL condition
+                            # tuple -> condition in PDDL and Python
+                            # str -> closing of PDDL condition body
                             if isinstance(eff_def, int):
                                 indent += eff_def
                                 continue
-                            elif isinstance(eff_def, str):
+                            elif isinstance(eff_def, tuple):
+                                actions.append(eff_def[0])
+                                python_functions.append('    ' * indent + eff_def[1])
+                                continue
+                            elif isinstance (eff_def, str):
                                 actions.append(eff_def)
                                 continue
                             if any (cond_elem in eff_def for cond_elem in ['if', 'then', 'else']):
                                 # conditional assignment
                                 try:
-                                    pddl_cond = self.effect_condition_to_pddl(condition_sting = eff_def['if'], \
-                                        class_name = cl_nm, operator_name = op_nm)
+                                    cond_context = None
+                                    if 'parameters' in op_def:
+                                        cond_context = op_def['parameters']
+                                    parsed_condition = self.parse_conditional_statement(condition_sting = eff_def['if'],\
+                                        class_name = cl_nm, context = cond_context, output_format = 'all')
+                                    # unfold condition alternative
+                                    if 'else' in eff_def:
+                                        effect_list.insert(index + 1, -1)
+                                        effect_list.insert(index + 1, '))')
+                                        else_list = eff_def['else'][:]
+                                        else_list.reverse()
+                                        for cond_eff in else_list:
+                                            effect_list.insert(index + 1, cond_eff)
+                                        effect_list.insert(index + 1, 1)
+                                        effect_list.insert(index + 1, ('(when (not ' + parsed_condition['pddl'] + ') (and', \
+                                            'else:'))
                                     # unfold condition body
                                     then_list = eff_def['then'][:]
                                     then_list.reverse()
@@ -145,24 +164,14 @@ class Evans:
                                     for cond_eff in then_list:
                                         effect_list.insert(index + 1, cond_eff)
                                     effect_list.insert(index + 1, 1)
-                                    effect_list.insert(index + 1, '(when ' + pddl_cond + ' (and')
-                                    if 'else' in eff_def:
-                                        # unfold condition alternative
-                                        effect_list.insert(index + 1, -1)
-                                        effect_list.insert(index + 1, '))')
-                                        else_list = eff_def['else'][:]
-                                        else_list.reverse()
-                                        for cond_eff in else_list:
-                                            effect_list.insert(index + 1, cond_eff)
-                                        effect_list.insert(index + 1, 1)
-                                        effect_list.insert(index + 1, '(when (not ' + pddl_cond + ') (and')
+                                    effect_list.insert(index + 1, ('(when ' + parsed_condition['pddl'] + ' (and', \
+                                        'if ' + parsed_condition['python'] + ':'))
                                 except KeyError:
                                     raise Exception("ERROR: class " + cl_nm + \
                                         ", operator " + op_nm + " --- conditional effect is expected to be in the if-then-else format")
                             else:
                                 # unconditional assignment
                                 try:
-                                    indent = 1  # NOTE: remove this
                                     context = None
                                     if 'parameters' in op_def:
                                         context = op_def['parameters']
@@ -516,12 +525,12 @@ class Evans:
 
     def parse_conditional_statement(self, condition_sting, class_name, context, output_format = 'pddl'):
         ''' This procedure parses conditional statement (operator's when, effect condition, and auto's goal)
-            and converts it into PDDL
+            and converts it into PDDL or Python, or both
             Input:
                 - condition (sting)
                 - class name (string): name of the class where operator is defined, or None, if this is goal's condition
                 - context reference (dict): reference to operator's parameters/main's vars
-            Output: PDDL formula
+            Output: PDDL formula or/and Python condition
             Note: the calling procedure must handle exceptions
         '''
         # parse logical expressions, expand predicates;
@@ -551,7 +560,21 @@ class Evans:
                     tokenized_expr.tokens[index] = '('+ ' '.join(tokenized_pr.tokens) + ')'
                 else:
                     raise Exception("Undefined state variable or predicate " + var_nm + " used in condition")
-        return btree_to_pddl(BooleanParser(' '.join(tokenized_expr.tokens)).root)
+        expression = ' '.join(tokenized_expr.tokens)
+        expression_python = None
+        expression_pddl = None
+        if output_format in ['python', 'all']:
+            expression_python = re.sub(r'\.[a-zA-Z]+[a-zA-Z0-9]*_', '.state.', expression) # replace class name to 'state' generating Python code
+        if output_format in ['pddl', 'all']:
+            expression_pddl = btree_to_pddl(BooleanParser(expression).root)
+        if output_format == 'pddl':
+            return expression_pddl
+        elif output_format == 'python':
+            return expression_python
+        elif output_format == 'all':
+            return {'python': expression_python, 'pddl': expression_pddl}
+        else:
+            raise Exception("Unknown output format: " + output_format)
 
 # Free procedures
 def usage ():
