@@ -209,7 +209,7 @@ class Evans:
                                         raise Exception("ERROR: class " + cl_nm + + \
                                             ", operator " + op_nm + " --- undefined variable in exec section: " + param)
                             python_functions.append(method_body + ')')
-                    else:
+                    elif 'effect' not in op_def or len(op_def['effect']) == 0:
                         python_functions.append('    pass')
             if 'attr' in cl_def or 'methods' in cl_def:
                 python_code.append('    class Attr:')
