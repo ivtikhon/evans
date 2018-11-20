@@ -3,23 +3,29 @@
 # Developed by Igor Tikhonin in 2018
 #
 # Model description:
+# =================
+# Calculator constists of the following parts:
+# - stack,
+# - arithmetic unit (ALU),
+# - display,
+# - keyboard.
+# Operations:
 # 1) when a digit or digital point button is pressed
-#    its value is pushed to stack and displayed;
+#    its value is pushed to the stack and displayed;
 # 2) when an operation button (+,-,/,*) is pressed, then:
-#    if the early entered operation value is empty
-#    store the operation to the early entered operation variable;
-#    else, perform operation as if '=' sign was pressed and then store the operation
-#    to the early entered operation variable;
-# 3) when the '=' sign is pressed,
-#    execute the early entered operation with stack and register,
-#    store the result to register and copy it to stack; clear
-#    early entered operation
+#    operation is stored to the ALU, or, if the alu store is not empty,
+#    the early entered operation is executed the same way if the equal sign
+#    is pressed, an then the current operation is stored to the alu;
+# 3) when the equal sign ('=') sign is pressed,
+#    the operation stored in alu is executed, using the stack and the register values as operands,
+#    and the result stored to register; the result is also copied to the stack and displayed;
+#    the alu store is cleared.
 
 classes:
   Stack:
     attr:
       s: list
-    methods:  # the actual methods should be written in Python for now;
+    methods:  # the actual methods should be written in Python;
               # after plan is created, the interpreter generates code and then executes it;
       pushKey:
         parameters:
@@ -41,7 +47,7 @@ classes:
         body: |
           self.s.clear()
     state:
-      last_key: ['digit', 'point']  # state variable with explisitly listed values (inline enum);
+      last_key: ['digit', 'point']  # state variable with explicitly listed values (inline enum);
                                     # 'undef' is the default value for enums
                                     # TODO: think how to declare other classes variables
       dec_point: Bool # False is the default value for Bool type
@@ -50,7 +56,6 @@ classes:
             # types of state variables so far:
             #   - inline enum
             #   - Bool
-            #   - Num (to be done)
     predicates: # predicates in Evans are equivalent to PDDL's derived predicates, i.e. read only, can't be used for assignments;
                 # TODO: predicates in PDDL can have multiple arguments;
                 #       in Evans this can be implemented the same way as parameters in operators
@@ -62,11 +67,10 @@ classes:
       isDecPoint: dec_point # synonym to dec_point == True
     operators: # actions in PDDL terms
       push:
-        parameters: # global variables are not supported, i.e. the variable scope is limitied
+        parameters: # there are no global variables in Evans, i.e. the variable scope is limitied
                     # by parameters and variables defined in classes;
                     # TODO: it is not clear how to implement PDDL operators 'forall' and 'exists';
                     #       think about using lists in state operators
-                    # TODO: think about PDDL's 'imply'
           k: Key
         when: # condition check; state variables can be used here as well as predicates
               # lists interpreted as conjuctions (and)
@@ -87,10 +91,10 @@ classes:
             else:
               - last_key: 'digit'
         exec: # TODO: effect might be conditional; think about conditional execution;
-              # exec section should have read access to state variables and full access to attributes
-          - pushKey: k  # data methods are called from here;
-                      # assignments, conditionals, loops, etc. are not supported for now;
-                      # TODO: should we be able to call other classes methods here?
+              #       exec section should have read access to state variables and full access to attributes
+          - pushKey: k # data methods are called from here;
+                       # assignments, conditionals, loops, etc. are not supported for now;
+                       # TODO: should we be able to call other classes methods here?
 
       clean:
         parameters:
@@ -271,11 +275,12 @@ classes:
           - showStack: s
 
 main:
-  #   - 'vars' section, where variables are declared
+  #   - 'vars' section for variable declaration
   #   - 'tasks' section:
   #       - code: here we initialize state variables and attributes;
   #       - auto: here we run planning and execution of the obtained plan
   #       TODO: think about recovery from unsuccessfull planning
+  #       TODO: think about interrupting plan execution and re-planning
   parameters:
     input_file: str
               # parameters of main are the program attributes,
