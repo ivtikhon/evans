@@ -13,13 +13,13 @@
 # 1) when a digit or digital point button is pressed
 #    its value is pushed to the stack and displayed;
 # 2) when an operation button (+,-,/,*) is pressed, then:
-#    operation is stored to the ALU, or, if the alu store is not empty,
-#    the early entered operation is executed the same way if the equal sign
-#    is pressed, an then the current operation is stored to the alu;
+#    operation is stored to the ALU, or, if the ALU store is not empty,
+#    the early entered operation is executed the same way as if the equal sign
+#    is pressed; then the current operation is stored to the ALU;
 # 3) when the equal sign ('=') sign is pressed,
 #    the operation stored in alu is executed, using the stack and the register values as operands,
 #    and the result stored to register; the result is also copied to the stack and displayed;
-#    the alu store is cleared.
+#    the ALU store is cleared.
 
 classes:
   Stack:

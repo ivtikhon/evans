@@ -27,9 +27,9 @@ classes:
       location: [sender_home, postal_box, in_transit, recipient_mailbox]
       status: [written, addressed, sealed, stamped, sent, received]
     attr:
-      content: List
-      source_address: String
-      destination_address: String
+      content: dict
+      source_address: str
+      destination_address: str
   ...
 ```
 
@@ -40,9 +40,9 @@ Attributes are object _characteristics_, such as size, shape, weight, length, co
 classes:
   cirle:
     attr:
-      radius: Number
-      color: String
-      coordinates: List
+      radius: int
+      color: str
+      coordinates: list
   ...
 ```
 
@@ -68,7 +68,7 @@ State variables can also be the Boolean type, i.e. has either True or False valu
 classes:
   car:
     state:
-      maintenance_required: Boolean
+      maintenance_required: Bool
       next_maintenance_in_days: Number
     operators:
       maintenance_signal:
@@ -76,7 +76,7 @@ classes:
           - not maintenance_required
           - next_maintenance_in_days < 15
         effect:
-          - maintenance_required = True
+          - maintenance_required: True
   ...
 ```
 
@@ -96,12 +96,12 @@ classes:
         when:
           - not val.processed
         effect:
-          - pointer = incremented
-          - val.processed = True
+          - pointer: incremented
+          - val.processed: True
 
   address:
     state:
-      processed: Boolean
+      processed: Bool
   ...
 ```
 
@@ -141,12 +141,12 @@ classes:
         when:
           - order == cooked
         effect:
-         - order = delivered
+         - order: delivered
       cook:
         when:
           - order == received
         effect:
-          - order = cooked
+          - order: cooked
   ...
 ```
 
@@ -175,7 +175,7 @@ classes:
           <code in Python>
       ...
     state:
-      <state variable name>: <Boolean|Number|list>
+      <state variable name>: <Bool|Number|list>
       ...
     predicates:
       <predicate name>: <logical formula>
@@ -189,15 +189,15 @@ classes:
           - <logical formula>
           ...
         effect:
-          - <state variable name>: <Boolean|Number|list>
+          - <state variable name>: <Bool|Number|list>
             ...
           # conditional effect
           - if: <logical formula>
             then:
-              - <state variable name>: <Boolean|value from list>
+              - <state variable name>: <Bool|value from list>
               ...
             else:
-              - <state variable name>: <Boolean|value from list>
+              - <state variable name>: <Bool|value from list>
               ...
         exec:
           # methods are called here
@@ -206,9 +206,13 @@ classes:
 ...
 ```
 ### Embedded classes
-* Boolean
-* Number
-* Char
-* String
-* List
-* Dict
+* state variables:
+  * bool
+  * number
+  * list
+* attributes:
+  * str
+  * list
+  * dict
+  * int
+  * float
