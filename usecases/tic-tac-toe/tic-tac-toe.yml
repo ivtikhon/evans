@@ -30,7 +30,7 @@ classes:
 
   Player:
     state:
-      designation: ['X', 'O']
+      designati- on: ['X', 'O']
 
 main:
   vars:
@@ -46,3 +46,5 @@ main:
           - player1
           - player2
           - grid
+        goal:
+          - grid.firstRowX
