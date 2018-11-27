@@ -1,4 +1,9 @@
 ---
+#
+#    0 | 1 | 2
+#    3 | 4 | 5
+#    6 | 7 | 8
+#
 classes:
   Grid:
     state:
@@ -30,7 +35,7 @@ classes:
 
   Player:
     state:
-      designati- on: ['X', 'O']
+      designation: ['X', 'O']
 
 main:
   vars:
@@ -47,4 +52,18 @@ main:
           - player2
           - grid
         goal:
-          - grid.firstRowX
+          - or:
+            - grid.g0: 'X'
+            - grid.g1: 'X'
+            - grid.g2: 'X'
+            - grid.g3: 'X'
+            - grid.g6: 'X'
+          - if: grid.g0 == 'X'
+            then:
+              - or:
+                - and:
+                    - grid.g3: 'X'
+                    - grid.g6: 'X'
+                - and:
+                    - grid.g4: 'X'
+                    - grid.g8: 'X'
