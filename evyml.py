@@ -123,21 +123,18 @@ class Evans:
                         indent = 1
                         effect_list = op_def['effect'][:] # create a copy of effect definition
                         for index, eff_def in enumerate(effect_list):
-                            # dict -> assignment
+                            # dict -> condition
                             # int -> indent
                             # tuple -> condition in PDDL and Python
-                            # str -> closing of PDDL condition body
+                            # str -> assignment or closing of PDDL condition body
                             if isinstance(eff_def, int):
                                 indent += eff_def
-                                continue
                             elif isinstance(eff_def, tuple):
                                 actions.append(eff_def[0])
                                 python_functions.append('    ' * indent + eff_def[1])
-                                continue
-                            elif isinstance (eff_def, str):
+                            elif isinstance (eff_def, str) and '=' not in eff_def:
                                 actions.append(eff_def)
-                                continue
-                            if any (cond_elem in eff_def for cond_elem in ['if', 'then', 'else']):
+                            elif isinstance (eff_def, dict):
                                 # conditional assignment
                                 try:
                                     cond_context = None
@@ -154,8 +151,8 @@ class Evans:
                                         for cond_eff in else_list:
                                             effect_list.insert(index + 1, cond_eff)
                                         effect_list.insert(index + 1, 1)
-                                        effect_list.insert(index + 1, ('(when (not ' + parsed_condition['pddl'] + ') (and', \
-                                            'else:'))
+                                        effect_list.insert(index + 1, ('(when (not ' + parsed_condition['pddl'] + \
+                                            ') (and', 'else:'))
                                     # unfold condition body
                                     then_list = eff_def['then'][:]
                                     then_list.reverse()
@@ -437,15 +434,6 @@ class Evans:
         except Exception as err:
             raise Exception("ERROR processing goal definition: auto task " + auto_name + ' --- ' + str(err))
 
-    def operator_effect_to_pddl(self, effect_definition, class_name, operator_name):
-        ''' This procedure translate operator's effect into PDDL '''
-        try:
-            context = self.classes[class_name]['operators'][operator_name]['parameters']
-            return self.parse_assignment_statement(assignment_definition = effect_definition, \
-                class_name = class_name, context = context)
-        except Exception as err:
-            raise Exception("ERROR processing operator effect: class " + class_name + ", operator " + operator_name + ' --- ' + str(err))
-
     def parse_assignment_statement(self, assignment_definition, class_name, context, output_format = 'pddl'):
         ''' This procedure parses operator's effect
             Input:
@@ -457,10 +445,18 @@ class Evans:
         '''
         pddl_code = []
         python_code = []
-        # assignment format: state_var: value (either Bool or inline enum item)
-        if len(assignment_definition) > 1:
-            raise Exception("Only one variable assignment per list item is supported")
-        unprocessed_var_nm = list(assignment_definition.keys())[0]
+        unprocessed_var_nm = None
+        assignment_value = None
+        # assignment format: state_var = value (either Bool or inline enum item)
+        if isinstance(assignment_definition, str) and '=' in assignment_definition:
+            unprocessed_var_nm, assignment_value = ''.join(assignment_definition.split()).split('=')
+            if (assignment_value.startswith("'") and assignment_value.endswith("'")) or \
+                    (assignment_value.startswith('"') and assignment_value.endswith('"')):
+                assignment_value = assignment_value[1:-1]
+            elif assignment_value.title() not in ['True', 'False']:
+                raise Exception("Only simple assignments supported for now: var = 'state', var = True/False; got this: " + assignment_definition)
+        else:
+            raise Exception("Wrong format of assignment statement: " + assignment_definition)
         var_nm, param_nm, class_nm = \
             var_to_canonical_form(variable_name = unprocessed_var_nm, \
                     context = context, class_name = class_name)
@@ -469,7 +465,6 @@ class Evans:
         if var_nm not in self.classes[class_nm]['state']:
             raise Exception("Undefined state variable " + var_nm + " used in assignment")
         var_type = self.classes[class_nm]['state'][var_nm] # state variable type
-        assignment_value = assignment_definition[unprocessed_var_nm] # value to be assigned to state variable
         # state variable type is either Bool...
         if isinstance(var_type, str) and var_type.title() == 'Bool' and \
                 (isinstance(assignment_value, bool) or assignment_value.title() in ['True', 'False']):
@@ -601,10 +596,12 @@ class Tokenizer:
     expression = None
     tokens = None
     tokenTypes = None
+    singleEq = None
     i = 0
 
-    def __init__(self, exp):
+    def __init__(self, exp, singleEq = False):
         self.expression = exp
+        self.singleEq = singleEq
         self.tokenize()
 
     def next(self):
@@ -627,8 +624,10 @@ class Tokenizer:
             or t == TokenType.EQ or t == TokenType.NEQ
 
     def tokenize(self):
-        import re
-        reg = re.compile(r'(\band\b|\bor\b|\bnot\b|!=|==|<=|>=|<|>|\(|\))')
+        pattern = r'(\band\b|\bor\b|\bnot\b|!=|==|<=|>=|<|>|\(|\))'
+        if self.singleEq:
+            pattern = r'(\band\b|\bor\b|\bnot\b|!=|=|<=|>=|<|>|\(|\))'
+        reg = re.compile(pattern)
         self.tokens = reg.split(self.expression)
         self.tokens = [t.strip() for t in self.tokens if t.strip() != '']
 
@@ -652,7 +651,7 @@ class Tokenizer:
                 self.tokenTypes.append(TokenType.GT)
             elif t == '>=':
                 self.tokenTypes.append(TokenType.GTE)
-            elif t == '==':
+            elif (self.singleEq == False and t == '==') or (self.singleEq == True and t == '='):
                 self.tokenTypes.append(TokenType.EQ)
             elif t == '!=':
                 self.tokenTypes.append(TokenType.NEQ)

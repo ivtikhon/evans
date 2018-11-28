@@ -82,14 +82,14 @@ classes:
                                 #       and with multiple parameters var.predicate(param1=val1, param2=val2)
           - not tobe_cleaned
         effect: # only simple assignments are supported; one assignment per list item
-          - changed: True
-          - k.processed: True
+          - changed = True
+          - k.processed = True
           - if: k.isPoint # one condition per list item
             then:
-              - last_key: 'point'
-              - dec_point: True
+              - last_key = 'point'
+              - dec_point = True
             else:
-              - last_key: 'digit'
+              - last_key = 'digit'
         exec: # TODO: effect might be conditional; think about conditional execution;
               #       exec section should have read access to state variables and full access to attributes
           - pushKey: k # data methods are called from here;
@@ -104,9 +104,9 @@ classes:
           - k.isDigit or k.isPoint
           - tobe_cleaned
         effect:
-          - tobe_cleaned: False
-          - dec_point: False
-          - last_key: 'digit'
+          - tobe_cleaned = False
+          - dec_point = False
+          - last_key = 'digit'
         exec:
           - clean:  # methods can be called with no parameters
 
@@ -121,11 +121,11 @@ classes:
         effect:
           - if: k.isEq
             then:
-              - k.processed: True
-          - changed: True
-          - a.reg_stored: False
-          - tobe_cleaned: True
-          - a.op_executed: False
+              - k.processed = True
+          - changed = True
+          - a.reg_stored = False
+          - tobe_cleaned = True
+          - a.op_executed = False
         exec:
           - clean:
           - pushReg: a
@@ -180,9 +180,9 @@ classes:
           - not reg_stored
           - isOpStored
         effect:
-          - reg_stored: True
-          - k.processed: True
-          - s.tobe_cleaned: True
+          - reg_stored = True
+          - k.processed = True
+          - s.tobe_cleaned = True
         exec:
           - storeReg: s
 
@@ -195,7 +195,7 @@ classes:
           - not reg_stored
           - not k.processed
         effect:
-          - op_stored: True
+          - op_stored = True
         exec:
           - storeOp: k
 
@@ -210,10 +210,10 @@ classes:
           - not k.processed
           - not isOpExecuted
         effect:
-          - op_executed: True
+          - op_executed = True
           - if: k.isEq or k.isOp
             then:
-              - op_stored: False
+              - op_stored = False
         exec:
           - execOp: s
 
@@ -248,7 +248,7 @@ classes:
           - isPoint
           - s.isDecPoint
         effect:
-          - processed: True
+          - processed = True
 
   Display:
     methods:
@@ -269,8 +269,8 @@ classes:
           - k.processed
           - s.changed
         effect:
-          - updated: True
-          - s.changed: False
+          - updated = True
+          - s.changed = False
         exec:
           - showStack: s
 
@@ -326,8 +326,8 @@ main:
             - display1
             - alu1
           goal:
-            - key1.processed: True
+            - key1.processed = True
             - if: stack1.changed
               then:
-                - display1.updated: True
+                - display1.updated = True
       # - break:
