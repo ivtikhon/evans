@@ -437,7 +437,7 @@ class Evans:
     def parse_assignment_statement(self, assignment_definition, class_name, context, output_format = 'pddl'):
         ''' This procedure parses operator's effect
             Input:
-                - assignment from operator effect or auto goal (dict)
+                - assignment from operator effect or auto goal (string)
                 - class where operator is defined or None for goal (string)
                 - context where variables are defined (dict)
             Output: PDDL code or Python code, or both
@@ -449,14 +449,13 @@ class Evans:
         assignment_value = None
         # assignment format: state_var = value (either Bool or inline enum item)
         if isinstance(assignment_definition, str) and '=' in assignment_definition:
-            unprocessed_var_nm, assignment_value = ''.join(assignment_definition.split()).split('=')
-            if (assignment_value.startswith("'") and assignment_value.endswith("'")) or \
-                    (assignment_value.startswith('"') and assignment_value.endswith('"')):
-                assignment_value = assignment_value[1:-1]
-            elif assignment_value.title() not in ['True', 'False']:
+            tokenized_expr = Tokenizer(assignment_definition, singleEq = True)
+            if len(tokenized_expr.tokens) < 3 or len(tokenized_expr.tokens) > 3 or tokenized_expr.tokens[1] != '=':
                 raise Exception("Only simple assignments supported for now: var = 'state', var = True/False; got this: " + assignment_definition)
+            unprocessed_var_nm = tokenized_expr.tokens[0]
+            assignment_value = tokenized_expr.tokens[2]
         else:
-            raise Exception("Wrong format of assignment statement: " + assignment_definition)
+            raise Exception("Unrecognized format of assignment statement: " + assignment_definition)
         var_nm, param_nm, class_nm = \
             var_to_canonical_form(variable_name = unprocessed_var_nm, \
                     context = context, class_name = class_name)
@@ -479,6 +478,11 @@ class Evans:
                 python_code.append(param_nm + '.state.' + var_nm + ' = ' + assignment_value)
         # ...or inline enum (where all values are explisitly listed in state variable definition)
         elif isinstance(var_type, list):
+            if (assignment_value.startswith('"') and assignment_value.endswith('"')) or \
+                    (assignment_value.startswith("'") and assignment_value.endswith("'")):
+                assignment_value = assignment_value[1:-1]
+            else:
+                raise Exception("Only simple assignments supported for now: var = 'state', var = True/False; got this: " + assignment_definition)
             if output_format in ['pddl', 'all']:
                 if assignment_value in var_type:
                     for st_var_val in var_type:
