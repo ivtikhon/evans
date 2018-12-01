@@ -26,6 +26,7 @@ class Evans:
     evymlib = None
     tempdir = None
     module_dir = None
+    pddl_dir = None
     planner = None
     var_ref = None
     tasks_max_depth = None
@@ -40,7 +41,7 @@ class Evans:
         self.tempdir = '/tmp'
         self.planner['path'] = '/opt/fast-downward/fast-downward.py'
         self.planner['options'] = '--evaluator "hff=ff()" --search "lazy_greedy([hff], preferred=[hff])"'
-        self.planner['plan_file'] = '/tmp/sas_plan'
+        self.planner['plan_file'] = 'sas_plan'
         self.var_ref = 'ref::'
         self.tasks_max_depth = 50
         self.evymlib_module = 'evymlib'
@@ -373,51 +374,51 @@ class Evans:
                     goal.extend(self.goal_definition_to_pddl(goal_item, auto['name']))
             body = problem + objects + [')'] + init +[')'] + goal + [')))']
             # create PDDL problem file
-            with tempfile.NamedTemporaryFile(mode='w+t', prefix='pddl-problem-', dir=self.tempdir, delete=False) as fp:
-                problem_file_name = fp.name
-                fp.write('\n'.join(body))
-                fp.close()
-                if 'pddl_problem' in self.debug_opt:
-                    print('=== PDDL problem ===')
-                    print('\n'.join(body))
-                # call PDDL planner
-                args = self.planner['path'] + ' ' + os.path.basename(self.domain_file_name) + \
-                    ' ' + os.path.basename(problem_file_name) + ' ' + self.planner['options']
-                with subprocess.Popen(args, cwd=self.tempdir, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as planner:
-                    planner.wait()
-                    if 'planner_stdout' in self.debug_opt:
-                        print('=== Planner output ===')
-                        for line in planner.stdout:
-                            line = line.decode().rstrip()
-                            print(line)
-                    if planner.returncode == 0: # planner generated a plan
-                        if 'plan' in self.debug_opt:
-                            print('=== Plan ==')
-                        with open(self.planner['plan_file'], 'rt') as planfile:
-                            for line in planfile:
-                                if line.startswith(';'):
-                                    continue
-                                if 'plan' in self.debug_opt:
-                                    print(line.rstrip()[1:-1])
-                                func_and_params = line.rstrip()[1:-1].split(' ')
-                                func_name = func_and_params[0]
-                                cl_name, sep, op_name = func_name.partition('_')
-                                # recover class name from operator name
-                                for cls in self.classes.keys():
-                                    if cl_name.lower() == cls.lower():
-                                        cl_name = cls
-                                        break
-                                func = getattr(self.evymlib, func_name)
-                                func_param = {}
-                                for index, param in enumerate(func_and_params[1:]):
-                                    param_nm = self.classes[cl_name]['operators'][op_name]['param_by_number'][index]
-                                    func_param[param_nm] = self.main_vars[param]
-                                func(**func_param)
-                    else:
-                        raise Exception("FAILURE: PDDL planner found no solution for task auto " + auto['name'])
-                # clean up
-                os.remove(problem_file_name)
-                subprocess.run([self.planner['path'], '--cleanup'], cwd=self.tempdir)
+            problem_file_name = str(uuid.uuid1())
+            problemfl = open(self.pddl_dir + '/' + problem_file_name, mode='w+t')
+            problemfl.write('\n'.join(body))
+            problemfl.close()
+            if 'pddl_problem' in self.debug_opt:
+                print('=== PDDL problem ===')
+                print('\n'.join(body))
+            # call PDDL planner
+            args = self.planner['path'] + ' ' + self.domain_file_name + ' ' + problem_file_name + ' ' + self.planner['options']
+            with subprocess.Popen(args, cwd=self.pddl_dir, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as planner:
+                planner.wait()
+                if 'planner_stdout' in self.debug_opt:
+                    print('=== Planner output ===')
+                    for line in planner.stdout:
+                        line = line.decode().rstrip()
+                        print(line)
+                if planner.returncode == 0: # planner generated a plan
+                    if 'plan' in self.debug_opt:
+                        print('=== Plan ==')
+                    # execute plan
+                    with open(self.pddl_dir + '/' + self.planner['plan_file'], 'rt') as planfile:
+                        for line in planfile:
+                            if line.startswith(';'):
+                                continue
+                            if 'plan' in self.debug_opt:
+                                print(line.rstrip()[1:-1])
+                            func_and_params = line.rstrip()[1:-1].split(' ')
+                            func_name = func_and_params[0]
+                            cl_name, sep, op_name = func_name.partition('_')
+                            # get class name from operator name
+                            for cls in self.classes.keys():
+                                if cl_name.lower() == cls.lower():
+                                    cl_name = cls
+                                    break
+                            func = getattr(self.evymlib, func_name)
+                            func_param = {}
+                            for index, param in enumerate(func_and_params[1:]):
+                                param_nm = self.classes[cl_name]['operators'][op_name]['param_by_number'][index]
+                                func_param[param_nm] = self.main_vars[param]
+                            func(**func_param)
+                else:
+                    raise Exception("FAILURE: PDDL planner found no solution for task auto " + auto['name'])
+            # clean up
+            os.remove(problemfl.name)
+            subprocess.run([self.planner['path'], '--cleanup'], cwd=self.pddl_dir)
         except KeyError:
             raise Exception("ERROR: auto section in main tasks should contain objects and goal definitions.")
 
@@ -770,7 +771,7 @@ class BooleanParser:
 # Free procedures
 def usage ():
     '''This is just usage message'''
-    print ('evyml2pddl.py [-h | --help] [-d <debug options> | --output=<debug options>] input_file.yml')
+    print ('evyml2pddl.py [-h | --help] [-d <debug options> | --debug=<debug options>] input_file.yml')
 
 def btree_to_pddl (root):
     ''' This procedure translates logical expression, supplied in a form of binary tree,
@@ -881,21 +882,23 @@ def main (argv):
                 evyml.debug_opt = debug
             # parse classes
             evyml.parse_classes()
-            # create temp directory for dynamically generated modules
+            # create temp directories for dynamically generated files
             moddir = tempfile.TemporaryDirectory(prefix=evyml.evymlib_module + '-', dir=evyml.tempdir)
             evyml.module_dir = moddir.name
             # create Evymlib module
             codefl = open(evyml.module_dir + '/' + evyml.evymlib_module +'.py', mode='w+t')
             codefl.write('\n'.join(evyml.evymlib_code))
             codefl.close()
+            pddldir = tempfile.TemporaryDirectory(prefix='evpddl-', dir=evyml.tempdir)
+            evyml.pddl_dir = pddldir.name
+            # create PDDL domain file
+            evyml.domain_file_name = str(uuid.uuid1())
+            domainfl = open(evyml.pddl_dir + '/' + evyml.domain_file_name, mode='w+t')
+            domainfl.write('\n'.join(evyml.pddl_domain))
+            domainfl.close()
             # import Evymlib module
             sys.path.append(evyml.module_dir)
             evyml.evymlib = importlib.import_module(evyml.evymlib_module)
-            # create PDDL domain file
-            domainfl = tempfile.NamedTemporaryFile(mode='w+t', prefix='pddl-domain-', dir=evyml.tempdir, delete=False)
-            evyml.domain_file_name = domainfl.name
-            domainfl.write('\n'.join(evyml.pddl_domain))
-            domainfl.close()
             if 'pddl_domain' in evyml.debug_opt:
                 print('\n'.join(evyml.pddl_domain))
             # parse & execute main
@@ -914,8 +917,8 @@ def main (argv):
             except KeyError:
                 raise Exception("ERROR: main should contain tasks and vars definitions.")
             # clean up
-            os.remove(domainfl.name)
             moddir.cleanup()
+            pddldir.cleanup()
         except yaml.YAMLError as exc:
             print(exc)
             sys.exit(2)
