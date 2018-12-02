@@ -52,18 +52,7 @@ main:
           - player2
           - grid
         goal:
-          - or:
-            - grid.g0: 'X'
-            - grid.g1: 'X'
-            - grid.g2: 'X'
-            - grid.g3: 'X'
-            - grid.g6: 'X'
+          - grid.g0 = 'X' or grid.g1 = 'X' or grid.g2 = 'X' or grid.g3 = 'X' or grid.g6 = 'X'
           - if: grid.g0 == 'X'
             then:
-              - or:
-                - and:
-                    - grid.g3: 'X'
-                    - grid.g6: 'X'
-                - and:
-                    - grid.g4: 'X'
-                    - grid.g8: 'X'
+              - (grid.g3 = 'X' and grid.g6 = 'X') or (grid.g4 = 'X' and grid.g8 = 'X')
