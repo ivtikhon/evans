@@ -879,7 +879,7 @@ def main (argv):
                 raise Exception("ERROR: no 'tasks' section found in 'main'.")
             evyml = Evans(code['classes'], code['main'])
             if debug != None:
-                evyml.debug_opt = debug
+                evyml.debug_opt.extend(debug.split(','))
             # parse classes
             evyml.parse_classes()
             # create temp directories for dynamically generated files
