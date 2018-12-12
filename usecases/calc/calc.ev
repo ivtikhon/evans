@@ -1,0 +1,103 @@
+# First attempt to write code in Evans
+
+class stack {
+  attr:list:s
+  state:list:last_key = ('digit' = default, 'point') # 'undef' is the default value, unless specified
+  state:bool:dec_point = (false) # false is the default value for boolean type
+  state:bool:changed = ()
+  state:bool:tobe_cleaned # uninitialized variable
+
+  func init() {  # constructor has full access to all attributes
+    s:append('0')
+    tobe_cleaned = (false)  # false is the default value, so initialization here is redundant
+  }
+
+  func push_key(key.k) { # functions have access to all attributes, except the state ones
+    s:append(k:get_value())
+  }
+
+  func push_reg(alu.a) {
+    s:extend(str(a:get_reg()):split())
+  }
+
+  func getValue():str {
+    return ''.join(self.s);
+  }
+
+  func clean() {
+    s.clear();
+  }
+
+  pred {
+    is_last_key_digit: (last_key == 'digit');
+    is_last_key_point: (last_key == 'point');
+    is_dec_point: (dec_point);
+  }
+
+  oper push (key k):
+    when {  # when and effect parts of operators have direct access to state variables, and no access to any other attributes
+      not changed &&
+      not k.processed &&
+      (k.isDigit || (k.k_val == 'point' and not dec_point))
+    }
+    effect {
+      changefd = True
+      k.processed = True
+      if (k.isPoint) {
+        last_key = 'point'
+        dec_point = True
+      } else {
+        last_key = 'digit'
+      }
+    }
+    exec {  # exec part of operators have read access to state variables via @ and direct access to any other attributes
+      pushKey(k)
+      # if (@s == 'smth') {;#smth else}
+    }
+
+  clean(key k):
+    when {
+      not k.processed &&
+      (k.isDigit or k.isPoint) &&
+      tobe_cleaned
+    }
+    effect{
+      tobe_cleaned = False;
+      dec_point = False;
+      last_key = 'digit';
+    }
+    exec{
+      clean()
+    }
+
+  copy_from_register(key k, alu a):
+    when {
+      a.isOpExecuted &&
+      (k.isOp or k.isEq) &&
+      not k.processed
+    }
+    effect:
+      if (k.isEq) {
+        k.processed = True;
+        changed = True;
+        a.reg_stored = False;
+        tobe_cleaned = True;
+        a.op_executed = False;
+      }
+    exec {
+      clean();
+      pushReg(a);
+    }
+}
+
+class alu {
+  attr {
+    reg: num
+    op: str
+  }
+  state {
+    reg_stored: bool
+    op_executed: bool
+    op_stored: bool
+  }
+}
