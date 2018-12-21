@@ -136,10 +136,9 @@ class alu {
     k.isOp and
     not reg_stored and
     not k.processe
-   ){
-      op_stored = True
-      exec: storeOp(k)
-    }
+  ){
+    op_stored = True
+    exec: storeOp(k)
   }
 
   oper exec_op(k: key, s: Stack)(
