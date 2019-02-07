@@ -11,24 +11,22 @@ file
     ;
 
 classDefinition
-    : CLASS NL* ID NL* '{' NL* classBody? NL* '}' NL*
+    : CLASS ID '{' classBody? '}'
     ;
 
 classBody
-    : attributeDefinition
+    : ( attributeDefinition
+    | stateDefinition
     | constructorDefinition
     | functionDefinition
     | predicateDefinition
-    | operatorDefiniton
+    | operatorDefiniton )
     ;
 
 ID  : LETTER (LETTER | [0-9])* ;
 
-fragment
-LETTER : [a-zA-Z] ;
+fragment LETTER : [a-zA-Z] ;
 
-CLASS: 'class';
+CLASS : 'class';
 
-NL: '\n' | '\r' '\n'? ;
-
-WS: [ \t]+ -> skip ;
+WS: [ \t\r\n]+ -> skip ;

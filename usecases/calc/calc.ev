@@ -1,155 +1,106 @@
-# First attempt to write code in Evans
+# Simple calculator in Evans
+# Developed by Igor Tikhonin in 2019
+#
+# Model description:
+# =================
+# Calculator consists of the following parts:
+# - stack,
+# - arithmetic unit (ALU),
+# - display,
+# - keyboard.
+# Operations:
+# 1) when a digit or digital point button is pressed
+#    its value is pushed to the stack and displayed;
+# 2) when an operation button (+,-,/,*) is pressed, then:
+#    operation is stored to the ALU, or, if the ALU store is not empty,
+#    the early entered operation is executed the same way as if the equal sign
+#    is pressed; then the current operation is stored to the ALU;
+# 3) when the equal sign ('=') sign is pressed,
+#    the operation stored in alu is executed, using the stack and the register values as operands,
+#    and the result stored to register; the result is also copied to the stack and displayed;
+#    the ALU store is cleared.
 
-class stack { # namespace for both attributes and state variables is the same,
-              # i.e. names of attributes and state variables can't be the same
-  attr s:list
 
-  state {
-    last_key:list = ('digit' = default, 'point') # 'undef' is the default value, unless specified
-    dec_point = bool(false)
-    changed:bool = () # false is the default value for boolean type
-    tobe_cleaned:bool # uninitialized state variable
-  }
+class stack { # attributes and state variables share the same namespace within class
+  attr:
+    list s;
+  state:
+    list last_key = ('digit' = default, 'point'); # 'undef' is the default value, unless specified
+    bool dec_point, changed = false;
+    bool tobe_cleaned; # uninitialized state variable; bool variables are initialized to false by default
 
-  init stack() {  # constructor has full access to all attributes
-    s.append('0')
-    tobe_cleaned = (false)  # false is the default value, so initialization here is redundant
-  }
-
-  func push_key(key k) { # functions have access to all attributes, except the state ones
-    s.append(k.get_value())
-  }
-
-  func push_reg(alu a) {
-    s.extend(str(a.get_reg()).split())
-  }
-
-  func getValue()(str): str('').join(s)  # return value type is in round brackets (str): colon implies a simple, one line function
-
-  func clean(): s.clear()
-
-  pred is_last_key_digit(): (last_key == 'digit') # predicates have read-only access to state variables; predicates return boolean
-  pred is_last_key_point(): (last_key == 'point')
-  pred is_dec_point(): (dec_point)
-
-  oper push (key k)( # condition
-    not changed and
-    not k.processed and
-    (k.is_digit or (k.k_val == 'point' and not dec_point))
-  ){
-    changed = True
-    k.processed = True
-    if (k.is_point) {
-      last_key = 'point'
-      dec_point = True
-    } else {
-      last_key = 'digit'
+  init: # there might be multiple constructors
+    stack() {  # constructor has full access to all attributes
+      s.append('0');
+      tobe_cleaned = false  # false is the default value, i.e. initialization here is redundant
+                            # last semicolon can be omitted
     }
-    exec: push_key(k)
-  }
 
-  oper clean(key k)(
-    not k.processed and
-    (k.is_digit or k.is_point) and
-    tobe_cleaned
-  ){
-    tobe_cleaned = False
-    dec_point = False
-    last_key = 'digit'
-    exec: clean()
-  }
-
-  oper copy_from_register(key k, alu a)(
-    a.is_op_executed and
-    (k.is_op or k.is_eq) and
-    not k.processed
-  ){
-    if (k.is_eq) {
-      k.processed = True
-      changed = True
-      a.reg_stored = False
-      tobe_cleaned = True
-      a.op_executed = False
+  func:
+    push_key(key k) { # functions have access to attributes, but not to the state variables
+      s.append(k.get_value())
     }
-    exec {
-      clean()
-      push_reg(a)
+
+    push_reg(alu a) {
+      s.extend(str(a.get_reg()).split())
     }
-  }
-}
 
-class alu {
-  attr reg:number
-  attr op:str
-  state {
-    reg_stored: bool
-    op_executed: bool
-    op_stored: bool
-  }
+    str getValue(){ ret ''.join(s) }
 
-  init alu (){
-    reg = 0
-    op = ('')
-    reg_stored: = ()
-    op_executed = ()
-    op_stored = ()
-  }
+    clean(){ s.clear() }
 
-  func getReg()num: return self.reg
+  pred:
+    is_last_key_digit(){ ret (last_key == 'digit') } # predicates have read-only access to state variables; predicates always return bool
+    is_last_key_point(){ ret (last_key == 'point') }
+    is_dec_point(){ ret (dec_point) }
 
-  func store_reg(s: stack): self.reg = float(s.getValue())
+  oper:
+    push (key k) {
+      precond:
+        not changed and
+        not k.processed and
+        (k.is_digit or (k.k_val == 'point' and not dec_point))
+      eff:
+        changed = true;
+        k.processed = true;
+        if (k.is_point) {
+          last_key = 'point';
+          dec_point = true;
+        } else {
+          last_key = 'digit'
+        }
+      exec:
+        push_key(k);
+    }
 
-  func storeOp(k: key): self.op = k.getValue()
+    clean(key k){
+      precond:
+        not k.processed and
+        (k.is_digit or k.is_point) and
+        tobe_cleaned
+      eff:
+        tobe_cleaned = false;
+        dec_point = false;
+        last_key = 'digit';
+      exec:
+        clean();
+    }
 
-  func execOp(s: stack){
-    st1 = float(s.getValue())
-    if (self.op == '+'):
-      self.reg += st1
-    elif (self.op == '-'):
-      self.reg -= st1
-    elif (self.op == '*'):
-      self.reg *= st1
-    elif (self.op == '/'):
-      self.reg /= st1
-  }
-
-  pred {
-    is_op_executed: (op_executed == True)
-    is_op_stored: (op_stored == True)
-    is_reg_stored: (reg_stored == True)
-  }
-
-  oper stack_to_register(k: key, s: stack)(
-    not k.processed and
-    k.isOp and
-    not reg_stored and
-    isOpStored
-  ){
-    reg_stored = True
-    k.processed = True
-    s.tobe_cleaned = True
-    exec: storeReg(s)
-  }
-
-  oper store_op(k: key)(
-    not isOpStored and
-    k.isOp and
-    not reg_stored and
-    not k.processe
-  ){
-    op_stored = True
-    exec: storeOp(k)
-  }
-
-  oper exec_op(k: key, s: Stack)(
-    isOpStored and
-    (k.isOp or k.isEq) and
-    (isRegStored) and
-    (not k.processed) and
-    (not isOpExecuted)
-  ){
-      op_executed = True
-      if (k.isEq or k.is_p): op_stored = False
-      exec: exec_op(s)
+  oper copy_from_register(key k, alu a){
+    precond:
+      a.is_op_executed and
+      (k.is_op or k.is_eq) and
+      not k.processed
+    eff:
+      if (k.is_eq) {
+        k.processed = True;
+        changed = True;
+        a.reg_stored = False;
+        tobe_cleaned = True;
+        a.op_executed = False
+      }
+    exec:
+      clean();
+      push_reg(a);
   }
 }
