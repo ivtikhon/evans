@@ -32,8 +32,7 @@ class stack { # attributes and state variables share the same namespace within c
   init: # there might be multiple constructors
     stack() {  # constructor has full access to all attributes
       s.append('0');
-      tobe_cleaned = false  # false is the default value, i.e. initialization here is redundant
-                            # last semicolon can be omitted
+      tobe_cleaned = false;  # false is the default value, i.e. initialization here is redundant
     }
 
   func:
@@ -45,7 +44,7 @@ class stack { # attributes and state variables share the same namespace within c
       s.extend(str(a.get_reg()).split())
     }
 
-    str getValue(){ ret ''.join(s) }
+    getValue():str { ret ''.join(s) }
 
     clean(){ s.clear() }
 
@@ -86,21 +85,21 @@ class stack { # attributes and state variables share the same namespace within c
         clean();
     }
 
-  oper copy_from_register(key k, alu a){
-    precond:
-      a.is_op_executed and
-      (k.is_op or k.is_eq) and
-      not k.processed
-    eff:
-      if (k.is_eq) {
-        k.processed = True;
-        changed = True;
-        a.reg_stored = False;
-        tobe_cleaned = True;
-        a.op_executed = False
-      }
-    exec:
-      clean();
-      push_reg(a);
-  }
+    oper copy_from_register(key k, alu a){
+      precond:
+        a.is_op_executed and
+        (k.is_op or k.is_eq) and
+        not k.processed
+      eff:
+        if (k.is_eq) {
+          k.processed = True;
+          changed = True;
+          a.reg_stored = False;
+          tobe_cleaned = True;
+          a.op_executed = False
+        }
+      exec:
+        clean();
+        push_reg(a);
+    }
 }
