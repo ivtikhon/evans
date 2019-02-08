@@ -32,7 +32,7 @@ stateDeclaration
     ;
 
 varDeclaration
-    : embeddedType ID ('=' expression)?
+    : genType ID ('=' expression)?
     ;
 
 multiVarDeclaration
@@ -41,6 +41,36 @@ multiVarDeclaration
 
 constructorDeclaration
     : INIT ':' methodDeclaration+
+    ;
+
+functionDeclaration
+    : FUNC ':' methodDeclaration+
+    ;
+
+methodDeclaration
+    : ID '(' methodParameters ')' (':' returnType )? genCodeBlock
+    ;
+
+genCodeBlock
+    : '{' blockStatement* '}'
+    ;
+
+blockStatement
+    : varDeclaration
+    | genStatement
+    ;
+
+returnType
+    : genType
+    ;
+
+genType
+    : embeddedType
+    | classType
+    ;
+
+classType
+    : ID
     ;
 
 // Embedded types
@@ -60,6 +90,7 @@ CLASS : 'class' ;
 ATTR  : 'attr' ;
 STATE : 'state' ;
 INIT  : 'init' ;
+FUNC  : 'func' ;
 
 // Embedded types
 LIST : 'list' ;
