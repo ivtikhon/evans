@@ -24,19 +24,15 @@ classBody
     ;
 
 attributeDeclaration
-    : ATTR ':' multiVarDeclaration+
+    : ATTR ':' varDeclaration+
     ;
 
 stateDeclaration
-    : STATE ':' multiVarDeclaration+
+    : STATE ':' varDeclaration+
     ;
 
 varDeclaration
-    : genType ID ('=' expression)?
-    ;
-
-multiVarDeclaration
-    : varDeclaration (, varDeclaration)? ';'
+    : genType ID ('=' genExpression)? (',' ID ('=' genExpression)? )* ';'
     ;
 
 constructorDeclaration
@@ -58,6 +54,32 @@ genCodeBlock
 blockStatement
     : varDeclaration
     | genStatement
+    | genAssignment
+    ;
+
+genStatement
+    : 'if' '(' genCondition ')' genCodeBlock ('else' genCodeBlock)?
+    | 'for' '(' forControl ')' genCodeBlock
+    | 'while' '(' whileControl ')' genCodeBlock
+    | 'ret' (genExpression)? ';'
+    | ('break' | 'cont') ';'
+    ;
+
+genAssignment
+    : ID ('.' ID)* '=' genExpression ';'
+    ;
+
+genExpression
+    : '(' genExpression ')'
+    | genLiteral
+    | ID ('.' ID)*
+    | methodCall
+    | '(' genType ')' genExpression
+    | genExpression ('++' | '--')
+    | ('+'|'-'|'++'|'--') genExpression
+    | genExpression ('*'|'/'|'%') genExpression
+    | genExpression ('+'|'-') genExpression
+
     ;
 
 returnType
