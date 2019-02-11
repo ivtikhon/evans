@@ -58,11 +58,11 @@ blockStatement
     ;
 
 genStatement
-    : 'if' '(' genCondition ')' genCodeBlock ('else' genCodeBlock)?
-    | 'for' '(' forControl ')' genCodeBlock
-    | 'while' '(' whileControl ')' genCodeBlock
-    | 'ret' (genExpression)? ';'
-    | ('break' | 'cont') ';'
+    : IF '(' genCondition ')' genCodeBlock ('else' genCodeBlock)?
+    | FOR '(' forControl ')' genCodeBlock
+    | WHILE '(' whileControl ')' genCodeBlock
+    | RET genExpression? ';'
+    | (BREAK | CONT) ';'
     ;
 
 genAssignment
@@ -72,14 +72,22 @@ genAssignment
 genExpression
     : '(' genExpression ')'
     | genLiteral
-    | ID ('.' ID)*
+    | ID
+    | genExpression '.' (ID | methodCall)
     | methodCall
     | '(' genType ')' genExpression
     | genExpression ('++' | '--')
     | ('+'|'-'|'++'|'--') genExpression
     | genExpression ('*'|'/'|'%') genExpression
     | genExpression ('+'|'-') genExpression
+    ;
 
+methodCall
+    : ID '(' expressionList? ')'
+    ;
+
+expressionList
+    : genExpression (',' genExpression)*
     ;
 
 returnType
@@ -90,6 +98,16 @@ genType
     : embeddedType
     | classType
     ;
+
+genLiteral
+    : DECIMAL_LITERAL
+    | FLOAT_LITERAL
+    | CHAR_LITERAL
+    | STRING_LITERAL
+    | BOOL_LITERAL
+    | NULL_LITERAL
+    ;
+
 
 classType
     : ID
@@ -113,6 +131,13 @@ ATTR  : 'attr' ;
 STATE : 'state' ;
 INIT  : 'init' ;
 FUNC  : 'func' ;
+IF    : 'if' ;
+ELSE  : 'else' ;
+FOR   : 'for' ;
+WHILE : 'while' ;
+RET   : 'ret' ;
+BREAK : 'break' ;
+CONT  : 'cont' ;
 
 // Embedded types
 LIST : 'list' ;
