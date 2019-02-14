@@ -63,18 +63,19 @@ genStatement
     | WHILE '(' whileControl ')' genCodeBlock
     | RET genExpression? ';'
     | (BREAK | CONT) ';'
+    | (genExpression '.')? methodCall ';'
     ;
 
 genAssignment
-    : ID ('.' ID)* '=' genExpression ';'
+    : ID ('.' ID)* ('=' | '+=' | '-=' | '*=' | '/=' | '%=') genExpression ';'
     ;
 
 genExpression
     : '(' genExpression ')'
     | genLiteral
     | ID
-    | genExpression '.' (ID | methodCall)
     | methodCall
+    | genExpression '.' (ID | methodCall)
     | '(' genType ')' genExpression
     | genExpression ('++' | '--')
     | ('+'|'-'|'++'|'--') genExpression
@@ -102,12 +103,9 @@ genType
 genLiteral
     : DECIMAL_LITERAL
     | FLOAT_LITERAL
-    | CHAR_LITERAL
     | STRING_LITERAL
     | BOOL_LITERAL
-    | NULL_LITERAL
     ;
-
 
 classType
     : ID
@@ -120,10 +118,39 @@ embeddedType
     | STR
     ;
 
+// Literals
+STRING_LITERAL
+    : '"' ( STRING_ESCAPE | ~('\\'|'"') )* '"'
+    | '\'' ( STRING_ESCAPE | ~('\''|'\\') )* '\''
+    ;
+
+fragment STRING_ESCAPE
+    : '\\' [btnfr"'\\]
+    ;
+
+DECIMAL_LITERAL
+    : DIGIT+
+    ;
+
+FLOAT_LITERAL
+    : DIGIT+ '.' DIGIT+ EXPONENT?
+    | '.' DIGIT+ EXPONENT?
+    | DIGIT+ EXPONENT
+    ;
+
+BOOL_LITERAL
+    : 'true'
+    | 'false'
+    ;
+
+fragment EXPONENT
+    : [eE] [+-]? DIGIT+
+
 // Identifier
-ID  : LETTER (LETTER | '_' | [0-9])* ;
+ID  : LETTER (LETTER | '_' | DIGIT)* ;
 
 fragment LETTER : [a-zA-Z] ;
+fragment DIGIT : [0-9] ;
 
 // Key words
 CLASS : 'class' ;
