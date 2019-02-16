@@ -6,8 +6,9 @@
 
 grammar Evans;
 
-file
-    : (classDeclaration | mainDeclaration)+
+codeFile
+    : (classDeclaration)+
+//    : (classDeclaration | mainDeclaration)+
     ;
 
 classDeclaration
@@ -15,19 +16,19 @@ classDeclaration
     ;
 
 classBody
-    : ( attributeDeclaration
-    | stateDeclaration
-    | constructorDeclaration
-    | functionDeclaration
-    | predicateDeclaration
-    | operatorDeclaration )
+    : ( attributeList
+    | stateList
+    | constructorList
+    | functionList
+    | predicateList
+    | operatorList )
     ;
 
-attributeDeclaration
+attributeList
     : ATTR ':' varDeclaration+
     ;
 
-stateDeclaration
+stateList
     : STATE ':' varDeclaration+
     ;
 
@@ -35,16 +36,40 @@ varDeclaration
     : genType ID ('=' genExpression)? (',' ID ('=' genExpression)? )* ';'
     ;
 
-constructorDeclaration
+constructorList
     : INIT ':' methodDeclaration+
     ;
 
-functionDeclaration
+functionList
     : FUNC ':' methodDeclaration+
     ;
 
 methodDeclaration
     : ID '(' methodParameters ')' (':' returnType )? genCodeBlock
+    ;
+
+methodParameters
+    : genType ID (',' genType ID)*
+    ;
+
+predicateList
+    : PRED ':' predicateDeclaration+
+    ;
+
+predicateDeclaration
+    : ID '(' methodParameters ')' genCodeBlock
+    ;
+
+operatorList
+    : OPER ':' operatorDeclaration+
+    ;
+
+operatorDeclaration
+    : ID '(' methodParameters ')' '{' operatorBody '}'
+    ;
+
+operatorBody
+    : (PRECOND ':' genExpression)? EFF ':' blockStatement+ (EXEC ':' blockStatement+)?
     ;
 
 genCodeBlock
@@ -58,9 +83,9 @@ blockStatement
     ;
 
 genStatement
-    : IF '(' genCondition ')' genCodeBlock ('else' genCodeBlock)?
-    | FOR '(' forControl ')' genCodeBlock
-    | WHILE '(' whileControl ')' genCodeBlock
+    : IF '(' genExpression ')' genCodeBlock (ELIF '(' genExpression ')' genCodeBlock)? (ELSE genCodeBlock)?
+//    | FOR '(' forControl ')' genCodeBlock
+    | WHILE '(' genExpression ')' genCodeBlock
     | RET genExpression? ';'
     | (BREAK | CONT) ';'
     | (genExpression '.')? methodCall ';'
@@ -78,9 +103,13 @@ genExpression
     | genExpression '.' (ID | methodCall)
     | '(' genType ')' genExpression
     | genExpression ('++' | '--')
+    | 'not' genExpression
     | ('+'|'-'|'++'|'--') genExpression
     | genExpression ('*'|'/'|'%') genExpression
     | genExpression ('+'|'-') genExpression
+    | genExpression ('<'|'>'|'<='|'>='|'!='|'==') genExpression
+    | genExpression 'and' genExpression
+    | genExpression 'or' genExpression
     ;
 
 methodCall
@@ -143,8 +172,7 @@ BOOL_LITERAL
     | 'false'
     ;
 
-fragment EXPONENT
-    : [eE] [+-]? DIGIT+
+fragment EXPONENT : [eE] [+-]? DIGIT+ ;
 
 // Identifier
 ID  : LETTER (LETTER | '_' | DIGIT)* ;
@@ -154,22 +182,29 @@ fragment DIGIT : [0-9] ;
 
 // Key words
 CLASS : 'class' ;
-ATTR  : 'attr' ;
+ATTR : 'attr' ;
 STATE : 'state' ;
-INIT  : 'init' ;
-FUNC  : 'func' ;
-IF    : 'if' ;
-ELSE  : 'else' ;
-FOR   : 'for' ;
+INIT : 'init' ;
+FUNC : 'func' ;
+PRED : 'pred' ;
+OPER : 'oper' ;
+IF : 'if' ;
+ELSE : 'else' ;
+ELIF : 'elif' ;
+FOR : 'for' ;
 WHILE : 'while' ;
-RET   : 'ret' ;
+RET : 'ret' ;
 BREAK : 'break' ;
-CONT  : 'cont' ;
+CONT : 'cont' ;
+PRECOND : 'precond' ;
+EFF : 'eff' ;
+EXEC : 'exec' ;
 
 // Embedded types
 LIST : 'list' ;
 BOOL : 'bool' ;
 STR : 'str' ;
 
-// Whitespaces
+// Whitespaces & comments
 WS: [ \t\r\n]+ -> skip ;
+COMMENT : '#' ~[\r\n\f]* -> skip ;
