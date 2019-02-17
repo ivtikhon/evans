@@ -62,6 +62,33 @@ class EvansListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by EvansParser#varDeclarator.
+    def enterVarDeclarator(self, ctx:EvansParser.VarDeclaratorContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#varDeclarator.
+    def exitVarDeclarator(self, ctx:EvansParser.VarDeclaratorContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#variableInitializer.
+    def enterVariableInitializer(self, ctx:EvansParser.VariableInitializerContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#variableInitializer.
+    def exitVariableInitializer(self, ctx:EvansParser.VariableInitializerContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#arrayInitializer.
+    def enterArrayInitializer(self, ctx:EvansParser.ArrayInitializerContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#arrayInitializer.
+    def exitArrayInitializer(self, ctx:EvansParser.ArrayInitializerContext):
+        pass
+
+
     # Enter a parse tree produced by EvansParser#constructorList.
     def enterConstructorList(self, ctx:EvansParser.ConstructorListContext):
         pass
@@ -194,6 +221,15 @@ class EvansListener(ParseTreeListener):
 
     # Exit a parse tree produced by EvansParser#methodCall.
     def exitMethodCall(self, ctx:EvansParser.MethodCallContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#typeConversion.
+    def enterTypeConversion(self, ctx:EvansParser.TypeConversionContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#typeConversion.
+    def exitTypeConversion(self, ctx:EvansParser.TypeConversionContext):
         pass
 
 

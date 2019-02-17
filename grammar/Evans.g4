@@ -12,16 +12,11 @@ codeFile
     ;
 
 classDeclaration
-    : CLASS ID '{' classBody? '}'
+    : CLASS ID '{' classBody '}'
     ;
 
 classBody
-    : ( attributeList
-    | stateList
-    | constructorList
-    | functionList
-    | predicateList
-    | operatorList )
+    : attributeList? stateList? constructorList? functionList? predicateList? operatorList?
     ;
 
 attributeList
@@ -33,7 +28,20 @@ stateList
     ;
 
 varDeclaration
-    : genType ID ('=' genExpression)? (',' ID ('=' genExpression)? )* ';'
+    : genType varDeclarator (',' varDeclarator)* ';'
+    ;
+
+varDeclarator
+    : ID ('=' variableInitializer)?
+    ;
+
+variableInitializer
+    : arrayInitializer
+    | genExpression
+    ;
+
+arrayInitializer
+    : '(' (variableInitializer (',' variableInitializer)* )? ')'
     ;
 
 constructorList
@@ -45,7 +53,7 @@ functionList
     ;
 
 methodDeclaration
-    : ID '(' methodParameters ')' (':' returnType )? genCodeBlock
+    : ID '(' methodParameters? ')' (':' returnType )? genCodeBlock
     ;
 
 methodParameters
@@ -57,7 +65,7 @@ predicateList
     ;
 
 predicateDeclaration
-    : ID '(' methodParameters ')' genCodeBlock
+    : ID '(' methodParameters? ')' genCodeBlock
     ;
 
 operatorList
@@ -65,7 +73,7 @@ operatorList
     ;
 
 operatorDeclaration
-    : ID '(' methodParameters ')' '{' operatorBody '}'
+    : ID '(' methodParameters? ')' '{' operatorBody '}'
     ;
 
 operatorBody
@@ -100,8 +108,8 @@ genExpression
     | genLiteral
     | ID
     | methodCall
-    | genExpression '.' (ID | methodCall)
-    | '(' genType ')' genExpression
+    | typeConversion
+    | genExpression '.' (ID | methodCall | typeConversion)
     | genExpression ('++' | '--')
     | 'not' genExpression
     | ('+'|'-'|'++'|'--') genExpression
@@ -114,6 +122,10 @@ genExpression
 
 methodCall
     : ID '(' expressionList? ')'
+    ;
+
+typeConversion
+    : genType '(' expressionList? ')'
     ;
 
 expressionList
@@ -174,12 +186,6 @@ BOOL_LITERAL
 
 fragment EXPONENT : [eE] [+-]? DIGIT+ ;
 
-// Identifier
-ID  : LETTER (LETTER | '_' | DIGIT)* ;
-
-fragment LETTER : [a-zA-Z] ;
-fragment DIGIT : [0-9] ;
-
 // Key words
 CLASS : 'class' ;
 ATTR : 'attr' ;
@@ -205,6 +211,12 @@ LIST : 'list' ;
 BOOL : 'bool' ;
 STR : 'str' ;
 
+// Identifier
+ID  : LETTER (LETTER | '_' | DIGIT)* ;
+
+fragment LETTER : [a-zA-Z] ;
+fragment DIGIT : [0-9] ;
+
 // Whitespaces & comments
-WS: [ \t\r\n]+ -> skip ;
 COMMENT : '#' ~[\r\n\f]* -> skip ;
+WS: [ \t\r\n]+ -> skip ;
