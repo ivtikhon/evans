@@ -89,15 +89,6 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#constructorList.
-    def enterConstructorList(self, ctx:EvansParser.ConstructorListContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#constructorList.
-    def exitConstructorList(self, ctx:EvansParser.ConstructorListContext):
-        pass
-
-
     # Enter a parse tree produced by EvansParser#functionList.
     def enterFunctionList(self, ctx:EvansParser.FunctionListContext):
         pass

@@ -5,20 +5,19 @@
 # =================
 # Calculator consists of the following parts:
 # - stack,
-# - arithmetic unit (ALU),
+# - arithmetic unit (AU),
 # - display,
 # - keyboard.
 # Operations:
-# 1) when a digit or digital point button is pressed
-#    its value is pushed to the stack and displayed;
-# 2) when an operation button (+,-,/,*) is pressed, then:
-#    operation is stored to the ALU, or, if the ALU store is not empty,
+# 1) when a digit is entered, its value is pushed to the stack and displayed;
+# 2) when an operation (+,-,/,*) is entered, then:
+#    operation is stored to the AU, or, if the AU store is not empty,
 #    the early entered operation is executed the same way as if the equal sign
-#    is pressed; then the current operation is stored to the ALU;
-# 3) when the equal sign ('=') sign is pressed,
-#    the operation stored in alu is executed, using the stack and the register values as operands,
-#    and the result stored to register; the result is also copied to the stack and displayed;
-#    the ALU store is cleared.
+#    is entered; then the current operation is stored to the AU;
+# 3) when the equal sign ('=') sign is entered, the operation stored in AU
+#    is executed, using the stack and the register values as operands, and
+#    the result stored to register; the result is also copied to the stack
+#    and displayed; the AU store is cleared.
 
 
 class stack { # attributes and state variables share the same namespace within class
@@ -29,14 +28,13 @@ class stack { # attributes and state variables share the same namespace within c
     bool dec_point, changed = false;
     bool tobe_cleaned; # uninitialized state variable; bool variables are initialized to false by default
 
-  init: # there might be multiple constructors
+  func:
     stack() {  # constructor has full access to all attributes
       s.append('0');
       last_key = 'digit';
       tobe_cleaned = false;  # false is the default value, i.e. initialization here is redundant
     }
 
-  func:
     push_key(key k) { # functions have access to attributes, but not to the state variables
       s.append(k.get_value());
     }
@@ -56,7 +54,7 @@ class stack { # attributes and state variables share the same namespace within c
 
   oper:
     push (key k) {
-      precond:
+      when:
         not changed and
         not k.processed and
         (k.is_digit or (k.k_val == 'point' and not dec_point))
@@ -74,7 +72,7 @@ class stack { # attributes and state variables share the same namespace within c
     }
 
     clean(key k){
-      precond:
+      when:
         not k.processed and
         (k.is_digit or k.is_point) and
         tobe_cleaned
@@ -87,7 +85,7 @@ class stack { # attributes and state variables share the same namespace within c
     }
 
     copy_from_register(key k, alu a){
-      precond:
+      when:
         a.is_op_executed and
         (k.is_op or k.is_eq) and
         not k.processed
@@ -102,5 +100,147 @@ class stack { # attributes and state variables share the same namespace within c
       exec:
         clean();
         push_reg(a);
+    }
+}
+
+class alu {
+  attr:
+    float reg = 0.0;
+    str op = '';
+
+  state:
+    bool reg_stored;
+    bool op_executed;
+    bool op_stored;
+
+  func:
+    getReg ():float {ret reg;}
+
+    storeReg (stack s){
+        reg = float(s.getValue());
+    }
+
+    storeOp(key k) {
+        op = k.getValue();
+    }
+
+    execOp(stack s) {
+      float st1 = float(s.getValue());
+      if (op == '+'){
+        reg += st1;
+      } elif (op == '-'){
+        reg -= st1;
+      } elif (op == '*'){
+        reg *= st1;
+      } elif (op == '/') {
+        reg /= st1;
+      }
+    }
+
+  pred:
+    isOpExecuted() {ret (op_executed == True);}
+    isOpStored() {ret (op_stored == True);}
+    isRegStored() {ret (reg_stored == True);}
+
+  oper:
+    stack_to_register(key k, stack s){
+      when:
+        not k.processed and
+        k.isOp and
+        not reg_stored and
+        isOpStored
+      eff:
+        reg_stored = true;
+        k.processed = true;
+        s.tobe_cleaned = true;
+      exec:
+        s.storeReg();
+    }
+
+    store_op (key k){
+      when:
+        not isOpStored and
+        k.isOp and
+        not reg_stored and
+        not k.processed
+      eff:
+        op_stored = true;
+      exec:
+        toreOp();
+    }
+
+    exec_op (key k, stack s) {
+      when:
+        isOpStored and
+        (k.isOp or k.isEq) and
+        isRegStored and
+        not k.processed and
+        not isOpExecuted
+      eff:
+        op_executed = true;
+        if(k.isEq or k.isOp) {
+          op_stored = false;
+        }
+      exec:
+        s.execOp();
+    }
+}
+
+class key {
+  attr:
+    str k = '';
+
+  state:
+    list k_val = ('digit', 'point', 'op', 'eq', 'clear', 'erase');
+    bool processed;
+
+  func:
+    key(){
+      k_val = 'digit';
+    }
+
+    getValue():str { ret k;}
+
+    setValue(str val) { k = val;}
+
+  pred:
+    isOp() {ret (k_val == 'op');}
+    isDigit() {ret (k_val == 'digit');}
+    isPoint() {ret (k_val == 'point');}
+    isEq() {ret (k_val == 'eq');}
+    isClear() {ret (k_val == 'clear');}
+    isErase() {ret (k_val == 'erase');}
+
+  oper:
+    no_op (stack s){
+      when:
+        not processed and
+        isPoint and
+        s.isDecPoint
+      eff:
+        processed = true;
+    }
+}
+
+class display {
+  state:
+    bool updated;
+
+  func:
+    showStack(stack s){ print(s.getValue());}
+
+  oper:
+    show_stack(stack s, key k) {
+      when:
+        not updated and
+        k.processed and
+        s.changed
+
+      eff:
+        updated = true;
+        s.changed = false;
+
+      exec:
+        s.showStack();
     }
 }

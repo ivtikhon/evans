@@ -16,7 +16,7 @@ classDeclaration
     ;
 
 classBody
-    : attributeList? stateList? constructorList? functionList? predicateList? operatorList?
+    : attributeList? stateList? functionList? predicateList? operatorList?
     ;
 
 attributeList
@@ -42,10 +42,6 @@ variableInitializer
 
 arrayInitializer
     : '(' (variableInitializer (',' variableInitializer)* )? ')'
-    ;
-
-constructorList
-    : INIT ':' methodDeclaration+
     ;
 
 functionList
@@ -77,7 +73,7 @@ operatorDeclaration
     ;
 
 operatorBody
-    : (PRECOND ':' genExpression)? EFF ':' blockStatement+ (EXEC ':' blockStatement+)?
+    : (WHEN ':' genExpression)? EFF ':' blockStatement+ (EXEC ':' blockStatement+)?
     ;
 
 genCodeBlock
@@ -91,7 +87,7 @@ blockStatement
     ;
 
 genStatement
-    : IF '(' genExpression ')' genCodeBlock (ELIF '(' genExpression ')' genCodeBlock)? (ELSE genCodeBlock)?
+    : IF '(' genExpression ')' genCodeBlock (ELIF '(' genExpression ')' genCodeBlock)* (ELSE genCodeBlock)?
 //    | FOR '(' forControl ')' genCodeBlock
     | WHILE '(' genExpression ')' genCodeBlock
     | RET genExpression? ';'
@@ -190,7 +186,6 @@ fragment EXPONENT : [eE] [+-]? DIGIT+ ;
 CLASS : 'class' ;
 ATTR : 'attr' ;
 STATE : 'state' ;
-INIT : 'init' ;
 FUNC : 'func' ;
 PRED : 'pred' ;
 OPER : 'oper' ;
@@ -202,7 +197,7 @@ WHILE : 'while' ;
 RET : 'ret' ;
 BREAK : 'break' ;
 CONT : 'cont' ;
-PRECOND : 'precond' ;
+WHEN : 'when' ;
 EFF : 'eff' ;
 EXEC : 'exec' ;
 
