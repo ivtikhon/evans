@@ -80,12 +80,21 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#arrayInitializer.
-    def enterArrayInitializer(self, ctx:EvansParser.ArrayInitializerContext):
+    # Enter a parse tree produced by EvansParser#listInitializer.
+    def enterListInitializer(self, ctx:EvansParser.ListInitializerContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#arrayInitializer.
-    def exitArrayInitializer(self, ctx:EvansParser.ArrayInitializerContext):
+    # Exit a parse tree produced by EvansParser#listInitializer.
+    def exitListInitializer(self, ctx:EvansParser.ListInitializerContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#constructorList.
+    def enterConstructorList(self, ctx:EvansParser.ConstructorListContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#constructorList.
+    def exitConstructorList(self, ctx:EvansParser.ConstructorListContext):
         pass
 
 

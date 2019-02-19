@@ -28,17 +28,14 @@ class stack { # attributes and state variables share the same namespace within c
     bool dec_point, changed = false;
     bool tobe_cleaned; # uninitialized state variable; bool variables are initialized to false by default
 
-<<<<<<< HEAD
   init:
-=======
-  func:
->>>>>>> 3978f08423d287719f0fcf6ce61e9b347026a832
     stack() {  # constructor has full access to all attributes
       s.append('0');
       last_key = 'digit';
       tobe_cleaned = false;  # false is the default value, i.e. initialization here is redundant
     }
 
+  func:
     push_key(key k) { # functions have access to attributes, but not to the state variables
       s.append(k.get_value());
     }
@@ -58,11 +55,7 @@ class stack { # attributes and state variables share the same namespace within c
 
   oper:
     push (key k) {
-<<<<<<< HEAD
       when: # precondition and effect sections have access to state variables, and no access to attributes
-=======
-      when:
->>>>>>> 3978f08423d287719f0fcf6ce61e9b347026a832
         not changed and
         not k.processed and
         (k.is_digit or (k.k_val == 'point' and not dec_point))
@@ -117,13 +110,7 @@ class alu {
     str op = '';
 
   state:
-<<<<<<< HEAD
     bool reg_stored, op_executed, op_stored;
-=======
-    bool reg_stored;
-    bool op_executed;
-    bool op_stored;
->>>>>>> 3978f08423d287719f0fcf6ce61e9b347026a832
 
   func:
     getReg ():float {ret reg;}
@@ -150,15 +137,9 @@ class alu {
     }
 
   pred:
-<<<<<<< HEAD
     isOpExecuted() {ret op_executed;}
     isOpStored() {ret op_stored;}
     isRegStored() {ret reg_stored;}
-=======
-    isOpExecuted() {ret (op_executed == True);}
-    isOpStored() {ret (op_stored == True);}
-    isRegStored() {ret (reg_stored == True);}
->>>>>>> 3978f08423d287719f0fcf6ce61e9b347026a832
 
   oper:
     stack_to_register(key k, stack s){
@@ -209,27 +190,16 @@ class key {
     str k = '';
 
   state:
-<<<<<<< HEAD
     dom k_val = ('digit', 'point', 'op', 'eq', 'clear', 'erase');
     bool processed;
 
   init:
-=======
-    list k_val = ('digit', 'point', 'op', 'eq', 'clear', 'erase');
-    bool processed;
-
-  func:
->>>>>>> 3978f08423d287719f0fcf6ce61e9b347026a832
     key(){
       k_val = 'digit';
     }
 
-<<<<<<< HEAD
   func:
-=======
->>>>>>> 3978f08423d287719f0fcf6ce61e9b347026a832
     getValue():str { ret k;}
-
     setValue(str val) { k = val;}
 
   pred:

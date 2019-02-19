@@ -16,7 +16,7 @@ classDeclaration
     ;
 
 classBody
-    : attributeList? stateList? functionList? predicateList? operatorList?
+    : attributeList? stateList? constructorList? functionList? predicateList? operatorList?
     ;
 
 attributeList
@@ -43,6 +43,11 @@ variableInitializer
 listInitializer
     : '(' (variableInitializer (',' variableInitializer)* )? ')'
     ;
+
+constructorList
+    : INIT ':' methodDeclaration+
+    ;
+
 
 functionList
     : FUNC ':' methodDeclaration+
@@ -203,6 +208,7 @@ CONT : 'cont' ;
 WHEN : 'when' ;
 EFF : 'eff' ;
 EXEC : 'exec' ;
+INIT : 'init' ;
 
 // Embedded types
 LIST : 'list' ;
