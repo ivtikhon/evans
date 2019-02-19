@@ -44,25 +44,25 @@ class stack { # attributes and state variables share the same namespace within c
       s.extend(str(a.get_reg()).split());
     }
 
-    getValue():str { ret ''.join(s); }
+    get_value():str { ret ''.join(s); }
 
     clean(){ s.clear(); }
 
   pred:
     is_last_key_digit(){ ret (last_key == 'digit'); } # predicates have read-only access to state variables; predicates always return bool
     is_last_key_point(){ ret (last_key == 'point'); }
-    is_dec_point(){ ret (dec_point); }
+    is_dec_point(){ ret dec_point; }
 
   oper:
     push (key k) {
       when: # precondition and effect sections have access to state variables, and no access to attributes
         not changed and
         not k.processed and
-        (k.is_digit or (k.k_val == 'point' and not dec_point))
+        (k.is_digit() or (k.k_val == 'point' and not dec_point))
       eff:
         changed = true;
         k.processed = true;
-        if (k.is_point) {
+        if (k.is_point()) {
           last_key = 'point';
           dec_point = true;
         } else {
@@ -75,7 +75,7 @@ class stack { # attributes and state variables share the same namespace within c
     clean(key k){
       when:
         not k.processed and
-        (k.is_digit or k.is_point) and
+        (k.is_digit() or k.is_point()) and
         tobe_cleaned
       eff:
         tobe_cleaned = false;
@@ -88,10 +88,10 @@ class stack { # attributes and state variables share the same namespace within c
     copy_from_register(key k, alu a){
       when:
         a.is_op_executed and
-        (k.is_op or k.is_eq) and
+        (k.is_op() or k.is_eq()) and
         not k.processed
       eff:
-        if (k.is_eq) {
+        if (k.is_eq()) {
           k.processed = true;
           changed = true;
           a.reg_stored = false;
@@ -113,18 +113,18 @@ class alu {
     bool reg_stored, op_executed, op_stored;
 
   func:
-    getReg ():float {ret reg;}
+    get_reg ():float {ret reg;}
 
-    storeReg (stack s){
-        reg = float(s.getValue());
+    store_reg (stack s){
+        reg = float(s.get_value());
     }
 
-    storeOp(key k) {
-        op = k.getValue();
+    store_op(key k) {
+        op = k.get_value();
     }
 
-    execOp(stack s) {
-      float st1 = float(s.getValue());
+    exec_op(stack s) {
+      float st1 = float(s.get_value());
       if (op == '+'){
         reg += st1;
       } elif (op == '-'){
@@ -137,29 +137,29 @@ class alu {
     }
 
   pred:
-    isOpExecuted() {ret op_executed;}
-    isOpStored() {ret op_stored;}
-    isRegStored() {ret reg_stored;}
+    is_op_executed() {ret op_executed;}
+    is_op_stored() {ret op_stored;}
+    is_reg_stored() {ret reg_stored;}
 
   oper:
     stack_to_register(key k, stack s){
       when:
         not k.processed and
-        k.isOp and
+        k.is_op() and
         not reg_stored and
-        isOpStored
+        is_op_stored()
       eff:
         reg_stored = true;
         k.processed = true;
         s.tobe_cleaned = true;
       exec:
-        s.storeReg();
+        s.store_reg();
     }
 
     store_op (key k){
       when:
-        not isOpStored and
-        k.isOp and
+        not is_op_stored() and
+        k.is_op() and
         not reg_stored and
         not k.processed
       eff:
@@ -170,18 +170,18 @@ class alu {
 
     exec_op (key k, stack s) {
       when:
-        isOpStored and
-        (k.isOp or k.isEq) and
-        isRegStored and
+        is_op_stored() and
+        (k.is_op() or k.is_eq()) and
+        is_reg_stored() and
         not k.processed and
-        not isOpExecuted
+        not is_op_executed()
       eff:
         op_executed = true;
-        if(k.isEq or k.isOp) {
+        if(k.is_eq() or k.is_op()) {
           op_stored = false;
         }
       exec:
-        s.execOp();
+        s.exec_op();
     }
 }
 
@@ -199,23 +199,23 @@ class key {
     }
 
   func:
-    getValue():str { ret k;}
-    setValue(str val) { k = val;}
+    get_value():str { ret k;}
+    set_value(str val) { k = val;}
 
   pred:
-    isOp() {ret (k_val == 'op');}
-    isDigit() {ret (k_val == 'digit');}
-    isPoint() {ret (k_val == 'point');}
-    isEq() {ret (k_val == 'eq');}
-    isClear() {ret (k_val == 'clear');}
-    isErase() {ret (k_val == 'erase');}
+    is_op() {ret (k_val == 'op');}
+    is_digit() {ret (k_val == 'digit');}
+    is_point() {ret (k_val == 'point');}
+    is_eq() {ret (k_val == 'eq');}
+    is_clear() {ret (k_val == 'clear');}
+    is_erase() {ret (k_val == 'erase');}
 
   oper:
     no_op (stack s){
       when:
         not processed and
-        isPoint and
-        s.isDecPoint
+        is_point() and
+        s.is_dec_point()
       eff:
         processed = true;
     }
@@ -226,7 +226,7 @@ class display {
     bool updated;
 
   func:
-    showStack(stack s){ print(s.getValue());}
+    show_stack(stack s){ print(s.get_value());}
 
   oper:
     show_stack(stack s, key k) {
@@ -240,6 +240,6 @@ class display {
         s.changed = false;
 
       exec:
-        s.showStack();
+        s.show_stack();
     }
 }
