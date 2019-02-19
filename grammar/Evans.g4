@@ -36,11 +36,11 @@ varDeclarator
     ;
 
 variableInitializer
-    : arrayInitializer
+    : listInitializer
     | genExpression
     ;
 
-arrayInitializer
+listInitializer
     : '(' (variableInitializer (',' variableInitializer)* )? ')'
     ;
 
@@ -153,6 +153,9 @@ embeddedType
     : LIST
     | BOOL
     | STR
+    | FLOAT
+    | INT
+    | DOM
     ;
 
 // Literals
@@ -205,6 +208,9 @@ EXEC : 'exec' ;
 LIST : 'list' ;
 BOOL : 'bool' ;
 STR : 'str' ;
+FLOAT : 'float' ;
+INT : 'int' ;
+DOM : 'dom' ;
 
 // Identifier
 ID  : LETTER (LETTER | '_' | DIGIT)* ;
