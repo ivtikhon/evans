@@ -1,6 +1,6 @@
 /*
  * Evans grammar
- * Developed by Igor Tikhonin in 2019
+ * Copyright (c) 2019 Igor Tikhonin
  */
 
 grammar Evans;

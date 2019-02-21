@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+#
+# Evans interpreter
+# Copyright (c) 2019 Igor Tikhonin
 
 import sys
 import pprint

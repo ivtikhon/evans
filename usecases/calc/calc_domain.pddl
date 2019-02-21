@@ -1,6 +1,6 @@
 ;;
 ;; Simple calculator in PDDL
-;; Developed by Igor Tikhonin in 2018
+;; Copyright (c) 2018 Igor Tikhonin
 ;;
 ;; NOTE: This code is kept in the repository for historical references only. It might
 ;; not work, or work with errors. This is basically the beginning of the Evans project.

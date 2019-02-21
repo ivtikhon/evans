@@ -1,7 +1,7 @@
 ;;
 ;; Calculator problem definition
 ;; Should be used with the PDDL domain definition file
-;; Developed by Igor Tikhonin in 2018
+;; Copyright (c) 2018 Igor Tikhonin
 
 (define (problem Calculator)
   (:domain CALC)
