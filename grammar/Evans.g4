@@ -45,9 +45,12 @@ listInitializer
     ;
 
 constructorList
-    : INIT ':' methodDeclaration+
+    : INIT ':' constructorDeclaration+
     ;
 
+constructorDeclaration
+    : classType '(' methodParameters? ')' genCodeBlock
+    ;
 
 functionList
     : FUNC ':' methodDeclaration+

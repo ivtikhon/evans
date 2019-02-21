@@ -8,15 +8,27 @@ from EvansParser import EvansParser
 from EvansListener import EvansListener
 
 
-class PDDLConverter(EvansListener):
+class EvansTree(EvansListener):
+    def enterCodeFile(self, ctx):
+        self.classes = {}
+
+    def exitCodeFile(self, ctx):
+        pprint.pprint(self.classes)
+
+    def enterClassDeclaration(self, ctx):
+        self.current_class = {'func': {}, 'pred': {}, 'init': {}}
+
     def exitClassDeclaration(self, ctx):
-        print('class: ' + ctx.ID().getText())
+        self.classes[ctx.ID().getText()] = self.current_class
 
-    def exitMethodDeclaration(self, ctx):
-        print('method: ' + ctx.ID().getText())
+    def enterMethodDeclaration(self, ctx):
+        self.current_class['func'][ctx.ID().getText()] = {}
 
-    def exitPredicateDeclaration(self, ctx):
-        print('pred: ' + ctx.ID().getText())
+    def enterConstructorDeclaration(self, ctx):
+        self.current_class['init'][ctx.classType().getText()] = {}
+
+    def enterPredicateDeclaration(self, ctx):
+        self.current_class['pred'][ctx.ID().getText()] = {}
 
 def main(argv):
     input = FileStream(argv[1])
@@ -24,9 +36,9 @@ def main(argv):
     stream = CommonTokenStream(lexer)
     parser = EvansParser(stream)
     tree = parser.codeFile()
-    pddl_code = PDDLConverter()
+    evans_code = EvansTree()
     walker = ParseTreeWalker()
-    walker.walk(pddl_code, tree)
+    walker.walk(evans_code, tree)
 
 
 if __name__ == '__main__':
