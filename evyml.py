@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-
+#
 # Evans YAML interpreter
 # Developed by Igor Tikhonin in 2018
-# (c) All rights reserved
 
 import sys, getopt
 import yaml

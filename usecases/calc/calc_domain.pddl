@@ -1,9 +1,8 @@
 ;;
 ;; Simple calculator in PDDL
 ;; Developed by Igor Tikhonin in 2018
-;; (c) All rights reserved
 ;;
-;; This code is kept in the repository for historical references only. It might
+;; NOTE: This code is kept in the repository for historical references only. It might
 ;; not work, or work with errors. This is basically the beginning of the Evans project.
 ;;
 (define (domain CALC)
