@@ -227,7 +227,7 @@ class display {
     bool updated;
 
   func:
-    show_stack(stack s){ print(s.get_value());}
+    show_stack(stack s){print(s.get_value());}
 
   oper:
     show_stack(stack s, key k) {
@@ -241,6 +241,6 @@ class display {
         s.changed = false;
 
       exec:
-        s.show_stack();
+        show_stack();
     }
 }

@@ -19,7 +19,14 @@ class EvansTree(EvansListener):
         pprint.pprint(self.classes)
 
     def enterClassDeclaration(self, ctx):
-        self.current_class = {'func': {}, 'pred': {}, 'init': {}}
+        self.current_class = {
+            'func': {},
+            'pred': {},
+            'init': {},
+            'attr': {},
+            'state': {},
+            'oper': {}
+        }
 
     def exitClassDeclaration(self, ctx):
         self.classes[ctx.ID().getText()] = self.current_class
@@ -32,6 +39,24 @@ class EvansTree(EvansListener):
 
     def enterPredicateDeclaration(self, ctx):
         self.current_class['pred'][ctx.ID().getText()] = {}
+
+    def enterAttributeList(self, ctx):
+        self.current_var = {}
+
+    def exitAttributeList(self, ctx):
+        self.current_class['attr'].update(self.current_var)
+
+    def enterStateList(self, ctx):
+        self.current_var = {}
+
+    def exitStateList(self, ctx):
+        self.current_class['state'].update(self.current_var)
+
+    def enterVarDeclarator(self, ctx):
+        self.current_var[ctx.ID().getText()] = {}
+
+    def enterOperatorDeclaration(self, ctx):
+        self.current_class['oper'][ctx.ID().getText()] = {}
 
 def main(argv):
     input = FileStream(argv[1])

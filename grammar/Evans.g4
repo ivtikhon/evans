@@ -107,20 +107,20 @@ genAssignment
     ;
 
 genExpression
-    : '(' genExpression ')'
-    | genLiteral
-    | ID
-    | methodCall
-    | typeConversion
-    | genExpression '.' (ID | methodCall | typeConversion)
-    | genExpression ('++' | '--')
-    | 'not' genExpression
-    | ('+'|'-'|'++'|'--') genExpression
-    | genExpression ('*'|'/'|'%') genExpression
-    | genExpression ('+'|'-') genExpression
-    | genExpression ('<'|'>'|'<='|'>='|'!='|'==') genExpression
-    | genExpression 'and' genExpression
-    | genExpression 'or' genExpression
+    : '(' genExpression ')'                                     # Parens
+    | genLiteral                                                # Litral
+    | ID                                                        # Var
+    | methodCall                                                # Call
+    | typeConversion                                            # TypeConversion
+    | genExpression '.' (ID | methodCall | typeConversion)      # Attr
+    | genExpression ('++' | '--')                               # Postfix
+    | 'not' genExpression                                       # Not
+    | ('+'|'-'|'++'|'--') genExpression                         # Prefix
+    | genExpression ('*'|'/'|'%') genExpression                 # MulDiv
+    | genExpression ('+'|'-') genExpression                     # AddSub
+    | genExpression ('<'|'>'|'<='|'>='|'!='|'==') genExpression # Compare
+    | genExpression 'and' genExpression                         # And
+    | genExpression 'or' genExpression                          # Or
     ;
 
 methodCall
