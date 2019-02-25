@@ -48,18 +48,18 @@ constructorList
     ;
 
 constructorDeclaration
-    : classType '(' methodParameters? ')' genCodeBlock
+    : classType '(' genParameters? ')' genCodeBlock
     ;
 
 functionList
-    : FUNC ':' methodDeclaration+
+    : FUNC ':' functionDeclaration+
     ;
 
-methodDeclaration
-    : ID '(' methodParameters? ')' (':' returnType )? genCodeBlock
+functionDeclaration
+    : ID '(' genParameters? ')' (':' returnType )? genCodeBlock
     ;
 
-methodParameters
+genParameters
     : genType ID (',' genType ID)*
     ;
 
@@ -68,7 +68,7 @@ predicateList
     ;
 
 predicateDeclaration
-    : ID '(' methodParameters? ')' genCodeBlock
+    : ID '(' genParameters? ')' genCodeBlock
     ;
 
 operatorList
@@ -76,7 +76,7 @@ operatorList
     ;
 
 operatorDeclaration
-    : ID '(' methodParameters? ')' '{' operatorBody '}'
+    : ID '(' genParameters? ')' '{' operatorBody '}'
     ;
 
 operatorBody
@@ -111,7 +111,7 @@ genExpression
     | genLiteral                                                # Litral
     | ID                                                        # Var
     | methodCall                                                # Call
-    | typeConversion                                            # TypeConversion
+    | typeConversion                                            # Conversion
     | genExpression '.' (ID | methodCall | typeConversion)      # Attr
     | genExpression ('++' | '--')                               # Postfix
     | 'not' genExpression                                       # Not

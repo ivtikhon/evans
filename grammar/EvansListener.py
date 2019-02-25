@@ -116,21 +116,21 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#methodDeclaration.
-    def enterMethodDeclaration(self, ctx:EvansParser.MethodDeclarationContext):
+    # Enter a parse tree produced by EvansParser#functionDeclaration.
+    def enterFunctionDeclaration(self, ctx:EvansParser.FunctionDeclarationContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#methodDeclaration.
-    def exitMethodDeclaration(self, ctx:EvansParser.MethodDeclarationContext):
+    # Exit a parse tree produced by EvansParser#functionDeclaration.
+    def exitFunctionDeclaration(self, ctx:EvansParser.FunctionDeclarationContext):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#methodParameters.
-    def enterMethodParameters(self, ctx:EvansParser.MethodParametersContext):
+    # Enter a parse tree produced by EvansParser#genParameters.
+    def enterGenParameters(self, ctx:EvansParser.GenParametersContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#methodParameters.
-    def exitMethodParameters(self, ctx:EvansParser.MethodParametersContext):
+    # Exit a parse tree produced by EvansParser#genParameters.
+    def exitGenParameters(self, ctx:EvansParser.GenParametersContext):
         pass
 
 
@@ -215,12 +215,129 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#genExpression.
-    def enterGenExpression(self, ctx:EvansParser.GenExpressionContext):
+    # Enter a parse tree produced by EvansParser#Call.
+    def enterCall(self, ctx:EvansParser.CallContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#genExpression.
-    def exitGenExpression(self, ctx:EvansParser.GenExpressionContext):
+    # Exit a parse tree produced by EvansParser#Call.
+    def exitCall(self, ctx:EvansParser.CallContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#Or.
+    def enterOr(self, ctx:EvansParser.OrContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#Or.
+    def exitOr(self, ctx:EvansParser.OrContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#MulDiv.
+    def enterMulDiv(self, ctx:EvansParser.MulDivContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#MulDiv.
+    def exitMulDiv(self, ctx:EvansParser.MulDivContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#AddSub.
+    def enterAddSub(self, ctx:EvansParser.AddSubContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#AddSub.
+    def exitAddSub(self, ctx:EvansParser.AddSubContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#Parens.
+    def enterParens(self, ctx:EvansParser.ParensContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#Parens.
+    def exitParens(self, ctx:EvansParser.ParensContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#Var.
+    def enterVar(self, ctx:EvansParser.VarContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#Var.
+    def exitVar(self, ctx:EvansParser.VarContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#Litral.
+    def enterLitral(self, ctx:EvansParser.LitralContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#Litral.
+    def exitLitral(self, ctx:EvansParser.LitralContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#Prefix.
+    def enterPrefix(self, ctx:EvansParser.PrefixContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#Prefix.
+    def exitPrefix(self, ctx:EvansParser.PrefixContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#Conversion.
+    def enterConversion(self, ctx:EvansParser.ConversionContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#Conversion.
+    def exitConversion(self, ctx:EvansParser.ConversionContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#Attr.
+    def enterAttr(self, ctx:EvansParser.AttrContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#Attr.
+    def exitAttr(self, ctx:EvansParser.AttrContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#Not.
+    def enterNot(self, ctx:EvansParser.NotContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#Not.
+    def exitNot(self, ctx:EvansParser.NotContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#Postfix.
+    def enterPostfix(self, ctx:EvansParser.PostfixContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#Postfix.
+    def exitPostfix(self, ctx:EvansParser.PostfixContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#And.
+    def enterAnd(self, ctx:EvansParser.AndContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#And.
+    def exitAnd(self, ctx:EvansParser.AndContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#Compare.
+    def enterCompare(self, ctx:EvansParser.CompareContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#Compare.
+    def exitCompare(self, ctx:EvansParser.CompareContext):
         pass
 
 

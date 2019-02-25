@@ -31,14 +31,14 @@ class EvansTree(EvansListener):
     def exitClassDeclaration(self, ctx):
         self.classes[ctx.ID().getText()] = self.current_class
 
-    def enterMethodDeclaration(self, ctx):
-        self.current_class['func'][ctx.ID().getText()] = {}
+    def enterFunctionDeclaration(self, ctx):
+        self.current_method = self.current_class['func'][ctx.ID().getText()] = {'parameters': {}}
 
     def enterConstructorDeclaration(self, ctx):
-        self.current_class['init'][ctx.classType().getText()] = {}
+        self.current_method = self.current_class['init'][ctx.classType().getText()] = {'parameters': {}}
 
     def enterPredicateDeclaration(self, ctx):
-        self.current_class['pred'][ctx.ID().getText()] = {}
+        self.current_method = self.current_class['pred'][ctx.ID().getText()] = {'parameters': {}}
 
     def enterAttributeList(self, ctx):
         self.current_var = {}
@@ -56,7 +56,11 @@ class EvansTree(EvansListener):
         self.current_var[ctx.ID().getText()] = {}
 
     def enterOperatorDeclaration(self, ctx):
-        self.current_class['oper'][ctx.ID().getText()] = {}
+        self.current_method = self.current_class['oper'][ctx.ID().getText()] = {'parameters': {}}
+
+    def enterGenParameters(self, ctx):
+        for type, name in zip(ctx.genType(), ctx.ID()):
+            self.current_method['parameters'][name.getText()] = type.getText()
 
 def main(argv):
     input = FileStream(argv[1])

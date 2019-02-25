@@ -240,8 +240,8 @@ class EvansParser ( Parser ):
     RULE_constructorList = 9
     RULE_constructorDeclaration = 10
     RULE_functionList = 11
-    RULE_methodDeclaration = 12
-    RULE_methodParameters = 13
+    RULE_functionDeclaration = 12
+    RULE_genParameters = 13
     RULE_predicateList = 14
     RULE_predicateDeclaration = 15
     RULE_operatorList = 16
@@ -264,7 +264,7 @@ class EvansParser ( Parser ):
     ruleNames =  [ "codeFile", "classDeclaration", "classBody", "attributeList", 
                    "stateList", "varDeclaration", "varDeclarator", "variableInitializer", 
                    "listInitializer", "constructorList", "constructorDeclaration", 
-                   "functionList", "methodDeclaration", "methodParameters", 
+                   "functionList", "functionDeclaration", "genParameters", 
                    "predicateList", "predicateDeclaration", "operatorList", 
                    "operatorDeclaration", "operatorBody", "genCodeBlock", 
                    "blockStatement", "genStatement", "genAssignment", "genExpression", 
@@ -1006,8 +1006,8 @@ class EvansParser ( Parser ):
             return self.getTypedRuleContext(EvansParser.GenCodeBlockContext,0)
 
 
-        def methodParameters(self):
-            return self.getTypedRuleContext(EvansParser.MethodParametersContext,0)
+        def genParameters(self):
+            return self.getTypedRuleContext(EvansParser.GenParametersContext,0)
 
 
         def getRuleIndex(self):
@@ -1040,7 +1040,7 @@ class EvansParser ( Parser ):
             _la = self._input.LA(1)
             if (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << EvansParser.LIST) | (1 << EvansParser.BOOL) | (1 << EvansParser.STR) | (1 << EvansParser.FLOAT) | (1 << EvansParser.INT) | (1 << EvansParser.DOM) | (1 << EvansParser.ID))) != 0):
                 self.state = 149
-                self.methodParameters()
+                self.genParameters()
 
 
             self.state = 152
@@ -1065,11 +1065,11 @@ class EvansParser ( Parser ):
         def FUNC(self):
             return self.getToken(EvansParser.FUNC, 0)
 
-        def methodDeclaration(self, i:int=None):
+        def functionDeclaration(self, i:int=None):
             if i is None:
-                return self.getTypedRuleContexts(EvansParser.MethodDeclarationContext)
+                return self.getTypedRuleContexts(EvansParser.FunctionDeclarationContext)
             else:
-                return self.getTypedRuleContext(EvansParser.MethodDeclarationContext,i)
+                return self.getTypedRuleContext(EvansParser.FunctionDeclarationContext,i)
 
 
         def getRuleIndex(self):
@@ -1102,7 +1102,7 @@ class EvansParser ( Parser ):
             _la = self._input.LA(1)
             while True:
                 self.state = 157
-                self.methodDeclaration()
+                self.functionDeclaration()
                 self.state = 160 
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
@@ -1118,7 +1118,7 @@ class EvansParser ( Parser ):
         return localctx
 
 
-    class MethodDeclarationContext(ParserRuleContext):
+    class FunctionDeclarationContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1131,8 +1131,8 @@ class EvansParser ( Parser ):
             return self.getTypedRuleContext(EvansParser.GenCodeBlockContext,0)
 
 
-        def methodParameters(self):
-            return self.getTypedRuleContext(EvansParser.MethodParametersContext,0)
+        def genParameters(self):
+            return self.getTypedRuleContext(EvansParser.GenParametersContext,0)
 
 
         def returnType(self):
@@ -1140,23 +1140,23 @@ class EvansParser ( Parser ):
 
 
         def getRuleIndex(self):
-            return EvansParser.RULE_methodDeclaration
+            return EvansParser.RULE_functionDeclaration
 
         def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterMethodDeclaration" ):
-                listener.enterMethodDeclaration(self)
+            if hasattr( listener, "enterFunctionDeclaration" ):
+                listener.enterFunctionDeclaration(self)
 
         def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitMethodDeclaration" ):
-                listener.exitMethodDeclaration(self)
+            if hasattr( listener, "exitFunctionDeclaration" ):
+                listener.exitFunctionDeclaration(self)
 
 
 
 
-    def methodDeclaration(self):
+    def functionDeclaration(self):
 
-        localctx = EvansParser.MethodDeclarationContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 24, self.RULE_methodDeclaration)
+        localctx = EvansParser.FunctionDeclarationContext(self, self._ctx, self.state)
+        self.enterRule(localctx, 24, self.RULE_functionDeclaration)
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
@@ -1169,7 +1169,7 @@ class EvansParser ( Parser ):
             _la = self._input.LA(1)
             if (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << EvansParser.LIST) | (1 << EvansParser.BOOL) | (1 << EvansParser.STR) | (1 << EvansParser.FLOAT) | (1 << EvansParser.INT) | (1 << EvansParser.DOM) | (1 << EvansParser.ID))) != 0):
                 self.state = 164
-                self.methodParameters()
+                self.genParameters()
 
 
             self.state = 167
@@ -1195,7 +1195,7 @@ class EvansParser ( Parser ):
         return localctx
 
 
-    class MethodParametersContext(ParserRuleContext):
+    class GenParametersContext(ParserRuleContext):
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -1215,23 +1215,23 @@ class EvansParser ( Parser ):
                 return self.getToken(EvansParser.ID, i)
 
         def getRuleIndex(self):
-            return EvansParser.RULE_methodParameters
+            return EvansParser.RULE_genParameters
 
         def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterMethodParameters" ):
-                listener.enterMethodParameters(self)
+            if hasattr( listener, "enterGenParameters" ):
+                listener.enterGenParameters(self)
 
         def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitMethodParameters" ):
-                listener.exitMethodParameters(self)
+            if hasattr( listener, "exitGenParameters" ):
+                listener.exitGenParameters(self)
 
 
 
 
-    def methodParameters(self):
+    def genParameters(self):
 
-        localctx = EvansParser.MethodParametersContext(self, self._ctx, self.state)
-        self.enterRule(localctx, 26, self.RULE_methodParameters)
+        localctx = EvansParser.GenParametersContext(self, self._ctx, self.state)
+        self.enterRule(localctx, 26, self.RULE_genParameters)
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
@@ -1337,8 +1337,8 @@ class EvansParser ( Parser ):
             return self.getTypedRuleContext(EvansParser.GenCodeBlockContext,0)
 
 
-        def methodParameters(self):
-            return self.getTypedRuleContext(EvansParser.MethodParametersContext,0)
+        def genParameters(self):
+            return self.getTypedRuleContext(EvansParser.GenParametersContext,0)
 
 
         def getRuleIndex(self):
@@ -1371,7 +1371,7 @@ class EvansParser ( Parser ):
             _la = self._input.LA(1)
             if (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << EvansParser.LIST) | (1 << EvansParser.BOOL) | (1 << EvansParser.STR) | (1 << EvansParser.FLOAT) | (1 << EvansParser.INT) | (1 << EvansParser.DOM) | (1 << EvansParser.ID))) != 0):
                 self.state = 194
-                self.methodParameters()
+                self.genParameters()
 
 
             self.state = 197
@@ -1462,8 +1462,8 @@ class EvansParser ( Parser ):
             return self.getTypedRuleContext(EvansParser.OperatorBodyContext,0)
 
 
-        def methodParameters(self):
-            return self.getTypedRuleContext(EvansParser.MethodParametersContext,0)
+        def genParameters(self):
+            return self.getTypedRuleContext(EvansParser.GenParametersContext,0)
 
 
         def getRuleIndex(self):
@@ -1496,7 +1496,7 @@ class EvansParser ( Parser ):
             _la = self._input.LA(1)
             if (((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << EvansParser.LIST) | (1 << EvansParser.BOOL) | (1 << EvansParser.STR) | (1 << EvansParser.FLOAT) | (1 << EvansParser.INT) | (1 << EvansParser.DOM) | (1 << EvansParser.ID))) != 0):
                 self.state = 209
-                self.methodParameters()
+                self.genParameters()
 
 
             self.state = 212
@@ -2005,6 +2005,40 @@ class EvansParser ( Parser ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
+
+        def getRuleIndex(self):
+            return EvansParser.RULE_genExpression
+
+     
+        def copyFrom(self, ctx:ParserRuleContext):
+            super().copyFrom(ctx)
+
+
+    class CallContext(GenExpressionContext):
+
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a EvansParser.GenExpressionContext
+            super().__init__(parser)
+            self.copyFrom(ctx)
+
+        def methodCall(self):
+            return self.getTypedRuleContext(EvansParser.MethodCallContext,0)
+
+
+        def enterRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "enterCall" ):
+                listener.enterCall(self)
+
+        def exitRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "exitCall" ):
+                listener.exitCall(self)
+
+
+    class OrContext(GenExpressionContext):
+
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a EvansParser.GenExpressionContext
+            super().__init__(parser)
+            self.copyFrom(ctx)
+
         def genExpression(self, i:int=None):
             if i is None:
                 return self.getTypedRuleContexts(EvansParser.GenExpressionContext)
@@ -2012,31 +2046,260 @@ class EvansParser ( Parser ):
                 return self.getTypedRuleContext(EvansParser.GenExpressionContext,i)
 
 
-        def genLiteral(self):
-            return self.getTypedRuleContext(EvansParser.GenLiteralContext,0)
+        def enterRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "enterOr" ):
+                listener.enterOr(self)
 
+        def exitRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "exitOr" ):
+                listener.exitOr(self)
+
+
+    class MulDivContext(GenExpressionContext):
+
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a EvansParser.GenExpressionContext
+            super().__init__(parser)
+            self.copyFrom(ctx)
+
+        def genExpression(self, i:int=None):
+            if i is None:
+                return self.getTypedRuleContexts(EvansParser.GenExpressionContext)
+            else:
+                return self.getTypedRuleContext(EvansParser.GenExpressionContext,i)
+
+
+        def enterRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "enterMulDiv" ):
+                listener.enterMulDiv(self)
+
+        def exitRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "exitMulDiv" ):
+                listener.exitMulDiv(self)
+
+
+    class AddSubContext(GenExpressionContext):
+
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a EvansParser.GenExpressionContext
+            super().__init__(parser)
+            self.copyFrom(ctx)
+
+        def genExpression(self, i:int=None):
+            if i is None:
+                return self.getTypedRuleContexts(EvansParser.GenExpressionContext)
+            else:
+                return self.getTypedRuleContext(EvansParser.GenExpressionContext,i)
+
+
+        def enterRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "enterAddSub" ):
+                listener.enterAddSub(self)
+
+        def exitRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "exitAddSub" ):
+                listener.exitAddSub(self)
+
+
+    class ParensContext(GenExpressionContext):
+
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a EvansParser.GenExpressionContext
+            super().__init__(parser)
+            self.copyFrom(ctx)
+
+        def genExpression(self):
+            return self.getTypedRuleContext(EvansParser.GenExpressionContext,0)
+
+
+        def enterRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "enterParens" ):
+                listener.enterParens(self)
+
+        def exitRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "exitParens" ):
+                listener.exitParens(self)
+
+
+    class VarContext(GenExpressionContext):
+
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a EvansParser.GenExpressionContext
+            super().__init__(parser)
+            self.copyFrom(ctx)
 
         def ID(self):
             return self.getToken(EvansParser.ID, 0)
 
-        def methodCall(self):
-            return self.getTypedRuleContext(EvansParser.MethodCallContext,0)
+        def enterRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "enterVar" ):
+                listener.enterVar(self)
 
+        def exitRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "exitVar" ):
+                listener.exitVar(self)
+
+
+    class LitralContext(GenExpressionContext):
+
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a EvansParser.GenExpressionContext
+            super().__init__(parser)
+            self.copyFrom(ctx)
+
+        def genLiteral(self):
+            return self.getTypedRuleContext(EvansParser.GenLiteralContext,0)
+
+
+        def enterRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "enterLitral" ):
+                listener.enterLitral(self)
+
+        def exitRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "exitLitral" ):
+                listener.exitLitral(self)
+
+
+    class PrefixContext(GenExpressionContext):
+
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a EvansParser.GenExpressionContext
+            super().__init__(parser)
+            self.copyFrom(ctx)
+
+        def genExpression(self):
+            return self.getTypedRuleContext(EvansParser.GenExpressionContext,0)
+
+
+        def enterRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "enterPrefix" ):
+                listener.enterPrefix(self)
+
+        def exitRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "exitPrefix" ):
+                listener.exitPrefix(self)
+
+
+    class ConversionContext(GenExpressionContext):
+
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a EvansParser.GenExpressionContext
+            super().__init__(parser)
+            self.copyFrom(ctx)
 
         def typeConversion(self):
             return self.getTypedRuleContext(EvansParser.TypeConversionContext,0)
 
 
-        def getRuleIndex(self):
-            return EvansParser.RULE_genExpression
-
         def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterGenExpression" ):
-                listener.enterGenExpression(self)
+            if hasattr( listener, "enterConversion" ):
+                listener.enterConversion(self)
 
         def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitGenExpression" ):
-                listener.exitGenExpression(self)
+            if hasattr( listener, "exitConversion" ):
+                listener.exitConversion(self)
+
+
+    class AttrContext(GenExpressionContext):
+
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a EvansParser.GenExpressionContext
+            super().__init__(parser)
+            self.copyFrom(ctx)
+
+        def genExpression(self):
+            return self.getTypedRuleContext(EvansParser.GenExpressionContext,0)
+
+        def ID(self):
+            return self.getToken(EvansParser.ID, 0)
+        def methodCall(self):
+            return self.getTypedRuleContext(EvansParser.MethodCallContext,0)
+
+        def typeConversion(self):
+            return self.getTypedRuleContext(EvansParser.TypeConversionContext,0)
+
+
+        def enterRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "enterAttr" ):
+                listener.enterAttr(self)
+
+        def exitRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "exitAttr" ):
+                listener.exitAttr(self)
+
+
+    class NotContext(GenExpressionContext):
+
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a EvansParser.GenExpressionContext
+            super().__init__(parser)
+            self.copyFrom(ctx)
+
+        def genExpression(self):
+            return self.getTypedRuleContext(EvansParser.GenExpressionContext,0)
+
+
+        def enterRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "enterNot" ):
+                listener.enterNot(self)
+
+        def exitRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "exitNot" ):
+                listener.exitNot(self)
+
+
+    class PostfixContext(GenExpressionContext):
+
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a EvansParser.GenExpressionContext
+            super().__init__(parser)
+            self.copyFrom(ctx)
+
+        def genExpression(self):
+            return self.getTypedRuleContext(EvansParser.GenExpressionContext,0)
+
+
+        def enterRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "enterPostfix" ):
+                listener.enterPostfix(self)
+
+        def exitRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "exitPostfix" ):
+                listener.exitPostfix(self)
+
+
+    class AndContext(GenExpressionContext):
+
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a EvansParser.GenExpressionContext
+            super().__init__(parser)
+            self.copyFrom(ctx)
+
+        def genExpression(self, i:int=None):
+            if i is None:
+                return self.getTypedRuleContexts(EvansParser.GenExpressionContext)
+            else:
+                return self.getTypedRuleContext(EvansParser.GenExpressionContext,i)
+
+
+        def enterRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "enterAnd" ):
+                listener.enterAnd(self)
+
+        def exitRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "exitAnd" ):
+                listener.exitAnd(self)
+
+
+    class CompareContext(GenExpressionContext):
+
+        def __init__(self, parser, ctx:ParserRuleContext): # actually a EvansParser.GenExpressionContext
+            super().__init__(parser)
+            self.copyFrom(ctx)
+
+        def genExpression(self, i:int=None):
+            if i is None:
+                return self.getTypedRuleContexts(EvansParser.GenExpressionContext)
+            else:
+                return self.getTypedRuleContext(EvansParser.GenExpressionContext,i)
+
+
+        def enterRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "enterCompare" ):
+                listener.enterCompare(self)
+
+        def exitRule(self, listener:ParseTreeListener):
+            if hasattr( listener, "exitCompare" ):
+                listener.exitCompare(self)
 
 
 
@@ -2054,6 +2317,10 @@ class EvansParser ( Parser ):
             self._errHandler.sync(self)
             la_ = self._interp.adaptivePredict(self._input,36,self._ctx)
             if la_ == 1:
+                localctx = EvansParser.ParensContext(self, localctx)
+                self._ctx = localctx
+                _prevctx = localctx
+
                 self.state = 308
                 self.match(EvansParser.T__6)
                 self.state = 309
@@ -2063,26 +2330,41 @@ class EvansParser ( Parser ):
                 pass
 
             elif la_ == 2:
+                localctx = EvansParser.LitralContext(self, localctx)
+                self._ctx = localctx
+                _prevctx = localctx
                 self.state = 312
                 self.genLiteral()
                 pass
 
             elif la_ == 3:
+                localctx = EvansParser.VarContext(self, localctx)
+                self._ctx = localctx
+                _prevctx = localctx
                 self.state = 313
                 self.match(EvansParser.ID)
                 pass
 
             elif la_ == 4:
+                localctx = EvansParser.CallContext(self, localctx)
+                self._ctx = localctx
+                _prevctx = localctx
                 self.state = 314
                 self.methodCall()
                 pass
 
             elif la_ == 5:
+                localctx = EvansParser.ConversionContext(self, localctx)
+                self._ctx = localctx
+                _prevctx = localctx
                 self.state = 315
                 self.typeConversion()
                 pass
 
             elif la_ == 6:
+                localctx = EvansParser.NotContext(self, localctx)
+                self._ctx = localctx
+                _prevctx = localctx
                 self.state = 316
                 self.match(EvansParser.T__16)
                 self.state = 317
@@ -2090,6 +2372,9 @@ class EvansParser ( Parser ):
                 pass
 
             elif la_ == 7:
+                localctx = EvansParser.PrefixContext(self, localctx)
+                self._ctx = localctx
+                _prevctx = localctx
                 self.state = 318
                 _la = self._input.LA(1)
                 if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << EvansParser.T__14) | (1 << EvansParser.T__15) | (1 << EvansParser.T__17) | (1 << EvansParser.T__18))) != 0)):
@@ -2115,7 +2400,7 @@ class EvansParser ( Parser ):
                     self._errHandler.sync(self)
                     la_ = self._interp.adaptivePredict(self._input,38,self._ctx)
                     if la_ == 1:
-                        localctx = EvansParser.GenExpressionContext(self, _parentctx, _parentState)
+                        localctx = EvansParser.MulDivContext(self, EvansParser.GenExpressionContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_genExpression)
                         self.state = 322
                         if not self.precpred(self._ctx, 5):
@@ -2133,7 +2418,7 @@ class EvansParser ( Parser ):
                         pass
 
                     elif la_ == 2:
-                        localctx = EvansParser.GenExpressionContext(self, _parentctx, _parentState)
+                        localctx = EvansParser.AddSubContext(self, EvansParser.GenExpressionContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_genExpression)
                         self.state = 325
                         if not self.precpred(self._ctx, 4):
@@ -2151,7 +2436,7 @@ class EvansParser ( Parser ):
                         pass
 
                     elif la_ == 3:
-                        localctx = EvansParser.GenExpressionContext(self, _parentctx, _parentState)
+                        localctx = EvansParser.CompareContext(self, EvansParser.GenExpressionContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_genExpression)
                         self.state = 328
                         if not self.precpred(self._ctx, 3):
@@ -2169,7 +2454,7 @@ class EvansParser ( Parser ):
                         pass
 
                     elif la_ == 4:
-                        localctx = EvansParser.GenExpressionContext(self, _parentctx, _parentState)
+                        localctx = EvansParser.AndContext(self, EvansParser.GenExpressionContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_genExpression)
                         self.state = 331
                         if not self.precpred(self._ctx, 2):
@@ -2182,7 +2467,7 @@ class EvansParser ( Parser ):
                         pass
 
                     elif la_ == 5:
-                        localctx = EvansParser.GenExpressionContext(self, _parentctx, _parentState)
+                        localctx = EvansParser.OrContext(self, EvansParser.GenExpressionContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_genExpression)
                         self.state = 334
                         if not self.precpred(self._ctx, 1):
@@ -2195,7 +2480,7 @@ class EvansParser ( Parser ):
                         pass
 
                     elif la_ == 6:
-                        localctx = EvansParser.GenExpressionContext(self, _parentctx, _parentState)
+                        localctx = EvansParser.AttrContext(self, EvansParser.GenExpressionContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_genExpression)
                         self.state = 337
                         if not self.precpred(self._ctx, 9):
@@ -2225,7 +2510,7 @@ class EvansParser ( Parser ):
                         pass
 
                     elif la_ == 7:
-                        localctx = EvansParser.GenExpressionContext(self, _parentctx, _parentState)
+                        localctx = EvansParser.PostfixContext(self, EvansParser.GenExpressionContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_genExpression)
                         self.state = 344
                         if not self.precpred(self._ctx, 8):
