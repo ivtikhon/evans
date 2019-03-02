@@ -25,14 +25,14 @@ class stack { # attributes and state variables share the same namespace within c
   attr:
     list s; # uninitialized list is empty
   state:
-    dom last_key = ('digit', 'point'); # 'undef' is the default value of enum variables
+    dom last_key ('digit', 'point') = 'digit';  # here we define the domain of the state variable, it's not initialization
+                                    # 'undef' is the default value of domain variables
     bool dec_point, changed = false;
-    bool tobe_cleaned; # uninitialized state variable; bool variables are initialized to false by default
+    bool tobe_cleaned; # bool variables are initialized to false by default
 
   init:
     stack() {  # constructor has full access to all attributes
       s.append('0');
-      last_key = 'digit';
       tobe_cleaned = false;  # false is the default value, i.e. initialization here is redundant
     }
 
@@ -191,7 +191,7 @@ class key {
     str k = '';
 
   state:
-    dom k_val = ('digit', 'point', 'op', 'eq', 'clear', 'erase');
+    dom k_val ('digit', 'point', 'op', 'eq', 'clear', 'erase');
     bool processed;
 
   init:

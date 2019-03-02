@@ -19,19 +19,32 @@ classBody
     ;
 
 attributeList
-    : ATTR ':' varDeclaration+
+    : ATTR ':' genVarDeclaration+
     ;
 
 stateList
-    : STATE ':' varDeclaration+
+    : STATE ':' stateVarDeclaration+
     ;
 
-varDeclaration
+stateVarDeclaration
+    : DOM ID '(' domainList ')' ('=' domainItem)?';'      # stateDom
+    | (BOOL | NUM) varDeclarator (',' varDeclarator)* ';' # stateBoolNum
+    ;
+
+genVarDeclaration
     : genType varDeclarator (',' varDeclarator)* ';'
     ;
 
 varDeclarator
     : ID ('=' variableInitializer)?
+    ;
+
+domainList
+    : domainItem (',' domainItem)*
+    ;
+
+domainItem
+    : STRING_LITERAL
     ;
 
 variableInitializer
@@ -88,7 +101,7 @@ genCodeBlock
     ;
 
 blockStatement
-    : varDeclaration
+    : genVarDeclaration
     | genStatement
     | genAssignment
     ;
@@ -108,7 +121,7 @@ genAssignment
 
 genExpression
     : '(' genExpression ')'                                     # Parens
-    | genLiteral                                                # Litral
+    | genLiteral                                                # Literal
     | ID                                                        # Var
     | methodCall                                                # Call
     | typeConversion                                            # Conversion
@@ -163,6 +176,7 @@ embeddedType
     | FLOAT
     | INT
     | DOM
+    | NUM
     ;
 
 // Literals
@@ -219,6 +233,7 @@ STR : 'str' ;
 FLOAT : 'float' ;
 INT : 'int' ;
 DOM : 'dom' ;
+NUM: 'num' ;
 
 // Identifier
 ID  : LETTER (LETTER | '_' | DIGIT)* ;

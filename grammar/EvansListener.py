@@ -53,12 +53,30 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#varDeclaration.
-    def enterVarDeclaration(self, ctx:EvansParser.VarDeclarationContext):
+    # Enter a parse tree produced by EvansParser#stateDom.
+    def enterStateDom(self, ctx:EvansParser.StateDomContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#varDeclaration.
-    def exitVarDeclaration(self, ctx:EvansParser.VarDeclarationContext):
+    # Exit a parse tree produced by EvansParser#stateDom.
+    def exitStateDom(self, ctx:EvansParser.StateDomContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#stateBoolNum.
+    def enterStateBoolNum(self, ctx:EvansParser.StateBoolNumContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#stateBoolNum.
+    def exitStateBoolNum(self, ctx:EvansParser.StateBoolNumContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#genVarDeclaration.
+    def enterGenVarDeclaration(self, ctx:EvansParser.GenVarDeclarationContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#genVarDeclaration.
+    def exitGenVarDeclaration(self, ctx:EvansParser.GenVarDeclarationContext):
         pass
 
 
@@ -68,6 +86,24 @@ class EvansListener(ParseTreeListener):
 
     # Exit a parse tree produced by EvansParser#varDeclarator.
     def exitVarDeclarator(self, ctx:EvansParser.VarDeclaratorContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#domainList.
+    def enterDomainList(self, ctx:EvansParser.DomainListContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#domainList.
+    def exitDomainList(self, ctx:EvansParser.DomainListContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#domainItem.
+    def enterDomainItem(self, ctx:EvansParser.DomainItemContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#domainItem.
+    def exitDomainItem(self, ctx:EvansParser.DomainItemContext):
         pass
 
 
@@ -269,15 +305,6 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#Litral.
-    def enterLitral(self, ctx:EvansParser.LitralContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#Litral.
-    def exitLitral(self, ctx:EvansParser.LitralContext):
-        pass
-
-
     # Enter a parse tree produced by EvansParser#Prefix.
     def enterPrefix(self, ctx:EvansParser.PrefixContext):
         pass
@@ -329,6 +356,15 @@ class EvansListener(ParseTreeListener):
 
     # Exit a parse tree produced by EvansParser#And.
     def exitAnd(self, ctx:EvansParser.AndContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#Literal.
+    def enterLiteral(self, ctx:EvansParser.LiteralContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#Literal.
+    def exitLiteral(self, ctx:EvansParser.LiteralContext):
         pass
 
 
