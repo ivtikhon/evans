@@ -49,7 +49,7 @@ class EvansTree(EvansListener):
 
     def enterStateList(self, ctx):
         ''' Create list of states; assign variable context. '''
-        self.current_var = self.current_class['state'] = {}
+        self.current_var = self.current_class['state'] = {'dom': {}}
 
     def enterGenVarDeclaration(self, ctx):
         ''' Add new variables to the current list.'''
@@ -61,13 +61,10 @@ class EvansTree(EvansListener):
         for name in ctx.varDeclarator():
             self.current_var[name.ID().getText()] = type
 
-    def enterStateDom(self, ctx):
-        name = ctx.ID().getText()
-        val = ctx.domainItem().STRING_LITERAL().getText() if ctx.domainItem() != None else "'undef'"
-        dom = []
-        for item in ctx.domainList().domainItem():
-            dom.append(item.STRING_LITERAL().getText())
-        self.current_var[name] = {'dom': dom, 'val': val}
+    def enterDomainDeclaration(self, ctx):
+        domain_list = self.current_class['state']['dom'][ctx.ID().getText()] = []
+        for item in ctx.domainList().ID():
+            domain_list.append(item.getText())
 
     def enterOperatorDeclaration(self, ctx):
         ''' Create list of parameters; assign operator context. '''

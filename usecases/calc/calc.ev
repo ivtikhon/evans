@@ -25,8 +25,10 @@ class stack { # attributes and state variables share the same namespace within c
   attr:
     list s; # uninitialized list is empty
   state:
-    dom last_key ('digit', 'point') = 'digit';  # here we define the domain of the state variable, it's not initialization
-                                    # 'undef' is the default value of domain variables
+    dom key_domain { digit, point } # here we define the domain of a state variable
+    key_domain last_key = digit;  # we don't have to refer to the domain in the assignment,
+                                  # like key_domain.digit because we can recover the domain
+                                  # name from the state variable declaration
     bool dec_point, changed = false;
     bool tobe_cleaned; # bool variables are initialized to false by default
 
@@ -50,8 +52,8 @@ class stack { # attributes and state variables share the same namespace within c
     clean(){ s.clear(); }
 
   pred:
-    is_last_key_digit(){ ret (last_key == 'digit'); } # predicates have read-only access to state variables; predicates always return bool
-    is_last_key_point(){ ret (last_key == 'point'); }
+    is_last_key_digit(){ ret (last_key == digit); } # predicates have read-only access to state variables; predicates always return bool
+    is_last_key_point(){ ret (last_key == point); }
     is_dec_point(){ ret dec_point; }
 
   oper:
@@ -59,15 +61,15 @@ class stack { # attributes and state variables share the same namespace within c
       when: # precondition and effect sections have access to state variables, and no access to attributes
         not changed and
         not k.processed and
-        (k.is_digit() or (k.k_val == 'point' and not dec_point))
+        (k.is_digit() or (k.k_val == point and not dec_point))
       eff:
         changed = true;
         k.processed = true;
         if (k.is_point()) {
-          last_key = 'point';
+          last_key = point;
           dec_point = true;
         } else {
-          last_key = 'digit';
+          last_key = digit;
         }
       exec: # exec has full access to attributes and read-only access to state variables
         push_key(k);
@@ -81,7 +83,7 @@ class stack { # attributes and state variables share the same namespace within c
       eff:
         tobe_cleaned = false;
         dec_point = false;
-        last_key = 'digit';
+        last_key = digit;
       exec:
         clean();
     }
@@ -191,12 +193,13 @@ class key {
     str k = '';
 
   state:
-    dom k_val ('digit', 'point', 'op', 'eq', 'clear', 'erase');
+    dom key_domain {digit, point, op, eq, clear, erase}
+    key_domain k_val;
     bool processed;
 
   init:
     key(){
-      k_val = 'digit';
+      k_val = digit;
     }
 
   func:
@@ -204,12 +207,12 @@ class key {
     set_value(str val) { k = val;}
 
   pred:
-    is_op() {ret (k_val == 'op');}
-    is_digit() {ret (k_val == 'digit');}
-    is_point() {ret (k_val == 'point');}
-    is_eq() {ret (k_val == 'eq');}
-    is_clear() {ret (k_val == 'clear');}
-    is_erase() {ret (k_val == 'erase');}
+    is_op() {ret (k_val == op);}
+    is_digit() {ret (k_val == digit);}
+    is_point() {ret (k_val == point);}
+    is_eq() {ret (k_val == eq);}
+    is_clear() {ret (k_val == clear);}
+    is_erase() {ret (k_val == erase);}
 
   oper:
     no_op (stack s){

@@ -23,12 +23,15 @@ attributeList
     ;
 
 stateList
-    : STATE ':' stateVarDeclaration+
+    : STATE ':' (genVarDeclaration | domainDeclaration)+
     ;
 
-stateVarDeclaration
-    : DOM ID '(' domainList ')' ('=' domainItem)?';'      # stateDom
-    | (BOOL | NUM) varDeclarator (',' varDeclarator)* ';' # stateBoolNum
+domainDeclaration
+    : DOM ID '{' domainList '}'
+    ;
+
+domainList
+    : ID (',' ID)*
     ;
 
 genVarDeclaration
@@ -37,14 +40,6 @@ genVarDeclaration
 
 varDeclarator
     : ID ('=' variableInitializer)?
-    ;
-
-domainList
-    : domainItem (',' domainItem)*
-    ;
-
-domainItem
-    : STRING_LITERAL
     ;
 
 variableInitializer
