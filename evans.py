@@ -14,7 +14,6 @@ from EvansListener import EvansListener
 class EvansTree(EvansListener):
     def enterCodeFile(self, ctx):
         self.classes = {}
-        self.code_blocks = [] # stack of code blocks, i.e. variable contexts
 
     def exitCodeFile(self, ctx):
         pprint.pprint(self.classes)
@@ -40,10 +39,6 @@ class EvansTree(EvansListener):
             'params': {},
             'body': {}
         }
-        self.code_blocks.append(self.current_method['body'])
-
-    def exitFunctionDeclaration(self, ctx):
-        self.code_blocks.pop()
 
     def enterConstructorDeclaration(self, ctx):
         ''' Create list of parameters, assign function context,
@@ -53,10 +48,6 @@ class EvansTree(EvansListener):
             'params': {},
             'body': {}
         }
-        self.code_blocks.append(self.current_method['body'])
-
-    def exitConstructorDeclaration(self, ctx):
-        self.code_blocks.pop()
 
     def enterPredicateDeclaration(self, ctx):
         ''' Create list of parameters; assign predicate context. '''
@@ -72,9 +63,9 @@ class EvansTree(EvansListener):
 
     def enterGenVarDeclaration(self, ctx):
         ''' Add new variables to the current list. '''
-        contextRuleIndex = ctx.parentCtx.getRuleIndex() # get parent context
-        if contextRuleIndex not in [EvansParser.RULE_attributeList, EvansParser.RULE_stateList]:
-            print('### varDeclaration,', EvansParser.ruleNames[contextRuleIndex])
+        parentContextRuleIndex = ctx.parentCtx.getRuleIndex() # get parent context
+        if parentContextRuleIndex not in [EvansParser.RULE_attributeList, EvansParser.RULE_stateList]:
+            print('### varDeclaration,', EvansParser.ruleNames[parentContextRuleIndex])
             return
         type = ctx.genType().getText()
         # TODO: implement variable initialization (variableInitializer)
@@ -100,6 +91,12 @@ class EvansTree(EvansListener):
     def enterOperatorBody(self, ctx):
         if ctx.WHEN():
             pass
+
+    def enterGenCodeBlock(self, ctx):
+        parentContextRuleIndex = ctx.parentCtx.getRuleIndex() # get parent context
+        if parentContextRuleIndex == RULE_functionDeclaration:
+            self.current_code_block = self.current_method['body']
+            self.current_code_block['vars'] = {}
 
 def main(argv):
     input = FileStream(argv[1])
