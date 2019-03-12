@@ -19,6 +19,7 @@ class EvansTree(EvansListener):
         pprint.pprint(self.classes)
 
     def enterClassDeclaration(self, ctx):
+        ''' Create class structure '''
         self.current_class = {
             'func': {},
             'pred': {},
@@ -32,18 +33,14 @@ class EvansTree(EvansListener):
         self.classes[ctx.ID().getText()] = self.current_class
 
     def enterFunctionDeclaration(self, ctx):
-        ''' Create list of parameters, assign function context,
-            assign local variable context
-        '''
+        ''' Create list of parameters, assign function context '''
         self.current_method = self.current_class['func'][ctx.ID().getText()] = {
             'params': {},
             'body': {}
         }
 
     def enterConstructorDeclaration(self, ctx):
-        ''' Create list of parameters, assign function context,
-            assign local variable context
-        '''
+        ''' Create list of parameters, assign function context '''
         self.current_method = self.current_class['init'][ctx.classType().getText()] = {
             'params': {},
             'body': {}
