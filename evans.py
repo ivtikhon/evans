@@ -14,6 +14,7 @@ from EvansListener import EvansListener
 class EvansTree(EvansListener):
     def enterCodeFile(self, ctx):
         self.classes = {}
+        self.code_blocks = [] # stack of code blocks, i.e. variable contexts
 
     def exitCodeFile(self, ctx):
         pprint.pprint(self.classes)
@@ -32,12 +33,30 @@ class EvansTree(EvansListener):
         self.classes[ctx.ID().getText()] = self.current_class
 
     def enterFunctionDeclaration(self, ctx):
-        ''' Create list of parameters; assign function context. '''
-        self.current_method = self.current_class['func'][ctx.ID().getText()] = {'params': {}}
+        ''' Create list of parameters, assign function context,
+            assign local variable context
+        '''
+        self.current_method = self.current_class['func'][ctx.ID().getText()] = {
+            'params': {},
+            'body': {}
+        }
+        self.code_blocks.append(self.current_method['body'])
+
+    def exitFunctionDeclaration(self, ctx):
+        self.code_blocks.pop()
 
     def enterConstructorDeclaration(self, ctx):
-        ''' Create list of parameters; assign constructor context. '''
-        self.current_method = self.current_class['init'][ctx.classType().getText()] = {'params': {}}
+        ''' Create list of parameters, assign function context,
+            assign local variable context
+        '''
+        self.current_method = self.current_class['init'][ctx.classType().getText()] = {
+            'params': {},
+            'body': {}
+        }
+        self.code_blocks.append(self.current_method['body'])
+
+    def exitConstructorDeclaration(self, ctx):
+        self.code_blocks.pop()
 
     def enterPredicateDeclaration(self, ctx):
         ''' Create list of parameters; assign predicate context. '''
@@ -52,16 +71,19 @@ class EvansTree(EvansListener):
         self.current_var = self.current_class['state'] = {'dom': {}}
 
     def enterGenVarDeclaration(self, ctx):
-        ''' Add new variables to the current list.'''
-        contextRuleIndex = ctx.parentCtx.getRuleIndex() # parent context
-        if contextRuleIndex != EvansParser.RULE_attributeList:
+        ''' Add new variables to the current list. '''
+        contextRuleIndex = ctx.parentCtx.getRuleIndex() # get parent context
+        if contextRuleIndex not in [EvansParser.RULE_attributeList, EvansParser.RULE_stateList]:
             print('### varDeclaration,', EvansParser.ruleNames[contextRuleIndex])
             return
         type = ctx.genType().getText()
-        for name in ctx.varDeclarator():
-            self.current_var[name.ID().getText()] = type
+        # TODO: implement variable initialization (variableInitializer)
+        for item in ctx.varDeclarator():
+            name = item.ID().getText()
+            self.current_var[name] = {'type': type, 'val': None}
 
     def enterDomainDeclaration(self, ctx):
+        ''' Add domain definition to the current class. '''
         domain_list = self.current_class['state']['dom'][ctx.ID().getText()] = []
         for item in ctx.domainList().ID():
             domain_list.append(item.getText())
@@ -74,6 +96,10 @@ class EvansTree(EvansListener):
         ''' Add parameters to the list. '''
         for type, name in zip(ctx.genType(), ctx.ID()):
             self.current_method['params'][name.getText()] = type.getText()
+
+    def enterOperatorBody(self, ctx):
+        if ctx.WHEN():
+            pass
 
 def main(argv):
     input = FileStream(argv[1])

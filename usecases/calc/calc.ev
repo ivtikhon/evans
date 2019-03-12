@@ -25,10 +25,10 @@ class stack { # attributes and state variables share the same namespace within c
   attr:
     list s; # uninitialized list is empty
   state:
-    dom key_domain { digit, point } # here we define the domain of a state variable
+    dom key_domain { digit, point } # here we define a state domain
     key_domain last_key = digit;  # we don't have to refer to the domain in the assignment,
                                   # like key_domain.digit because we can recover the domain
-                                  # name from the state variable declaration
+                                  # name from the variable declaration
     bool dec_point, changed = false;
     bool tobe_cleaned; # bool variables are initialized to false by default
 
@@ -51,14 +51,15 @@ class stack { # attributes and state variables share the same namespace within c
 
     clean(){ s.clear(); }
 
-  pred:
-    is_last_key_digit(){ ret (last_key == digit); } # predicates have read-only access to state variables; predicates always return bool
+  pred: # predicates can't modify class states; predicates always return bool
+        # TODO: think about variable declaration inside predicates
+    is_last_key_digit(){ ret (last_key == digit); }
     is_last_key_point(){ ret (last_key == point); }
     is_dec_point(){ ret dec_point; }
 
   oper:
     push (key k) {
-      when: # precondition and effect sections have access to state variables, and no access to attributes
+      when: # precondition and effect sections have access to states, and no access to attributes
         not changed and
         not k.processed and
         (k.is_digit() or (k.k_val == point and not dec_point))
@@ -72,6 +73,8 @@ class stack { # attributes and state variables share the same namespace within c
           last_key = digit;
         }
       exec: # exec has full access to attributes and read-only access to state variables
+            # exec can call functions, but not predicates; the implication is that within class
+            # namespace for attributes and states is flat;
         push_key(k);
     }
 

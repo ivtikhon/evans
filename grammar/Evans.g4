@@ -7,7 +7,7 @@ grammar Evans;
 
 codeFile
     : (classDeclaration)+
-//    : (classDeclaration | mainDeclaration)+
+//    : classDeclaration+ mainDeclaration?
     ;
 
 classDeclaration
@@ -119,8 +119,7 @@ genExpression
     | genLiteral                                                # Literal
     | ID                                                        # Var
     | methodCall                                                # Call
-    | typeConversion                                            # Conversion
-    | genExpression '.' (ID | methodCall | typeConversion)      # Attr
+    | genExpression '.' (ID | methodCall )                      # Attr
     | genExpression ('++' | '--')                               # Postfix
     | 'not' genExpression                                       # Not
     | ('+'|'-'|'++'|'--') genExpression                         # Prefix
@@ -133,10 +132,6 @@ genExpression
 
 methodCall
     : ID '(' expressionList? ')'
-    ;
-
-typeConversion
-    : genType '(' expressionList? ')'
     ;
 
 expressionList
