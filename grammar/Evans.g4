@@ -102,12 +102,13 @@ blockStatement
     ;
 
 genStatement
-    : IF '(' genExpression ')' genCodeBlock (ELIF '(' genExpression ')' genCodeBlock)* (ELSE genCodeBlock)?
-//    | FOR '(' forControl ')' genCodeBlock
-    | WHILE '(' genExpression ')' genCodeBlock
-    | RET genExpression? ';'
-    | (BREAK | CONT) ';'
-    | (genExpression '.')? methodCall ';'
+    : IF '(' genExpression ')' genCodeBlock
+      (ELIF '(' genExpression ')' genCodeBlock)*
+      (ELSE genCodeBlock)?                          # IfStatement
+    | WHILE '(' genExpression ')' genCodeBlock      # WhileStatement
+    | RET genExpression? ';'                        # RetStatement
+    | (BREAK | CONT) ';'                            # BreakContStatement
+    | (genExpression '.')? methodCall ';'           # callStatement
     ;
 
 genAssignment
@@ -119,6 +120,7 @@ genExpression
     | genLiteral                                                # Literal
     | ID                                                        # Var
     | methodCall                                                # Call
+    | typeConversion                                            # TypeConv
     | genExpression '.' (ID | methodCall )                      # Attr
     | genExpression ('++' | '--')                               # Postfix
     | 'not' genExpression                                       # Not
@@ -132,6 +134,10 @@ genExpression
 
 methodCall
     : ID '(' expressionList? ')'
+    ;
+
+typeConversion
+    : genType '(' genExpression ')'
     ;
 
 expressionList

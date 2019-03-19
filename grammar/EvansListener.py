@@ -215,12 +215,48 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#genStatement.
-    def enterGenStatement(self, ctx:EvansParser.GenStatementContext):
+    # Enter a parse tree produced by EvansParser#IfStatement.
+    def enterIfStatement(self, ctx:EvansParser.IfStatementContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#genStatement.
-    def exitGenStatement(self, ctx:EvansParser.GenStatementContext):
+    # Exit a parse tree produced by EvansParser#IfStatement.
+    def exitIfStatement(self, ctx:EvansParser.IfStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#WhileStatement.
+    def enterWhileStatement(self, ctx:EvansParser.WhileStatementContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#WhileStatement.
+    def exitWhileStatement(self, ctx:EvansParser.WhileStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#RetStatement.
+    def enterRetStatement(self, ctx:EvansParser.RetStatementContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#RetStatement.
+    def exitRetStatement(self, ctx:EvansParser.RetStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#BreakContStatement.
+    def enterBreakContStatement(self, ctx:EvansParser.BreakContStatementContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#BreakContStatement.
+    def exitBreakContStatement(self, ctx:EvansParser.BreakContStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#callStatement.
+    def enterCallStatement(self, ctx:EvansParser.CallStatementContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#callStatement.
+    def exitCallStatement(self, ctx:EvansParser.CallStatementContext):
         pass
 
 
@@ -296,12 +332,12 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#Conversion.
-    def enterConversion(self, ctx:EvansParser.ConversionContext):
+    # Enter a parse tree produced by EvansParser#TypeConv.
+    def enterTypeConv(self, ctx:EvansParser.TypeConvContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#Conversion.
-    def exitConversion(self, ctx:EvansParser.ConversionContext):
+    # Exit a parse tree produced by EvansParser#TypeConv.
+    def exitTypeConv(self, ctx:EvansParser.TypeConvContext):
         pass
 
 
