@@ -82,6 +82,7 @@ class EvansTree(EvansListener):
     def enterOperatorDeclaration(self, ctx):
         ''' Create list of parameters; assign operator context. '''
         self.current_method = self.current_class['oper'][ctx.ID().getText()] = {}
+        self.code_blocks.append(self.current_method)
 
     def enterGenParameters(self, ctx):
         ''' Add parameters to the list. '''
@@ -94,6 +95,12 @@ class EvansTree(EvansListener):
     def enterGenCodeBlock(self, ctx):
         ''' Restore current variable context from stack. '''
         self.current_code_block = self.code_blocks.pop()
+
+    def enterOperatorBody(self, ctx):
+        ''' Restore current variable context from stack. '''
+        #TODO: separate variable context for EFF and EXEC
+        self.current_code_block = self.code_blocks.pop()
+
 
     def enterIfStatement(self, ctx):
         ''' Push current variable context to stack;
