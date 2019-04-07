@@ -103,7 +103,7 @@ class EvansTree(EvansListener):
         if ctx.ELSE() != None:
             if_statement['else'] = {}
             self.code_blocks.append(if_statement['else'])
-        if ctx.ELIF() != None:
+        if ctx.ELIF() != None and len(ctx.ELIF()) > 0:
             elif_len = len(ctx.ELIF())
             if_statement['elif'] = [{}] * elif_len
             for i in range(elif_len - 1, -1, -1):
