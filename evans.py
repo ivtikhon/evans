@@ -35,29 +35,18 @@ class EvansTree(EvansListener):
 
     def enterFunctionDeclaration(self, ctx):
         ''' Create list of parameters, assign function context '''
-        self.current_method = self.current_class['func'][ctx.ID().getText()] = {
-            'params': {},
-            'body': None
-        }
-        self.current_code_block = self.current_method['body']
-
-    def exitFunctionDeclaration(self, ctx):
-        self.current_method['body'] = self.code_blocks.pop()
+        self.current_method = self.current_class['func'][ctx.ID().getText()] = {}
+        self.code_blocks.append(self.current_method)
 
     def enterConstructorDeclaration(self, ctx):
         ''' Create list of parameters, assign function context '''
-        self.current_method = self.current_class['init'][ctx.classType().getText()] = {
-            'params': {},
-            'body': None
-        }
-        self.current_code_block = self.current_method['body']
-
-    def exitConstructorDeclaration(self, ctx):
-        self.current_method['body'] = self.code_blocks.pop()
+        self.current_method = self.current_class['init'][ctx.classType().getText()] = {}
+        self.code_blocks.append(self.current_method)
 
     def enterPredicateDeclaration(self, ctx):
         ''' Create list of parameters; assign predicate context. '''
-        self.current_method = self.current_class['pred'][ctx.ID().getText()] = {'params': {}}
+        self.current_method = self.current_class['pred'][ctx.ID().getText()] = {}
+        self.code_blocks.append(self.current_method)
 
     def enterAttributeList(self, ctx):
         ''' Create list of attributes; assign variable context. '''
@@ -74,6 +63,8 @@ class EvansTree(EvansListener):
         if parentContextRuleIndex in [EvansParser.RULE_attributeList, EvansParser.RULE_stateList]:
             variable_context = self.current_attribute
         elif parentContextRuleIndex == EvansParser.RULE_blockStatement:
+            if 'vars' not in self.current_code_block:
+                self.current_code_block['vars'] = {}
             variable_context = self.current_code_block['vars']
         # TODO: add error code here if the parent context is unknown
         if variable_context != None:
@@ -90,26 +81,41 @@ class EvansTree(EvansListener):
 
     def enterOperatorDeclaration(self, ctx):
         ''' Create list of parameters; assign operator context. '''
-        self.current_method = self.current_class['oper'][ctx.ID().getText()] = {'params': {}}
+        self.current_method = self.current_class['oper'][ctx.ID().getText()] = {}
 
     def enterGenParameters(self, ctx):
         ''' Add parameters to the list. '''
-        for type, name in zip(ctx.genType(), ctx.ID()):
-            self.current_method['params'][name.getText()] = type.getText()
+        if len(ctx.ID()) > 0:
+            if 'params' not in self.current_method:
+                self.current_method['params'] = {}
+            for type, name in zip(ctx.genType(), ctx.ID()):
+                self.current_method['params'][name.getText()] = type.getText()
 
     def enterGenCodeBlock(self, ctx):
-        ''' Add code block to the list, assign context '''
-        parentContextRuleIndex = ctx.parentCtx.getRuleIndex() # get parent context
-        if parentContextRuleIndex in \
-                [EvansParser.RULE_functionDeclaration, EvansParser.RULE_constructorDeclaration]:
-            self.current_code_block = {'vars': {}}
-            self.code_blocks.append(self.current_code_block)
-        else:
-            print("### Code block; context --- parent: " + EvansParser.ruleNames[parentContextRuleIndex] +
-                ", current: " + EvansParser.ruleNames[ctx.getRuleIndex()])
+        ''' Restore current variable context from stack. '''
+        self.current_code_block = self.code_blocks.pop()
 
     def enterIfStatement(self, ctx):
-        print('### If statement: ' + EvansParser.ruleNames[ctx.getRuleIndex()])
+        ''' Push current variable context to stack;
+            generate conditional statement context and push to stack as well. '''
+        self.code_blocks.append(self.current_code_block)
+        if_statement = {'if': {}}
+        if ctx.ELSE() != None:
+            if_statement['else'] = {}
+            self.code_blocks.append(if_statement['else'])
+        if ctx.ELIF() != None:
+            elif_len = len(ctx.ELIF())
+            if_statement['elif'] = [{}] * elif_len
+            for i in range(elif_len - 1, -1, -1):
+                self.code_blocks.append(if_statement['elif'][i])
+        self.code_blocks.append(if_statement['if'])
+        if 'statements' not in self.current_code_block:
+            self.current_code_block['statements'] = []
+        self.current_code_block['statements'].append(if_statement)
+
+    def exitIfStatement(self, ctx):
+        ''' Restore variable context from stack. '''
+        self.current_code_block = self.code_blocks.pop()
 
 def main(argv):
     input = FileStream(argv[1])
