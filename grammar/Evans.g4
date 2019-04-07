@@ -122,9 +122,8 @@ genExpression
     | methodCall                                                # Call
     | typeConversion                                            # TypeConv
     | genExpression '.' (ID | methodCall )                      # Attr
-    | genExpression ('++' | '--')                               # Postfix
     | 'not' genExpression                                       # Not
-    | ('+'|'-'|'++'|'--') genExpression                         # Prefix
+    | ('+'|'-') genExpression                                   # Prefix
     | genExpression ('*'|'/'|'%') genExpression                 # MulDiv
     | genExpression ('+'|'-') genExpression                     # AddSub
     | genExpression ('<'|'>'|'<='|'>='|'!='|'==') genExpression # Compare

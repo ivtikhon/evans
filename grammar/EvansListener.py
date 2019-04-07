@@ -359,15 +359,6 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#Postfix.
-    def enterPostfix(self, ctx:EvansParser.PostfixContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#Postfix.
-    def exitPostfix(self, ctx:EvansParser.PostfixContext):
-        pass
-
-
     # Enter a parse tree produced by EvansParser#And.
     def enterAnd(self, ctx:EvansParser.AndContext):
         pass
