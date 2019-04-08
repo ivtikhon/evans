@@ -88,7 +88,11 @@ operatorDeclaration
     ;
 
 operatorBody
-    : (WHEN ':' genExpression)? EFF ':' blockStatement+ (EXEC ':' blockStatement+)?
+    : (WHEN ':' genExpression)? EFF ':' operatorCodeBlock (EXEC ':' operatorCodeBlock)?
+    ;
+
+operatorCodeBlock
+    : blockStatement+
     ;
 
 genCodeBlock
@@ -108,7 +112,7 @@ genStatement
     | WHILE '(' genExpression ')' genCodeBlock      # WhileStatement
     | RET genExpression? ';'                        # RetStatement
     | (BREAK | CONT) ';'                            # BreakContStatement
-    | (genExpression '.')? methodCall ';'           # callStatement
+    | (genExpression '.')? methodCall ';'           # CallStatement
     ;
 
 genAssignment
@@ -116,19 +120,19 @@ genAssignment
     ;
 
 genExpression
-    : '(' genExpression ')'                                     # Parens
-    | genLiteral                                                # Literal
-    | ID                                                        # Var
-    | methodCall                                                # Call
-    | typeConversion                                            # TypeConv
-    | genExpression '.' (ID | methodCall )                      # Attr
-    | 'not' genExpression                                       # Not
-    | ('+'|'-') genExpression                                   # Prefix
-    | genExpression ('*'|'/'|'%') genExpression                 # MulDiv
-    | genExpression ('+'|'-') genExpression                     # AddSub
-    | genExpression ('<'|'>'|'<='|'>='|'!='|'==') genExpression # Compare
-    | genExpression 'and' genExpression                         # And
-    | genExpression 'or' genExpression                          # Or
+    : '(' genExpression ')'                                     # ParensExpression
+    | genLiteral                                                # LiteralExpression
+    | ID                                                        # VarExpression
+    | methodCall                                                # CallExpression
+    | typeConversion                                            # TypeConvExpression
+    | genExpression '.' (ID | methodCall )                      # AttrExpression
+    | 'not' genExpression                                       # NotExpression
+    | ('+'|'-') genExpression                                   # PrefixExpression
+    | genExpression ('*'|'/'|'%') genExpression                 # MulDivExpression
+    | genExpression ('+'|'-') genExpression                     # AddSubExpression
+    | genExpression ('<'|'>'|'<='|'>='|'!='|'==') genExpression # CompareExpression
+    | genExpression 'and' genExpression                         # AndExpression
+    | genExpression 'or' genExpression                          # OrExpression
     ;
 
 methodCall

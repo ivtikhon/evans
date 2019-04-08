@@ -97,14 +97,19 @@ class EvansTree(EvansListener):
         self.current_code_block = self.code_blocks.pop()
 
     def enterOperatorBody(self, ctx):
-        ''' Restore current variable context from stack. '''
-        #TODO: separate variable context for EFF and EXEC
+        ''' Restore current variable context from stack;
+            generate operator context and push to stack. '''
         self.current_code_block = self.code_blocks.pop()
-
+        if ctx.EXEC() != None:
+            self.current_code_block['exec'] = exec_block = {}
+            self.code_blocks.append(exec_block)
+        self.current_code_block['eff'] = eff_block = {}
+        self.code_blocks.append(eff_block)
+        self.current_code_block = eff_block
 
     def enterIfStatement(self, ctx):
         ''' Push current variable context to stack;
-            generate conditional statement context and push to stack as well. '''
+            generate conditional statement context and push to stack. '''
         self.code_blocks.append(self.current_code_block)
         if_statement = {'if': {}}
         if ctx.ELSE() != None:

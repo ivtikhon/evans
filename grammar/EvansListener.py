@@ -197,6 +197,15 @@ class EvansListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by EvansParser#operatorCodeBlock.
+    def enterOperatorCodeBlock(self, ctx:EvansParser.OperatorCodeBlockContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#operatorCodeBlock.
+    def exitOperatorCodeBlock(self, ctx:EvansParser.OperatorCodeBlockContext):
+        pass
+
+
     # Enter a parse tree produced by EvansParser#genCodeBlock.
     def enterGenCodeBlock(self, ctx:EvansParser.GenCodeBlockContext):
         pass
@@ -251,11 +260,11 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#callStatement.
+    # Enter a parse tree produced by EvansParser#CallStatement.
     def enterCallStatement(self, ctx:EvansParser.CallStatementContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#callStatement.
+    # Exit a parse tree produced by EvansParser#CallStatement.
     def exitCallStatement(self, ctx:EvansParser.CallStatementContext):
         pass
 
@@ -269,120 +278,120 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#Call.
-    def enterCall(self, ctx:EvansParser.CallContext):
+    # Enter a parse tree produced by EvansParser#LiteralExpression.
+    def enterLiteralExpression(self, ctx:EvansParser.LiteralExpressionContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#Call.
-    def exitCall(self, ctx:EvansParser.CallContext):
-        pass
-
-
-    # Enter a parse tree produced by EvansParser#Or.
-    def enterOr(self, ctx:EvansParser.OrContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#Or.
-    def exitOr(self, ctx:EvansParser.OrContext):
+    # Exit a parse tree produced by EvansParser#LiteralExpression.
+    def exitLiteralExpression(self, ctx:EvansParser.LiteralExpressionContext):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#MulDiv.
-    def enterMulDiv(self, ctx:EvansParser.MulDivContext):
+    # Enter a parse tree produced by EvansParser#VarExpression.
+    def enterVarExpression(self, ctx:EvansParser.VarExpressionContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#MulDiv.
-    def exitMulDiv(self, ctx:EvansParser.MulDivContext):
-        pass
-
-
-    # Enter a parse tree produced by EvansParser#AddSub.
-    def enterAddSub(self, ctx:EvansParser.AddSubContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#AddSub.
-    def exitAddSub(self, ctx:EvansParser.AddSubContext):
+    # Exit a parse tree produced by EvansParser#VarExpression.
+    def exitVarExpression(self, ctx:EvansParser.VarExpressionContext):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#Parens.
-    def enterParens(self, ctx:EvansParser.ParensContext):
+    # Enter a parse tree produced by EvansParser#NotExpression.
+    def enterNotExpression(self, ctx:EvansParser.NotExpressionContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#Parens.
-    def exitParens(self, ctx:EvansParser.ParensContext):
-        pass
-
-
-    # Enter a parse tree produced by EvansParser#Var.
-    def enterVar(self, ctx:EvansParser.VarContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#Var.
-    def exitVar(self, ctx:EvansParser.VarContext):
+    # Exit a parse tree produced by EvansParser#NotExpression.
+    def exitNotExpression(self, ctx:EvansParser.NotExpressionContext):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#Prefix.
-    def enterPrefix(self, ctx:EvansParser.PrefixContext):
+    # Enter a parse tree produced by EvansParser#CompareExpression.
+    def enterCompareExpression(self, ctx:EvansParser.CompareExpressionContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#Prefix.
-    def exitPrefix(self, ctx:EvansParser.PrefixContext):
-        pass
-
-
-    # Enter a parse tree produced by EvansParser#TypeConv.
-    def enterTypeConv(self, ctx:EvansParser.TypeConvContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#TypeConv.
-    def exitTypeConv(self, ctx:EvansParser.TypeConvContext):
+    # Exit a parse tree produced by EvansParser#CompareExpression.
+    def exitCompareExpression(self, ctx:EvansParser.CompareExpressionContext):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#Attr.
-    def enterAttr(self, ctx:EvansParser.AttrContext):
+    # Enter a parse tree produced by EvansParser#OrExpression.
+    def enterOrExpression(self, ctx:EvansParser.OrExpressionContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#Attr.
-    def exitAttr(self, ctx:EvansParser.AttrContext):
-        pass
-
-
-    # Enter a parse tree produced by EvansParser#Not.
-    def enterNot(self, ctx:EvansParser.NotContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#Not.
-    def exitNot(self, ctx:EvansParser.NotContext):
+    # Exit a parse tree produced by EvansParser#OrExpression.
+    def exitOrExpression(self, ctx:EvansParser.OrExpressionContext):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#And.
-    def enterAnd(self, ctx:EvansParser.AndContext):
+    # Enter a parse tree produced by EvansParser#ParensExpression.
+    def enterParensExpression(self, ctx:EvansParser.ParensExpressionContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#And.
-    def exitAnd(self, ctx:EvansParser.AndContext):
-        pass
-
-
-    # Enter a parse tree produced by EvansParser#Literal.
-    def enterLiteral(self, ctx:EvansParser.LiteralContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#Literal.
-    def exitLiteral(self, ctx:EvansParser.LiteralContext):
+    # Exit a parse tree produced by EvansParser#ParensExpression.
+    def exitParensExpression(self, ctx:EvansParser.ParensExpressionContext):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#Compare.
-    def enterCompare(self, ctx:EvansParser.CompareContext):
+    # Enter a parse tree produced by EvansParser#AddSubExpression.
+    def enterAddSubExpression(self, ctx:EvansParser.AddSubExpressionContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#Compare.
-    def exitCompare(self, ctx:EvansParser.CompareContext):
+    # Exit a parse tree produced by EvansParser#AddSubExpression.
+    def exitAddSubExpression(self, ctx:EvansParser.AddSubExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#AndExpression.
+    def enterAndExpression(self, ctx:EvansParser.AndExpressionContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#AndExpression.
+    def exitAndExpression(self, ctx:EvansParser.AndExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#TypeConvExpression.
+    def enterTypeConvExpression(self, ctx:EvansParser.TypeConvExpressionContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#TypeConvExpression.
+    def exitTypeConvExpression(self, ctx:EvansParser.TypeConvExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#PrefixExpression.
+    def enterPrefixExpression(self, ctx:EvansParser.PrefixExpressionContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#PrefixExpression.
+    def exitPrefixExpression(self, ctx:EvansParser.PrefixExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#AttrExpression.
+    def enterAttrExpression(self, ctx:EvansParser.AttrExpressionContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#AttrExpression.
+    def exitAttrExpression(self, ctx:EvansParser.AttrExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#CallExpression.
+    def enterCallExpression(self, ctx:EvansParser.CallExpressionContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#CallExpression.
+    def exitCallExpression(self, ctx:EvansParser.CallExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#MulDivExpression.
+    def enterMulDivExpression(self, ctx:EvansParser.MulDivExpressionContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#MulDivExpression.
+    def exitMulDivExpression(self, ctx:EvansParser.MulDivExpressionContext):
         pass
 
 
