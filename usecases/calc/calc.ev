@@ -62,7 +62,7 @@ class stack { # attributes and state variables share the same namespace within c
       when: # precondition and effect sections have access to states, and no access to attributes
         !changed &&
         !k.processed &&
-        (k.is_digit() || (k.k_val == point && not dec_point))
+        (k.is_digit() || (k.k_val == point && !dec_point))
       eff:
         changed = true;
         k.processed = true;
@@ -185,7 +185,7 @@ class alu {
         !is_op_executed()
       eff:
         op_executed = true;
-        if(k.is_eq() or k.is_op()) {
+        if(k.is_eq() || k.is_op()) {
           op_stored = false;
         }
       exec:
@@ -204,22 +204,22 @@ class key {
 
   init:
     key(str k1) {
-      k = k1
+      k = k1;
       if (k1.isdigit()) {
-        k_val = 'digit'
+        k_val = 'digit';
       } elif (k1 == '.'){
-        k_val = 'point'
+        k_val = 'point';
       } elif (k1 == '=') {
-        k_val = 'eq'
+        k_val = 'eq';
       } elif (k1 == 'c') {
-        k_val = 'clear'
+        k_val = 'clear';
       } elif (k1 == 'r') {
-        k_val = 'erase'
-      } elif (k1 in ['+', '-', '/', '*']){
-        k_val = 'op'
+        k_val = 'erase';
+      } elif (k1 == '+' || k1 == '-' || k1 == '/' || k1 == '*'){
+        k_val = 'op';
       }
-      processed = false
-      updated = false
+      processed = false;
+      updated = false;
     }
 
   func:
@@ -275,10 +275,8 @@ class calculator {
 
   goal:  # TODO: introduce functions either/any, all for goals
     process_key(key k){
-      k.processed = True &&
-      if(st.changed){
-        ds.updated = True
-      }
+      k.processed == True &&
+      ds.updated == st.changed ? True : False
     }
 }
 
@@ -287,10 +285,10 @@ main (str input_file) {
   while (true){
     str key_val;
     # read stdin, analyze the key, assign its value
-    key_val = input('enter here: ')
+    key_val = input('enter here: ');
     if (key_val == 'q'){
-      exit()
+      exit();
     }
-    calc1.process_key(key_val)
+    calc1.process_key(key_val);
   }
 }

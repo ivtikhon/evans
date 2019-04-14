@@ -6,8 +6,7 @@
 grammar Evans;
 
 codeFile
-    : (classDeclaration)+
-//    : classDeclaration+ mainDeclaration?
+    : classDeclaration+ mainDeclaration?
     ;
 
 classDeclaration
@@ -15,7 +14,7 @@ classDeclaration
     ;
 
 classBody
-    : attributeList? stateList? constructorList? functionList? predicateList? operatorList?
+    : attributeList? stateList? constructorList? functionList? predicateList? operatorList? goalList?
     ;
 
 attributeList
@@ -63,9 +62,22 @@ functionList
     : FUNC ':' functionDeclaration+
     ;
 
+goalList
+    : GOAL ':' goalDeclaration+
+    ;
+
 functionDeclaration
     : ID '(' genParameters? ')' (':' returnType )? genCodeBlock
     ;
+
+goalDeclaration
+    : ID '(' genParameters? ')' '{' genExpression '}'
+    ;
+
+mainDeclaration
+    : MAIN '(' genParameters? ')' genCodeBlock
+    ;
+
 
 genParameters
     : genType ID (',' genType ID)*
@@ -123,6 +135,8 @@ genExpression
     : '(' genExpression ')'                                     # ParensExpression
     | genLiteral                                                # LiteralExpression
     | ID                                                        # VarExpression
+    | genExpression '[' genExpression ']'                       # IndexExpression
+    | createNew                                                 # NewExpression
     | methodCall                                                # CallExpression
     | typeConversion                                            # TypeConvExpression
     | genExpression '.' (ID | methodCall )                      # AttrExpression
@@ -133,6 +147,11 @@ genExpression
     | genExpression ('<'|'>'|'<='|'>='|'!='|'==') genExpression # CompareExpression
     | genExpression '&&' genExpression                          # AndExpression
     | genExpression '||' genExpression                          # OrExpression
+    | genExpression '?' genExpression ':' genExpression         # TernaryExpression
+    ;
+
+createNew
+    : genType '(' expressionList? ')'
     ;
 
 methodCall
@@ -224,6 +243,8 @@ WHEN : 'when' ;
 EFF : 'eff' ;
 EXEC : 'exec' ;
 INIT : 'init' ;
+GOAL : 'goal' ;
+MAIN : 'main' ;
 
 // Embedded types
 LIST : 'list' ;

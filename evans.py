@@ -14,9 +14,16 @@ from EvansListener import EvansListener
 class EvansTree(EvansListener):
     def enterCodeFile(self, ctx):
         self.classes = {}
+        self.code_blocks = []
 
     def exitCodeFile(self, ctx):
         pprint.pprint(self.classes)
+        if hasattr(self, 'main'):
+            pprint.pprint(self.main)
+
+    def enterMainDeclaration(self, ctx):
+        self.main = {}
+        self.code_blocks.append(self.main)
 
     def enterClassDeclaration(self, ctx):
         ''' Create class structure '''
@@ -28,7 +35,6 @@ class EvansTree(EvansListener):
             'state': {},
             'oper': {}
         }
-        self.code_blocks = []
 
     def exitClassDeclaration(self, ctx):
         self.classes[ctx.ID().getText()] = self.current_class

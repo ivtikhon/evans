@@ -134,12 +134,39 @@ class EvansListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by EvansParser#goalList.
+    def enterGoalList(self, ctx:EvansParser.GoalListContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#goalList.
+    def exitGoalList(self, ctx:EvansParser.GoalListContext):
+        pass
+
+
     # Enter a parse tree produced by EvansParser#functionDeclaration.
     def enterFunctionDeclaration(self, ctx:EvansParser.FunctionDeclarationContext):
         pass
 
     # Exit a parse tree produced by EvansParser#functionDeclaration.
     def exitFunctionDeclaration(self, ctx:EvansParser.FunctionDeclarationContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#goalDeclaration.
+    def enterGoalDeclaration(self, ctx:EvansParser.GoalDeclarationContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#goalDeclaration.
+    def exitGoalDeclaration(self, ctx:EvansParser.GoalDeclarationContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#mainDeclaration.
+    def enterMainDeclaration(self, ctx:EvansParser.MainDeclarationContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#mainDeclaration.
+    def exitMainDeclaration(self, ctx:EvansParser.MainDeclarationContext):
         pass
 
 
@@ -278,6 +305,24 @@ class EvansListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by EvansParser#TernaryExpression.
+    def enterTernaryExpression(self, ctx:EvansParser.TernaryExpressionContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#TernaryExpression.
+    def exitTernaryExpression(self, ctx:EvansParser.TernaryExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#NewExpression.
+    def enterNewExpression(self, ctx:EvansParser.NewExpressionContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#NewExpression.
+    def exitNewExpression(self, ctx:EvansParser.NewExpressionContext):
+        pass
+
+
     # Enter a parse tree produced by EvansParser#LiteralExpression.
     def enterLiteralExpression(self, ctx:EvansParser.LiteralExpressionContext):
         pass
@@ -293,6 +338,15 @@ class EvansListener(ParseTreeListener):
 
     # Exit a parse tree produced by EvansParser#VarExpression.
     def exitVarExpression(self, ctx:EvansParser.VarExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#IndexExpression.
+    def enterIndexExpression(self, ctx:EvansParser.IndexExpressionContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#IndexExpression.
+    def exitIndexExpression(self, ctx:EvansParser.IndexExpressionContext):
         pass
 
 
@@ -392,6 +446,15 @@ class EvansListener(ParseTreeListener):
 
     # Exit a parse tree produced by EvansParser#MulDivExpression.
     def exitMulDivExpression(self, ctx:EvansParser.MulDivExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#createNew.
+    def enterCreateNew(self, ctx:EvansParser.CreateNewContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#createNew.
+    def exitCreateNew(self, ctx:EvansParser.CreateNewContext):
         pass
 
 
