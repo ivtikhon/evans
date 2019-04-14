@@ -60,9 +60,9 @@ class stack { # attributes and state variables share the same namespace within c
   oper:
     push (key k) {
       when: # precondition and effect sections have access to states, and no access to attributes
-        not changed and
-        not k.processed and
-        (k.is_digit() or (k.k_val == point and not dec_point))
+        !changed &&
+        !k.processed &&
+        (k.is_digit() || (k.k_val == point && not dec_point))
       eff:
         changed = true;
         k.processed = true;
@@ -80,8 +80,8 @@ class stack { # attributes and state variables share the same namespace within c
 
     clean(key k){
       when:
-        not k.processed and
-        (k.is_digit() or k.is_point()) and
+        !k.processed &&
+        (k.is_digit() || k.is_point()) &&
         tobe_cleaned
       eff:
         tobe_cleaned = false;
@@ -93,9 +93,9 @@ class stack { # attributes and state variables share the same namespace within c
 
     copy_from_register(key k, alu a){
       when:
-        a.is_op_executed and
-        (k.is_op() or k.is_eq()) and
-        not k.processed
+        a.is_op_executed &&
+        (k.is_op() || k.is_eq()) &&
+        !k.processed
       eff:
         if (k.is_eq()) {
           k.processed = true;
@@ -132,6 +132,7 @@ class alu {
     exec_op(stack s) {
       float st1 = float(s.get_value());
       if (op == '+'){
+        if (true){int d = 5;} # inner condition test
         reg += st1;
       } elif (op == '-'){
         reg -= st1;
@@ -150,11 +151,12 @@ class alu {
   oper:
     stack_to_register(key k, stack s){
       when:
-        not k.processed and
-        k.is_op() and
-        not reg_stored and
+        !k.processed &&
+        k.is_op() &&
+        !reg_stored &&
         is_op_stored()
       eff:
+        int var = 0;  # test var declaration
         reg_stored = true;
         k.processed = true;
         s.tobe_cleaned = true;
@@ -164,23 +166,23 @@ class alu {
 
     store_op (key k){
       when:
-        not is_op_stored() and
-        k.is_op() and
-        not reg_stored and
-        not k.processed
+        !is_op_stored() &&
+        k.is_op() &&
+        !reg_stored &&
+        !k.processed
       eff:
         op_stored = true;
       exec:
-        toreOp();
+        storeOp();
     }
 
     exec_op (key k, stack s) {
       when:
-        is_op_stored() and
-        (k.is_op() or k.is_eq()) and
-        is_reg_stored() and
-        not k.processed and
-        not is_op_executed()
+        is_op_stored() &&
+        (k.is_op() || k.is_eq()) &&
+        is_reg_stored() &&
+        !k.processed &&
+        !is_op_executed()
       eff:
         op_executed = true;
         if(k.is_eq() or k.is_op()) {
@@ -201,8 +203,23 @@ class key {
     bool processed;
 
   init:
-    key(){
-      k_val = digit;
+    key(str k1) {
+      k = k1
+      if (k1.isdigit()) {
+        k_val = 'digit'
+      } elif (k1 == '.'){
+        k_val = 'point'
+      } elif (k1 == '=') {
+        k_val = 'eq'
+      } elif (k1 == 'c') {
+        k_val = 'clear'
+      } elif (k1 == 'r') {
+        k_val = 'erase'
+      } elif (k1 in ['+', '-', '/', '*']){
+        k_val = 'op'
+      }
+      processed = false
+      updated = false
     }
 
   func:
@@ -220,8 +237,8 @@ class key {
   oper:
     no_op (stack s){
       when:
-        not processed and
-        is_point() and
+        !processed &&
+        is_point() &&
         s.is_dec_point()
       eff:
         processed = true;
@@ -238,15 +255,42 @@ class display {
   oper:
     show_stack(stack s, key k) {
       when:
-        not updated and
-        k.processed and
+        !updated &&
+        k.processed &&
         s.changed
-
       eff:
         updated = true;
         s.changed = false;
-
       exec:
         show_stack();
     }
+}
+
+class calculator {
+  attr:
+    stack st;
+
+    display ds;
+    alu al;
+
+  goal:  # TODO: introduce functions either/any, all for goals
+    process_key(key k){
+      k.processed = True &&
+      if(st.changed){
+        ds.updated = True
+      }
+    }
+}
+
+main (str input_file) {
+  calculator calc1;
+  while (true){
+    str key_val;
+    # read stdin, analyze the key, assign its value
+    key_val = input('enter here: ')
+    if (key_val == 'q'){
+      exit()
+    }
+    calc1.process_key(key_val)
+  }
 }

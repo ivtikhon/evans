@@ -126,13 +126,13 @@ genExpression
     | methodCall                                                # CallExpression
     | typeConversion                                            # TypeConvExpression
     | genExpression '.' (ID | methodCall )                      # AttrExpression
-    | 'not' genExpression                                       # NotExpression
+    | '!' genExpression                                         # NotExpression
     | ('+'|'-') genExpression                                   # PrefixExpression
     | genExpression ('*'|'/'|'%') genExpression                 # MulDivExpression
     | genExpression ('+'|'-') genExpression                     # AddSubExpression
     | genExpression ('<'|'>'|'<='|'>='|'!='|'==') genExpression # CompareExpression
-    | genExpression 'and' genExpression                         # AndExpression
-    | genExpression 'or' genExpression                          # OrExpression
+    | genExpression '&&' genExpression                          # AndExpression
+    | genExpression '||' genExpression                          # OrExpression
     ;
 
 methodCall
