@@ -71,7 +71,7 @@ functionDeclaration
     ;
 
 goalDeclaration
-    : ID '(' genParameters? ')' '{' genExpression '}'
+    : predicateDeclaration
     ;
 
 mainDeclaration

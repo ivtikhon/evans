@@ -269,14 +269,13 @@ class display {
 class calculator {
   attr:
     stack st;
-
     display ds;
     alu al;
 
   goal:  # TODO: introduce functions either/any, all for goals
     process_key(key k){
-      k.processed == True &&
-      ds.updated == st.changed ? True : False
+      ret k.processed == True &&
+          ds.updated == (st.changed ? True : False);
     }
 }
 
