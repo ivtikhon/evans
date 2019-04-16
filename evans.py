@@ -63,7 +63,9 @@ class EvansTree(EvansListener):
 
     def enterStateList(self, ctx):
         ''' Create list of states; assign variable context. '''
-        self.current_attribute = self.current_class['state'] = {'dom': {}}
+        self.current_attribute = self.current_class['state'] = {}
+        if ctx.domainDeclaration() != None and len(ctx.domainDeclaration()) > 0:
+            self.current_attribute['dom'] = {}
 
     def enterGenVarDeclaration(self, ctx):
         ''' Add new variables to the current context. '''
