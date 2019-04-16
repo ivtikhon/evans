@@ -286,7 +286,7 @@ main (str input_file) {
     # read stdin, analyze the key, assign its value
     key_val = input('enter here: ');
     if (key_val == 'q'){
-      exit();
+      break;
     }
     calc1.process_key(key_val);
   }

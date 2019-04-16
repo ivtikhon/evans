@@ -71,7 +71,7 @@ functionDeclaration
     ;
 
 goalDeclaration
-    : predicateDeclaration
+    : ID '(' genParameters? ')' genCodeBlock
     ;
 
 mainDeclaration
