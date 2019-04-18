@@ -14,7 +14,7 @@ classDeclaration
     ;
 
 classBody
-    : attributeList? stateList? constructorList? functionList? predicateList? operatorList? goalList?
+    : attributeList? stateList? goalList? domainList? constructorList? functionList? predicateList? operatorList?
     ;
 
 attributeList
@@ -22,15 +22,55 @@ attributeList
     ;
 
 stateList
-    : STATE ':' (genVarDeclaration | domainDeclaration)+
-    ;
-
-domainDeclaration
-    : DOM ID '{' domainList '}'
+    : STATE ':' genVarDeclaration+
     ;
 
 domainList
+    : DOM ':' domainDeclaration+
+    ;
+
+constructorList
+    : INIT ':' constructorDeclaration+
+    ;
+
+functionList
+    : FUNC ':' functionDeclaration+
+    ;
+
+goalList
+    : GOAL ':' goalDeclaration+
+    ;
+
+predicateList
+    : PRED ':' predicateDeclaration+
+    ;
+
+operatorList
+    : OPER ':' operatorDeclaration+
+    ;
+
+domainDeclaration
+    : ID '{' domainBody '}'
+    ;
+
+functionDeclaration
+    : ID '(' genParameters? ')' (':' returnType )? genCodeBlock
+    ;
+
+goalDeclaration
+    : ID '(' genParameters? ')' genCodeBlock
+    ;
+
+mainDeclaration
+    : MAIN '(' genParameters? ')' genCodeBlock
+    ;
+
+domainBody
     : ID (',' ID)*
+    ;
+
+constructorDeclaration
+    : classType '(' genParameters? ')' genCodeBlock
     ;
 
 genVarDeclaration
@@ -50,49 +90,12 @@ listInitializer
     : '(' (variableInitializer (',' variableInitializer)* )? ')'
     ;
 
-constructorList
-    : INIT ':' constructorDeclaration+
-    ;
-
-constructorDeclaration
-    : classType '(' genParameters? ')' genCodeBlock
-    ;
-
-functionList
-    : FUNC ':' functionDeclaration+
-    ;
-
-goalList
-    : GOAL ':' goalDeclaration+
-    ;
-
-functionDeclaration
-    : ID '(' genParameters? ')' (':' returnType )? genCodeBlock
-    ;
-
-goalDeclaration
-    : ID '(' genParameters? ')' genCodeBlock
-    ;
-
-mainDeclaration
-    : MAIN '(' genParameters? ')' genCodeBlock
-    ;
-
-
 genParameters
     : genType ID (',' genType ID)*
     ;
 
-predicateList
-    : PRED ':' predicateDeclaration+
-    ;
-
 predicateDeclaration
     : ID '(' genParameters? ')' genCodeBlock
-    ;
-
-operatorList
-    : OPER ':' operatorDeclaration+
     ;
 
 operatorDeclaration

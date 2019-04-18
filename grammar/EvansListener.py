@@ -53,6 +53,60 @@ class EvansListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by EvansParser#domainList.
+    def enterDomainList(self, ctx:EvansParser.DomainListContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#domainList.
+    def exitDomainList(self, ctx:EvansParser.DomainListContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#constructorList.
+    def enterConstructorList(self, ctx:EvansParser.ConstructorListContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#constructorList.
+    def exitConstructorList(self, ctx:EvansParser.ConstructorListContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#functionList.
+    def enterFunctionList(self, ctx:EvansParser.FunctionListContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#functionList.
+    def exitFunctionList(self, ctx:EvansParser.FunctionListContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#goalList.
+    def enterGoalList(self, ctx:EvansParser.GoalListContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#goalList.
+    def exitGoalList(self, ctx:EvansParser.GoalListContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#predicateList.
+    def enterPredicateList(self, ctx:EvansParser.PredicateListContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#predicateList.
+    def exitPredicateList(self, ctx:EvansParser.PredicateListContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#operatorList.
+    def enterOperatorList(self, ctx:EvansParser.OperatorListContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#operatorList.
+    def exitOperatorList(self, ctx:EvansParser.OperatorListContext):
+        pass
+
+
     # Enter a parse tree produced by EvansParser#domainDeclaration.
     def enterDomainDeclaration(self, ctx:EvansParser.DomainDeclarationContext):
         pass
@@ -62,12 +116,48 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#domainList.
-    def enterDomainList(self, ctx:EvansParser.DomainListContext):
+    # Enter a parse tree produced by EvansParser#functionDeclaration.
+    def enterFunctionDeclaration(self, ctx:EvansParser.FunctionDeclarationContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#domainList.
-    def exitDomainList(self, ctx:EvansParser.DomainListContext):
+    # Exit a parse tree produced by EvansParser#functionDeclaration.
+    def exitFunctionDeclaration(self, ctx:EvansParser.FunctionDeclarationContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#goalDeclaration.
+    def enterGoalDeclaration(self, ctx:EvansParser.GoalDeclarationContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#goalDeclaration.
+    def exitGoalDeclaration(self, ctx:EvansParser.GoalDeclarationContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#mainDeclaration.
+    def enterMainDeclaration(self, ctx:EvansParser.MainDeclarationContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#mainDeclaration.
+    def exitMainDeclaration(self, ctx:EvansParser.MainDeclarationContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#domainBody.
+    def enterDomainBody(self, ctx:EvansParser.DomainBodyContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#domainBody.
+    def exitDomainBody(self, ctx:EvansParser.DomainBodyContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#constructorDeclaration.
+    def enterConstructorDeclaration(self, ctx:EvansParser.ConstructorDeclarationContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#constructorDeclaration.
+    def exitConstructorDeclaration(self, ctx:EvansParser.ConstructorDeclarationContext):
         pass
 
 
@@ -107,69 +197,6 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#constructorList.
-    def enterConstructorList(self, ctx:EvansParser.ConstructorListContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#constructorList.
-    def exitConstructorList(self, ctx:EvansParser.ConstructorListContext):
-        pass
-
-
-    # Enter a parse tree produced by EvansParser#constructorDeclaration.
-    def enterConstructorDeclaration(self, ctx:EvansParser.ConstructorDeclarationContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#constructorDeclaration.
-    def exitConstructorDeclaration(self, ctx:EvansParser.ConstructorDeclarationContext):
-        pass
-
-
-    # Enter a parse tree produced by EvansParser#functionList.
-    def enterFunctionList(self, ctx:EvansParser.FunctionListContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#functionList.
-    def exitFunctionList(self, ctx:EvansParser.FunctionListContext):
-        pass
-
-
-    # Enter a parse tree produced by EvansParser#goalList.
-    def enterGoalList(self, ctx:EvansParser.GoalListContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#goalList.
-    def exitGoalList(self, ctx:EvansParser.GoalListContext):
-        pass
-
-
-    # Enter a parse tree produced by EvansParser#functionDeclaration.
-    def enterFunctionDeclaration(self, ctx:EvansParser.FunctionDeclarationContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#functionDeclaration.
-    def exitFunctionDeclaration(self, ctx:EvansParser.FunctionDeclarationContext):
-        pass
-
-
-    # Enter a parse tree produced by EvansParser#goalDeclaration.
-    def enterGoalDeclaration(self, ctx:EvansParser.GoalDeclarationContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#goalDeclaration.
-    def exitGoalDeclaration(self, ctx:EvansParser.GoalDeclarationContext):
-        pass
-
-
-    # Enter a parse tree produced by EvansParser#mainDeclaration.
-    def enterMainDeclaration(self, ctx:EvansParser.MainDeclarationContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#mainDeclaration.
-    def exitMainDeclaration(self, ctx:EvansParser.MainDeclarationContext):
-        pass
-
-
     # Enter a parse tree produced by EvansParser#genParameters.
     def enterGenParameters(self, ctx:EvansParser.GenParametersContext):
         pass
@@ -179,30 +206,12 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#predicateList.
-    def enterPredicateList(self, ctx:EvansParser.PredicateListContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#predicateList.
-    def exitPredicateList(self, ctx:EvansParser.PredicateListContext):
-        pass
-
-
     # Enter a parse tree produced by EvansParser#predicateDeclaration.
     def enterPredicateDeclaration(self, ctx:EvansParser.PredicateDeclarationContext):
         pass
 
     # Exit a parse tree produced by EvansParser#predicateDeclaration.
     def exitPredicateDeclaration(self, ctx:EvansParser.PredicateDeclarationContext):
-        pass
-
-
-    # Enter a parse tree produced by EvansParser#operatorList.
-    def enterOperatorList(self, ctx:EvansParser.OperatorListContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#operatorList.
-    def exitOperatorList(self, ctx:EvansParser.OperatorListContext):
         pass
 
 

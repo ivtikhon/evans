@@ -13,6 +13,7 @@ from EvansListener import EvansListener
 
 class EvansTree(EvansListener):
     def enterCodeFile(self, ctx):
+        ''' Create list of classess. '''
         self.classes = {}
         self.code_blocks = []
 
@@ -22,7 +23,7 @@ class EvansTree(EvansListener):
             pprint.pprint(self.main)
 
     def enterMainDeclaration(self, ctx):
-        ''' Create main structure. '''
+        ''' Create main function structure.'''
         self.main = {}
         self.code_blocks.append(self.main)
 
@@ -64,8 +65,6 @@ class EvansTree(EvansListener):
     def enterStateList(self, ctx):
         ''' Create list of states; assign variable context. '''
         self.current_attribute = self.current_class['state'] = {}
-        if ctx.domainDeclaration() != None and len(ctx.domainDeclaration()) > 0:
-            self.current_attribute['dom'] = {}
 
     def enterGenVarDeclaration(self, ctx):
         ''' Add new variables to the current context. '''
@@ -84,11 +83,18 @@ class EvansTree(EvansListener):
                 name = item.ID().getText()
                 variable_context[name] = {'type': type, 'val': None}
 
+    def enterDomainList(self, ctx):
+        ''' Create list of domains. '''
+        self.current_class['dom'] = {}
+
     def enterDomainDeclaration(self, ctx):
         ''' Add domain definition to the current class. '''
-        domain_list = self.current_class['state']['dom'][ctx.ID().getText()] = []
-        for item in ctx.domainList().ID():
-            domain_list.append(item.getText())
+        self.current_domain = self.current_class['dom'][ctx.ID().getText()] = []
+
+    def enterDomainBody(self, ctx):
+        ''' Fill out the current domain definition. '''
+        for item in ctx.ID():
+            self.current_domain.append(item.getText())
 
     def enterOperatorList(self, ctx):
         ''' Create list of operators. '''

@@ -25,12 +25,14 @@ class stack { # attributes and state variables share the same namespace within c
   attr:
     list s; # uninitialized list is empty
   state:
-    dom key_domain { digit, point } # here we define a state domain
-    key_domain last_key = digit;  # we don't have to refer to the domain in the assignment,
+    last_key_domain last_key = digit;  # we don't have to refer to the domain in the assignment,
                                   # like key_domain.digit because we can recover the domain
                                   # name from the variable declaration
     bool dec_point, changed = false;
     bool tobe_cleaned; # bool variables are initialized to false by default
+
+  dom:
+    last_key_domain { digit, point } # here we define a state domain
 
   init:
     stack() {  # constructor has full access to all attributes
@@ -198,25 +200,27 @@ class key {
     str k = '';
 
   state:
-    dom key_domain {digit, point, op, eq, clear, erase}
     key_domain k_val;
     bool processed;
+
+  dom:
+    key_domain {digit, point, op, eq, clear, erase}
 
   init:
     key(str k1) {
       k = k1;
       if (k1.isdigit()) {
-        k_val = 'digit';
+        k_val = digit;
       } elif (k1 == '.'){
-        k_val = 'point';
+        k_val = point;
       } elif (k1 == '=') {
-        k_val = 'eq';
+        k_val = eq;
       } elif (k1 == 'c') {
-        k_val = 'clear';
+        k_val = clear;
       } elif (k1 == 'r') {
-        k_val = 'erase';
+        k_val = erase;
       } elif (k1 == '+' || k1 == '-' || k1 == '/' || k1 == '*'){
-        k_val = 'op';
+        k_val = op;
       }
       processed = false;
       updated = false;
