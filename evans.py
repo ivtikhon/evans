@@ -10,17 +10,11 @@ from EvansLexer import EvansLexer
 from EvansParser import EvansParser
 from EvansListener import EvansListener
 
-
-class EvansTree(EvansListener):
+class EvansNameTree(EvansListener):
     def enterCodeFile(self, ctx):
         ''' Create list of classess. '''
         self.classes = {}
         self.code_blocks = []
-
-    def exitCodeFile(self, ctx):
-        pprint.pprint(self.classes)
-        if hasattr(self, 'main'):
-            pprint.pprint(self.main)
 
     def enterMainDeclaration(self, ctx):
         ''' Create main function structure.'''
@@ -92,7 +86,7 @@ class EvansTree(EvansListener):
         self.current_domain = self.current_class['dom'][ctx.ID().getText()] = []
 
     def enterDomainBody(self, ctx):
-        ''' Fill out the current domain definition. '''
+        ''' Add domain items to the current domain. '''
         for item in ctx.ID():
             self.current_domain.append(item.getText())
 
@@ -165,9 +159,11 @@ def main(argv):
     stream = CommonTokenStream(lexer)
     parser = EvansParser(stream)
     tree = parser.codeFile()
-    evans_code = EvansTree()
+    evans_names = EvansNameTree()
     walker = ParseTreeWalker()
-    walker.walk(evans_code, tree)
+    # First pass: create name tree
+    walker.walk(evans_names, tree)
+    pprint.pprint(evans_names.classes)
 
 
 if __name__ == '__main__':

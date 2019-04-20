@@ -158,7 +158,7 @@ class alu {
         !reg_stored &&
         is_op_stored()
       eff:
-        int var = 0;  # test var declaration
+        int var1 = 0;  # test var declaration
         reg_stored = true;
         k.processed = true;
         s.tobe_cleaned = true;

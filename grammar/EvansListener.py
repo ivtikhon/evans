@@ -260,6 +260,15 @@ class EvansListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by EvansParser#varDeclarationStatement.
+    def enterVarDeclarationStatement(self, ctx:EvansParser.VarDeclarationStatementContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#varDeclarationStatement.
+    def exitVarDeclarationStatement(self, ctx:EvansParser.VarDeclarationStatementContext):
+        pass
+
+
     # Enter a parse tree produced by EvansParser#IfStatement.
     def enterIfStatement(self, ctx:EvansParser.IfStatementContext):
         pass
@@ -275,6 +284,15 @@ class EvansListener(ParseTreeListener):
 
     # Exit a parse tree produced by EvansParser#WhileStatement.
     def exitWhileStatement(self, ctx:EvansParser.WhileStatementContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#ForStatement.
+    def enterForStatement(self, ctx:EvansParser.ForStatementContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#ForStatement.
+    def exitForStatement(self, ctx:EvansParser.ForStatementContext):
         pass
 
 
@@ -305,12 +323,12 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#genAssignment.
-    def enterGenAssignment(self, ctx:EvansParser.GenAssignmentContext):
+    # Enter a parse tree produced by EvansParser#assignmentStatement.
+    def enterAssignmentStatement(self, ctx:EvansParser.AssignmentStatementContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#genAssignment.
-    def exitGenAssignment(self, ctx:EvansParser.GenAssignmentContext):
+    # Exit a parse tree produced by EvansParser#assignmentStatement.
+    def exitAssignmentStatement(self, ctx:EvansParser.AssignmentStatementContext):
         pass
 
 

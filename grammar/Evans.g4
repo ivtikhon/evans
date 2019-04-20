@@ -18,11 +18,11 @@ classBody
     ;
 
 attributeList
-    : ATTR ':' genVarDeclaration+
+    : ATTR ':' varDeclarationStatement+
     ;
 
 stateList
-    : STATE ':' genVarDeclaration+
+    : STATE ':' varDeclarationStatement+
     ;
 
 domainList
@@ -74,7 +74,7 @@ constructorDeclaration
     ;
 
 genVarDeclaration
-    : genType varDeclarator (',' varDeclarator)* ';'
+    : genType varDeclarator (',' varDeclarator)*
     ;
 
 varDeclarator
@@ -115,22 +115,27 @@ genCodeBlock
     ;
 
 blockStatement
-    : genVarDeclaration
+    : varDeclarationStatement
     | genStatement
-    | genAssignment
+    | assignmentStatement
+    ;
+
+varDeclarationStatement
+    : genVarDeclaration ';'
     ;
 
 genStatement
     : IF '(' genExpression ')' genCodeBlock
       (ELIF '(' genExpression ')' genCodeBlock)*
-      (ELSE genCodeBlock)?                          # IfStatement
-    | WHILE '(' genExpression ')' genCodeBlock      # WhileStatement
-    | RET genExpression? ';'                        # RetStatement
-    | (BREAK | CONT) ';'                            # BreakContStatement
-    | (genExpression '.')? methodCall ';'           # CallStatement
+      (ELSE genCodeBlock)?                            # IfStatement
+    | WHILE '(' genExpression ')' genCodeBlock        # WhileStatement
+    | FOR '(' genVarDeclaration IN genExpression ')'  # ForStatement
+    | RET genExpression? ';'                          # RetStatement
+    | (BREAK | CONT) ';'                              # BreakContStatement
+    | (genExpression '.')? methodCall ';'             # CallStatement
     ;
 
-genAssignment
+assignmentStatement
     : ID ('.' ID)* ('=' | '+=' | '-=' | '*=' | '/=' | '%=') genExpression ';'
     ;
 
@@ -196,8 +201,8 @@ embeddedType
     | STR
     | FLOAT
     | INT
-    | DOM
     | NUM
+    | VAR
     ;
 
 // Literals
@@ -248,6 +253,7 @@ EXEC : 'exec' ;
 INIT : 'init' ;
 GOAL : 'goal' ;
 MAIN : 'main' ;
+IN : 'in' ;
 
 // Embedded types
 LIST : 'list' ;
@@ -257,6 +263,7 @@ FLOAT : 'float' ;
 INT : 'int' ;
 DOM : 'dom' ;
 NUM: 'num' ;
+VAR: 'var' ;
 
 // Identifier
 ID  : LETTER (LETTER | '_' | DIGIT)* ;
