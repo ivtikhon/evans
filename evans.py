@@ -108,12 +108,14 @@ class EvansNameTree(EvansListener):
                 self.current_method['params'][name.getText()] = type.getText()
 
     def enterGenCodeBlock(self, ctx):
-        ''' Restore current variable context from stack. '''
+        ''' Restore current variable context from stack.
+            Context is supposed to be created by syntax elements using
+            genCodeBlock (func, pred, if, while, etc...) and pushed to stack.
+        '''
         self.current_code_block = self.code_blocks.pop()
 
     def enterOperatorBody(self, ctx):
-        ''' Restore current variable context from stack;
-            generate operator context and push to stack. '''
+        ''' Create operator context and push to stack. '''
         self.current_code_block = self.code_blocks.pop()
         if ctx.EXEC() != None:
             self.current_code_block['exec'] = exec_block = {}
@@ -121,6 +123,9 @@ class EvansNameTree(EvansListener):
         self.current_code_block['eff'] = eff_block = {}
         self.code_blocks.append(eff_block)
         self.current_code_block = eff_block
+
+    def exitOperatorBody(self, ctx):
+        self.current_code_block = self.code_blocks.pop()
 
     def enterGoalList(self, ctx):
         ''' Create list of goals. '''
@@ -131,9 +136,14 @@ class EvansNameTree(EvansListener):
         self.current_method = self.current_class['goal'][ctx.ID().getText()] = {}
         self.code_blocks.append(self.current_method)
 
+    def enterBlockStatement(self, ctx):
+        ''' Create list of statements for current code block '''
+        if ctx.genStatement() != None:
+            self.current_code_block['statements'] = []
+
     def enterIfStatement(self, ctx):
         ''' Push current variable context to stack;
-            generate conditional statement context and push to stack. '''
+            generate if-statement context and push to stack as well. '''
         self.code_blocks.append(self.current_code_block)
         if_statement = {'if': {}}
         if ctx.ELSE() != None:
@@ -145,13 +155,52 @@ class EvansNameTree(EvansListener):
             for i in range(elif_len - 1, -1, -1):
                 self.code_blocks.append(if_statement['elif'][i])
         self.code_blocks.append(if_statement['if'])
-        if 'statements' not in self.current_code_block:
-            self.current_code_block['statements'] = []
         self.current_code_block['statements'].append(if_statement)
 
     def exitIfStatement(self, ctx):
         ''' Restore variable context from stack. '''
         self.current_code_block = self.code_blocks.pop()
+
+    def enterWhileStatement(self, ctx):
+        ''' Push current variable context to stack;
+            generate while-statement context and push to stack. '''
+        self.code_blocks.append(self.current_code_block)
+        while_statement = {'while': {}}
+        self.code_blocks.append(while_statement['while'])
+        self.current_code_block['statements'].append(while_statement)
+
+    def exitWhileStatement(self, ctx):
+        ''' Restore variable context from stack. '''
+        self.current_code_block = self.code_blocks.pop()
+
+    def enterForStatement(self, ctx):
+        ''' Push current variable context to stack;
+            generate while-statement context and push to stack. '''
+        self.code_blocks.append(self.current_code_block)
+        for_statement = {'for': {}}
+        self.code_blocks.append(for_statement['for'])
+        self.current_code_block['statements'].append(for_statement)
+
+    def exitForStatement(self, ctx):
+        ''' Restore variable context from stack. '''
+        self.current_code_block = self.code_blocks.pop()
+
+    def enterRetStatement(self, ctx):
+        self.current_code_block['statements'].append('ret')
+
+    def enterBreakContStatement(self, ctx):
+        statement = None
+        if ctx.BREAK() != None:
+            statement = 'break'
+        else:
+            statement = 'cont'
+        self.current_code_block['statements'].append(statement)
+
+    def enterRetStatement(self, ctx):
+        self.current_code_block['statements'].append('ret')
+
+    def enterCallStatement(self, ctx):
+        self.current_code_block['statements'].append('call')
 
 def main(argv):
     input = FileStream(argv[1])
@@ -164,6 +213,7 @@ def main(argv):
     # First pass: create name tree
     walker.walk(evans_names, tree)
     pprint.pprint(evans_names.classes)
+    pprint.pprint(evans_names.main)
 
 
 if __name__ == '__main__':

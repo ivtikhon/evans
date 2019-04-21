@@ -170,15 +170,6 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#varDeclarator.
-    def enterVarDeclarator(self, ctx:EvansParser.VarDeclaratorContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#varDeclarator.
-    def exitVarDeclarator(self, ctx:EvansParser.VarDeclaratorContext):
-        pass
-
-
     # Enter a parse tree produced by EvansParser#variableInitializer.
     def enterVariableInitializer(self, ctx:EvansParser.VariableInitializerContext):
         pass

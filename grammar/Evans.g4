@@ -14,7 +14,9 @@ classDeclaration
     ;
 
 classBody
-    : attributeList? stateList? goalList? domainList? constructorList? functionList? predicateList? operatorList?
+    : attributeList? stateList?
+      goalList? domainList? constructorList?
+      functionList? predicateList? operatorList?
     ;
 
 attributeList
@@ -74,11 +76,7 @@ constructorDeclaration
     ;
 
 genVarDeclaration
-    : genType varDeclarator (',' varDeclarator)*
-    ;
-
-varDeclarator
-    : ID ('=' variableInitializer)?
+    : genType ID (',' ID)*
     ;
 
 variableInitializer
@@ -121,18 +119,18 @@ blockStatement
     ;
 
 varDeclarationStatement
-    : genVarDeclaration ';'
+    : genVarDeclaration ('=' variableInitializer)? ';'
     ;
 
 genStatement
     : IF '(' genExpression ')' genCodeBlock
       (ELIF '(' genExpression ')' genCodeBlock)*
-      (ELSE genCodeBlock)?                            # IfStatement
-    | WHILE '(' genExpression ')' genCodeBlock        # WhileStatement
-    | FOR '(' genVarDeclaration IN genExpression ')'  # ForStatement
-    | RET genExpression? ';'                          # RetStatement
-    | (BREAK | CONT) ';'                              # BreakContStatement
-    | (genExpression '.')? methodCall ';'             # CallStatement
+      (ELSE genCodeBlock)?                                        # IfStatement
+    | WHILE '(' genExpression ')' genCodeBlock                    # WhileStatement
+    | FOR '(' genVarDeclaration IN genExpression ')' genCodeBlock # ForStatement
+    | RET genExpression? ';'                                      # RetStatement
+    | (BREAK | CONT) ';'                                          # BreakContStatement
+    | (genExpression '.')? methodCall ';'                         # CallStatement
     ;
 
 assignmentStatement
