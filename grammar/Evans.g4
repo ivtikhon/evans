@@ -238,8 +238,8 @@ FUNC : 'func' ;
 PRED : 'pred' ;
 OPER : 'oper' ;
 IF : 'if' ;
-ELSE : 'else' ;
 ELIF : 'elif' ;
+ELSE : 'else' ;
 FOR : 'for' ;
 WHILE : 'while' ;
 RET : 'ret' ;
@@ -252,6 +252,7 @@ INIT : 'init' ;
 GOAL : 'goal' ;
 MAIN : 'main' ;
 IN : 'in' ;
+DOM : 'dom' ;
 
 // Embedded types
 LIST : 'list' ;
@@ -259,7 +260,6 @@ BOOL : 'bool' ;
 STR : 'str' ;
 FLOAT : 'float' ;
 INT : 'int' ;
-DOM : 'dom' ;
 NUM: 'num' ;
 VAR: 'var' ;
 

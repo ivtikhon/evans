@@ -12,7 +12,7 @@ from EvansListener import EvansListener
 
 class EvansNameTree(EvansListener):
     def enterCodeFile(self, ctx):
-        ''' Create list of classess. '''
+        ''' Create list of classess and variable context stack. '''
         self.classes = {}
         self.code_blocks = []
 
@@ -95,7 +95,10 @@ class EvansNameTree(EvansListener):
         self.current_class['oper'] = {}
 
     def enterOperatorDeclaration(self, ctx):
-        ''' Create list of parameters; assign operator context. '''
+        ''' Create list of parameters; assign operator context.
+            From the variable context perspective, operator doesn't differ much
+            from method, so here current_method is assigned and pushed to stack.
+        '''
         self.current_method = self.current_class['oper'][ctx.ID().getText()] = {}
         self.code_blocks.append(self.current_method)
 
@@ -163,7 +166,7 @@ class EvansNameTree(EvansListener):
 
     def enterWhileStatement(self, ctx):
         ''' Push current variable context to stack;
-            generate while-statement context and push to stack. '''
+            generate while-statement context and push to stack as well. '''
         self.code_blocks.append(self.current_code_block)
         while_statement = {'while': {}}
         self.code_blocks.append(while_statement['while'])
@@ -175,7 +178,7 @@ class EvansNameTree(EvansListener):
 
     def enterForStatement(self, ctx):
         ''' Push current variable context to stack;
-            generate while-statement context and push to stack. '''
+            generate for-statement context and push to stack as well. '''
         self.code_blocks.append(self.current_code_block)
         for_statement = {'for': {}}
         self.code_blocks.append(for_statement['for'])
@@ -186,20 +189,16 @@ class EvansNameTree(EvansListener):
         self.current_code_block = self.code_blocks.pop()
 
     def enterRetStatement(self, ctx):
+        ''' Add return statement to list. '''
         self.current_code_block['statements'].append('ret')
 
     def enterBreakContStatement(self, ctx):
-        statement = None
-        if ctx.BREAK() != None:
-            statement = 'break'
-        else:
-            statement = 'cont'
+        ''' Add break/continue statement to list. '''
+        statement = 'break' if ctx.BREAK() != None else 'cont'
         self.current_code_block['statements'].append(statement)
 
-    def enterRetStatement(self, ctx):
-        self.current_code_block['statements'].append('ret')
-
     def enterCallStatement(self, ctx):
+        ''' Add method call statement to list. '''
         self.current_code_block['statements'].append('call')
 
 def main(argv):
