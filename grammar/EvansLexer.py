@@ -40,8 +40,8 @@ def serializedATN():
         buf.write("\3\63\3\63\3\63\3\63\3\63\3\64\3\64\3\64\3\64\3\64\3\65")
         buf.write("\3\65\3\65\3\65\3\65\3\66\3\66\3\66\3\66\3\67\3\67\3\67")
         buf.write("\3\67\3\67\38\38\38\38\38\39\39\39\39\39\3:\3:\3:\3:\3")
-        buf.write(":\3;\3;\3;\3<\3<\3<\3<\3<\3=\3=\3=\3=\3=\3>\3>\3>\3>\3")
-        buf.write("?\3?\3?\3?\3?\3?\3@\3@\3@\3@\3A\3A\3A\3A\3B\3B\3B\3B\3")
+        buf.write(":\3;\3;\3;\3<\3<\3<\3<\3=\3=\3=\3=\3=\3>\3>\3>\3>\3>\3")
+        buf.write("?\3?\3?\3?\3@\3@\3@\3@\3@\3@\3A\3A\3A\3A\3B\3B\3B\3B\3")
         buf.write("C\3C\3C\3C\3D\3D\3D\3D\7D\u01b9\nD\fD\16D\u01bc\13D\3")
         buf.write("E\3E\3F\3F\3G\3G\7G\u01c4\nG\fG\16G\u01c7\13G\3G\3G\3")
         buf.write("H\6H\u01cc\nH\rH\16H\u01cd\3H\3H\2\2I\3\3\5\4\7\5\t\6")
@@ -84,8 +84,8 @@ def serializedATN():
         buf.write("\2\2\2c\u0161\3\2\2\2e\u0165\3\2\2\2g\u016b\3\2\2\2i\u0170")
         buf.write("\3\2\2\2k\u0175\3\2\2\2m\u0179\3\2\2\2o\u017e\3\2\2\2")
         buf.write("q\u0183\3\2\2\2s\u0188\3\2\2\2u\u018d\3\2\2\2w\u0190\3")
-        buf.write("\2\2\2y\u0195\3\2\2\2{\u019a\3\2\2\2}\u019e\3\2\2\2\177")
-        buf.write("\u01a4\3\2\2\2\u0081\u01a8\3\2\2\2\u0083\u01ac\3\2\2\2")
+        buf.write("\2\2\2y\u0194\3\2\2\2{\u0199\3\2\2\2}\u019e\3\2\2\2\177")
+        buf.write("\u01a2\3\2\2\2\u0081\u01a8\3\2\2\2\u0083\u01ac\3\2\2\2")
         buf.write("\u0085\u01b0\3\2\2\2\u0087\u01b4\3\2\2\2\u0089\u01bd\3")
         buf.write("\2\2\2\u008b\u01bf\3\2\2\2\u008d\u01c1\3\2\2\2\u008f\u01cb")
         buf.write("\3\2\2\2\u0091\u0092\7}\2\2\u0092\4\3\2\2\2\u0093\u0094")
@@ -159,9 +159,9 @@ def serializedATN():
         buf.write("V\3\2\2\2\u0145\u0146\7q\2\2\u0146\u0147\7r\2\2\u0147")
         buf.write("\u0148\7g\2\2\u0148\u0149\7t\2\2\u0149X\3\2\2\2\u014a")
         buf.write("\u014b\7k\2\2\u014b\u014c\7h\2\2\u014cZ\3\2\2\2\u014d")
-        buf.write("\u014e\7g\2\2\u014e\u014f\7n\2\2\u014f\u0150\7u\2\2\u0150")
-        buf.write("\u0151\7g\2\2\u0151\\\3\2\2\2\u0152\u0153\7g\2\2\u0153")
-        buf.write("\u0154\7n\2\2\u0154\u0155\7k\2\2\u0155\u0156\7h\2\2\u0156")
+        buf.write("\u014e\7g\2\2\u014e\u014f\7n\2\2\u014f\u0150\7k\2\2\u0150")
+        buf.write("\u0151\7h\2\2\u0151\\\3\2\2\2\u0152\u0153\7g\2\2\u0153")
+        buf.write("\u0154\7n\2\2\u0154\u0155\7u\2\2\u0155\u0156\7g\2\2\u0156")
         buf.write("^\3\2\2\2\u0157\u0158\7h\2\2\u0158\u0159\7q\2\2\u0159")
         buf.write("\u015a\7t\2\2\u015a`\3\2\2\2\u015b\u015c\7y\2\2\u015c")
         buf.write("\u015d\7j\2\2\u015d\u015e\7k\2\2\u015e\u015f\7n\2\2\u015f")
@@ -181,16 +181,16 @@ def serializedATN():
         buf.write("\u0187\7n\2\2\u0187r\3\2\2\2\u0188\u0189\7o\2\2\u0189")
         buf.write("\u018a\7c\2\2\u018a\u018b\7k\2\2\u018b\u018c\7p\2\2\u018c")
         buf.write("t\3\2\2\2\u018d\u018e\7k\2\2\u018e\u018f\7p\2\2\u018f")
-        buf.write("v\3\2\2\2\u0190\u0191\7n\2\2\u0191\u0192\7k\2\2\u0192")
-        buf.write("\u0193\7u\2\2\u0193\u0194\7v\2\2\u0194x\3\2\2\2\u0195")
-        buf.write("\u0196\7d\2\2\u0196\u0197\7q\2\2\u0197\u0198\7q\2\2\u0198")
-        buf.write("\u0199\7n\2\2\u0199z\3\2\2\2\u019a\u019b\7u\2\2\u019b")
-        buf.write("\u019c\7v\2\2\u019c\u019d\7t\2\2\u019d|\3\2\2\2\u019e")
-        buf.write("\u019f\7h\2\2\u019f\u01a0\7n\2\2\u01a0\u01a1\7q\2\2\u01a1")
-        buf.write("\u01a2\7c\2\2\u01a2\u01a3\7v\2\2\u01a3~\3\2\2\2\u01a4")
-        buf.write("\u01a5\7k\2\2\u01a5\u01a6\7p\2\2\u01a6\u01a7\7v\2\2\u01a7")
-        buf.write("\u0080\3\2\2\2\u01a8\u01a9\7f\2\2\u01a9\u01aa\7q\2\2\u01aa")
-        buf.write("\u01ab\7o\2\2\u01ab\u0082\3\2\2\2\u01ac\u01ad\7p\2\2\u01ad")
+        buf.write("v\3\2\2\2\u0190\u0191\7f\2\2\u0191\u0192\7q\2\2\u0192")
+        buf.write("\u0193\7o\2\2\u0193x\3\2\2\2\u0194\u0195\7n\2\2\u0195")
+        buf.write("\u0196\7k\2\2\u0196\u0197\7u\2\2\u0197\u0198\7v\2\2\u0198")
+        buf.write("z\3\2\2\2\u0199\u019a\7d\2\2\u019a\u019b\7q\2\2\u019b")
+        buf.write("\u019c\7q\2\2\u019c\u019d\7n\2\2\u019d|\3\2\2\2\u019e")
+        buf.write("\u019f\7u\2\2\u019f\u01a0\7v\2\2\u01a0\u01a1\7t\2\2\u01a1")
+        buf.write("~\3\2\2\2\u01a2\u01a3\7h\2\2\u01a3\u01a4\7n\2\2\u01a4")
+        buf.write("\u01a5\7q\2\2\u01a5\u01a6\7c\2\2\u01a6\u01a7\7v\2\2\u01a7")
+        buf.write("\u0080\3\2\2\2\u01a8\u01a9\7k\2\2\u01a9\u01aa\7p\2\2\u01aa")
+        buf.write("\u01ab\7v\2\2\u01ab\u0082\3\2\2\2\u01ac\u01ad\7p\2\2\u01ad")
         buf.write("\u01ae\7w\2\2\u01ae\u01af\7o\2\2\u01af\u0084\3\2\2\2\u01b0")
         buf.write("\u01b1\7x\2\2\u01b1\u01b2\7c\2\2\u01b2\u01b3\7t\2\2\u01b3")
         buf.write("\u0086\3\2\2\2\u01b4\u01ba\5\u0089E\2\u01b5\u01b9\5\u0089")
@@ -260,8 +260,8 @@ class EvansLexer(Lexer):
     PRED = 40
     OPER = 41
     IF = 42
-    ELSE = 43
-    ELIF = 44
+    ELIF = 43
+    ELSE = 44
     FOR = 45
     WHILE = 46
     RET = 47
@@ -274,12 +274,12 @@ class EvansLexer(Lexer):
     GOAL = 54
     MAIN = 55
     IN = 56
-    LIST = 57
-    BOOL = 58
-    STR = 59
-    FLOAT = 60
-    INT = 61
-    DOM = 62
+    DOM = 57
+    LIST = 58
+    BOOL = 59
+    STR = 60
+    FLOAT = 61
+    INT = 62
     NUM = 63
     VAR = 64
     ID = 65
@@ -295,17 +295,17 @@ class EvansLexer(Lexer):
             "'+='", "'-='", "'*='", "'/='", "'%='", "'['", "']'", "'!'", 
             "'+'", "'-'", "'*'", "'/'", "'%'", "'<'", "'>'", "'<='", "'>='", 
             "'!='", "'=='", "'&&'", "'||'", "'?'", "'class'", "'attr'", 
-            "'state'", "'func'", "'pred'", "'oper'", "'if'", "'else'", "'elif'", 
+            "'state'", "'func'", "'pred'", "'oper'", "'if'", "'elif'", "'else'", 
             "'for'", "'while'", "'ret'", "'break'", "'cont'", "'when'", 
-            "'eff'", "'exec'", "'init'", "'goal'", "'main'", "'in'", "'list'", 
-            "'bool'", "'str'", "'float'", "'int'", "'dom'", "'num'", "'var'" ]
+            "'eff'", "'exec'", "'init'", "'goal'", "'main'", "'in'", "'dom'", 
+            "'list'", "'bool'", "'str'", "'float'", "'int'", "'num'", "'var'" ]
 
     symbolicNames = [ "<INVALID>",
             "STRING_LITERAL", "DECIMAL_LITERAL", "FLOAT_LITERAL", "BOOL_LITERAL", 
-            "CLASS", "ATTR", "STATE", "FUNC", "PRED", "OPER", "IF", "ELSE", 
-            "ELIF", "FOR", "WHILE", "RET", "BREAK", "CONT", "WHEN", "EFF", 
-            "EXEC", "INIT", "GOAL", "MAIN", "IN", "LIST", "BOOL", "STR", 
-            "FLOAT", "INT", "DOM", "NUM", "VAR", "ID", "COMMENT", "WS" ]
+            "CLASS", "ATTR", "STATE", "FUNC", "PRED", "OPER", "IF", "ELIF", 
+            "ELSE", "FOR", "WHILE", "RET", "BREAK", "CONT", "WHEN", "EFF", 
+            "EXEC", "INIT", "GOAL", "MAIN", "IN", "DOM", "LIST", "BOOL", 
+            "STR", "FLOAT", "INT", "NUM", "VAR", "ID", "COMMENT", "WS" ]
 
     ruleNames = [ "T__0", "T__1", "T__2", "T__3", "T__4", "T__5", "T__6", 
                   "T__7", "T__8", "T__9", "T__10", "T__11", "T__12", "T__13", 
@@ -314,9 +314,9 @@ class EvansLexer(Lexer):
                   "T__26", "T__27", "T__28", "T__29", "T__30", "STRING_LITERAL", 
                   "STRING_ESCAPE", "DECIMAL_LITERAL", "FLOAT_LITERAL", "BOOL_LITERAL", 
                   "EXPONENT", "CLASS", "ATTR", "STATE", "FUNC", "PRED", 
-                  "OPER", "IF", "ELSE", "ELIF", "FOR", "WHILE", "RET", "BREAK", 
+                  "OPER", "IF", "ELIF", "ELSE", "FOR", "WHILE", "RET", "BREAK", 
                   "CONT", "WHEN", "EFF", "EXEC", "INIT", "GOAL", "MAIN", 
-                  "IN", "LIST", "BOOL", "STR", "FLOAT", "INT", "DOM", "NUM", 
+                  "IN", "DOM", "LIST", "BOOL", "STR", "FLOAT", "INT", "NUM", 
                   "VAR", "ID", "LETTER", "DIGIT", "COMMENT", "WS" ]
 
     grammarFileName = "Evans.g4"

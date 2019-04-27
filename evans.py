@@ -197,9 +197,46 @@ class EvansNameTree(EvansListener):
         statement = 'break' if ctx.BREAK() != None else 'cont'
         self.current_code_block['statements'].append(statement)
 
-    def enterCallStatement(self, ctx):
+    def enterExpressionStatement(self, ctx):
         ''' Add method call statement to list. '''
-        self.current_code_block['statements'].append('call')
+        self.current_code_block['statements'].append('expr')
+
+class EvansCodeTree(EvansListener):
+    def enterClassDeclaration(self, ctx):
+        ''' Assign class context '''
+        self.current_class = self.classes[ctx.ID().getText()]
+
+    def enterOperatorDeclaration(self, ctx):
+        ''' Assign operator context. '''
+        self.current_method = self.current_class['oper'][ctx.ID().getText()]
+        print("Operator: " + ctx.ID().getText())
+
+    def enterOperatorBody(self, ctx):
+        if ctx.WHEN() != None:
+            self.current_method['when'] = ctx.genExpression().getText()
+
+    # def enterParensExpression(self, ctx):
+    #     pprint.pprint("Expression with parens: " + ctx.genExpression().getText())
+
+    # def enterLiteralExpression(self, ctx):
+    #     pprint.pprint("Literal expression: " + ctx.genLiteral().getText())
+
+    # def enterVarExpression(self, ctx):
+    #     pprint.pprint("Var expression: " + ctx.ID().getText())
+
+    # def enterIndexExpression(self, ctx):
+    #     pprint.pprint("Index expression: " + ctx.genExpression().getText())
+
+    def enterCallExpression(self, ctx):
+        print("Method call expression: " + ctx.methodCall().getText())
+
+    def enterAttrExpression(self, ctx):
+        print("Attribute access expression: " + ctx.genExpression().getText(), end=' . ')
+        if ctx.ID() != None:
+            print(ctx.ID().getText(), end='')
+        elif ctx.methodCall() != None:
+            print(ctx.methodCall().getText(), end='')
+        print('')
 
 def main(argv):
     input = FileStream(argv[1])
@@ -208,12 +245,16 @@ def main(argv):
     parser = EvansParser(stream)
     tree = parser.codeFile()
     evans_names = EvansNameTree()
-    walker = ParseTreeWalker()
+    name_walker = ParseTreeWalker()
     # First pass: create name tree
-    walker.walk(evans_names, tree)
-    pprint.pprint(evans_names.classes)
-    pprint.pprint(evans_names.main)
-
+    name_walker.walk(evans_names, tree)
+    # pprint.pprint(evans_names.classes)
+    # pprint.pprint(evans_names.main)
+    code_walker = ParseTreeWalker()
+    evans_code = EvansCodeTree()
+    evans_code.classes = evans_names.classes
+    evans_code.main = evans_names.main
+    code_walker.walk(evans_code, tree)
 
 if __name__ == '__main__':
     main(sys.argv)

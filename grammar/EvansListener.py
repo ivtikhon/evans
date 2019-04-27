@@ -305,12 +305,12 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#CallStatement.
-    def enterCallStatement(self, ctx:EvansParser.CallStatementContext):
+    # Enter a parse tree produced by EvansParser#ExpressionStatement.
+    def enterExpressionStatement(self, ctx:EvansParser.ExpressionStatementContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#CallStatement.
-    def exitCallStatement(self, ctx:EvansParser.CallStatementContext):
+    # Exit a parse tree produced by EvansParser#ExpressionStatement.
+    def exitExpressionStatement(self, ctx:EvansParser.ExpressionStatementContext):
         pass
 
 
@@ -332,15 +332,6 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#NewExpression.
-    def enterNewExpression(self, ctx:EvansParser.NewExpressionContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#NewExpression.
-    def exitNewExpression(self, ctx:EvansParser.NewExpressionContext):
-        pass
-
-
     # Enter a parse tree produced by EvansParser#LiteralExpression.
     def enterLiteralExpression(self, ctx:EvansParser.LiteralExpressionContext):
         pass
@@ -356,6 +347,15 @@ class EvansListener(ParseTreeListener):
 
     # Exit a parse tree produced by EvansParser#VarExpression.
     def exitVarExpression(self, ctx:EvansParser.VarExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#EqualExpression.
+    def enterEqualExpression(self, ctx:EvansParser.EqualExpressionContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#EqualExpression.
+    def exitEqualExpression(self, ctx:EvansParser.EqualExpressionContext):
         pass
 
 
@@ -422,15 +422,6 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#TypeConvExpression.
-    def enterTypeConvExpression(self, ctx:EvansParser.TypeConvExpressionContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#TypeConvExpression.
-    def exitTypeConvExpression(self, ctx:EvansParser.TypeConvExpressionContext):
-        pass
-
-
     # Enter a parse tree produced by EvansParser#PrefixExpression.
     def enterPrefixExpression(self, ctx:EvansParser.PrefixExpressionContext):
         pass
@@ -467,30 +458,12 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#createNew.
-    def enterCreateNew(self, ctx:EvansParser.CreateNewContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#createNew.
-    def exitCreateNew(self, ctx:EvansParser.CreateNewContext):
-        pass
-
-
     # Enter a parse tree produced by EvansParser#methodCall.
     def enterMethodCall(self, ctx:EvansParser.MethodCallContext):
         pass
 
     # Exit a parse tree produced by EvansParser#methodCall.
     def exitMethodCall(self, ctx:EvansParser.MethodCallContext):
-        pass
-
-
-    # Enter a parse tree produced by EvansParser#typeConversion.
-    def enterTypeConversion(self, ctx:EvansParser.TypeConversionContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#typeConversion.
-    def exitTypeConversion(self, ctx:EvansParser.TypeConversionContext):
         pass
 
 

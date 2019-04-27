@@ -130,7 +130,7 @@ genStatement
     | FOR '(' genVarDeclaration IN genExpression ')' genCodeBlock # ForStatement
     | RET genExpression? ';'                                      # RetStatement
     | (BREAK | CONT) ';'                                          # BreakContStatement
-    | (genExpression '.')? methodCall ';'                         # CallStatement
+    | genExpression ';'                                           # ExpressionStatement
     ;
 
 assignmentStatement
@@ -138,34 +138,25 @@ assignmentStatement
     ;
 
 genExpression
-    : '(' genExpression ')'                                     # ParensExpression
-    | genLiteral                                                # LiteralExpression
-    | ID                                                        # VarExpression
-    | genExpression '[' genExpression ']'                       # IndexExpression
-    | createNew                                                 # NewExpression
-    | methodCall                                                # CallExpression
-    | typeConversion                                            # TypeConvExpression
-    | genExpression '.' (ID | methodCall )                      # AttrExpression
-    | '!' genExpression                                         # NotExpression
-    | ('+'|'-') genExpression                                   # PrefixExpression
-    | genExpression ('*'|'/'|'%') genExpression                 # MulDivExpression
-    | genExpression ('+'|'-') genExpression                     # AddSubExpression
-    | genExpression ('<'|'>'|'<='|'>='|'!='|'==') genExpression # CompareExpression
-    | genExpression '&&' genExpression                          # AndExpression
-    | genExpression '||' genExpression                          # OrExpression
-    | genExpression '?' genExpression ':' genExpression         # TernaryExpression
-    ;
-
-createNew
-    : genType '(' expressionList? ')'
+    : '(' genExpression ')'                              # ParensExpression
+    | genLiteral                                         # LiteralExpression
+    | ID                                                 # VarExpression
+    | genExpression '[' genExpression ']'                # IndexExpression
+    | methodCall                                         # CallExpression
+    | genExpression '.' (ID | methodCall )               # AttrExpression
+    | '!' genExpression                                  # NotExpression
+    | prefix=('+'|'-') genExpression                     # PrefixExpression
+    | genExpression op=('*'|'/'|'%') genExpression       # MulDivExpression
+    | genExpression op=('+'|'-') genExpression           # AddSubExpression
+    | genExpression op=('<'|'>'|'<='|'>=') genExpression # CompareExpression
+    | genExpression op=('!='|'==') genExpression         # EqualExpression
+    | genExpression '&&' genExpression                   # AndExpression
+    | genExpression '||' genExpression                   # OrExpression
+    | genExpression '?' genExpression ':' genExpression  # TernaryExpression
     ;
 
 methodCall
-    : ID '(' expressionList? ')'
-    ;
-
-typeConversion
-    : genType '(' genExpression ')'
+    : (ID | genType) '(' expressionList? ')'
     ;
 
 expressionList
