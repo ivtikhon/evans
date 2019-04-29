@@ -52,7 +52,7 @@ operatorList
     ;
 
 domainDeclaration
-    : ID '{' domainBody '}'
+    : ID '{' nameList '}'
     ;
 
 functionDeclaration
@@ -67,7 +67,7 @@ mainDeclaration
     : MAIN '(' genParameters? ')' genCodeBlock
     ;
 
-domainBody
+nameList
     : ID (',' ID)*
     ;
 
@@ -76,7 +76,7 @@ constructorDeclaration
     ;
 
 genVarDeclaration
-    : genType ID (',' ID)*
+    : genType nameList
     ;
 
 variableInitializer
@@ -125,12 +125,13 @@ varDeclarationStatement
 genStatement
     : IF '(' genExpression ')' genCodeBlock
       (ELIF '(' genExpression ')' genCodeBlock)*
-      (ELSE genCodeBlock)?                                        # IfStatement
-    | WHILE '(' genExpression ')' genCodeBlock                    # WhileStatement
-    | FOR '(' genVarDeclaration IN genExpression ')' genCodeBlock # ForStatement
-    | RET genExpression? ';'                                      # RetStatement
-    | (BREAK | CONT) ';'                                          # BreakContStatement
-    | genExpression ';'                                           # ExpressionStatement
+      (ELSE genCodeBlock)?                               # IfStatement
+    | WHILE '(' genExpression ')' genCodeBlock           # WhileStatement
+    | FOR '(' (genVarDeclaration | nameList)
+      IN genExpression ')' genCodeBlock                  # ForStatement
+    | RET genExpression? ';'                             # RetStatement
+    | (BREAK | CONT) ';'                                 # BreakContStatement
+    | genExpression ';'                                  # ExpressionStatement
     ;
 
 assignmentStatement

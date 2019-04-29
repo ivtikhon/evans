@@ -206,14 +206,29 @@ class EvansCodeTree(EvansListener):
         ''' Assign class context '''
         self.current_class = self.classes[ctx.ID().getText()]
 
+    def enterFunctionDeclaration(self, ctx):
+        ''' Assign function context. '''
+        self.current_method = self.current_class['func'][ctx.ID().getText()]
+
+    def enterConstructorDeclaration(self, ctx):
+        ''' Assign constructor context. '''
+        self.current_method = self.current_class['init'][ctx.classType().getText()]
+
+    def enterPredicateDeclaration(self, ctx):
+        ''' Assign predicate context. '''
+        self.current_method = self.current_class['pred'][ctx.ID().getText()]
+
     def enterOperatorDeclaration(self, ctx):
         ''' Assign operator context. '''
         self.current_method = self.current_class['oper'][ctx.ID().getText()]
-        print("Operator: " + ctx.ID().getText())
 
-    def enterOperatorBody(self, ctx):
-        if ctx.WHEN() != None:
-            self.current_method['when'] = ctx.genExpression().getText()
+    def enterGoalDeclaration(self, ctx):
+        ''' Assign goal context. '''
+        self.current_method = self.current_class['goal'][ctx.ID().getText()]
+
+    # def enterOperatorBody(self, ctx):
+    #     if ctx.WHEN() != None:
+    #         self.current_method['when'] = ctx.genExpression().getText()
 
     # def enterParensExpression(self, ctx):
     #     pprint.pprint("Expression with parens: " + ctx.genExpression().getText())
@@ -227,16 +242,16 @@ class EvansCodeTree(EvansListener):
     # def enterIndexExpression(self, ctx):
     #     pprint.pprint("Index expression: " + ctx.genExpression().getText())
 
-    def enterCallExpression(self, ctx):
-        print("Method call expression: " + ctx.methodCall().getText())
-
-    def enterAttrExpression(self, ctx):
-        print("Attribute access expression: " + ctx.genExpression().getText(), end=' . ')
-        if ctx.ID() != None:
-            print(ctx.ID().getText(), end='')
-        elif ctx.methodCall() != None:
-            print(ctx.methodCall().getText(), end='')
-        print('')
+    # def enterCallExpression(self, ctx):
+    #     print("Method call expression: " + ctx.methodCall().getText())
+    #
+    # def enterAttrExpression(self, ctx):
+    #     print("Attribute access expression: " + ctx.genExpression().getText(), end=' . ')
+    #     if ctx.ID() != None:
+    #         print(ctx.ID().getText(), end='')
+    #     elif ctx.methodCall() != None:
+    #         print(ctx.methodCall().getText(), end='')
+    #     print('')
 
 def main(argv):
     input = FileStream(argv[1])

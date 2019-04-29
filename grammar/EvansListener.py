@@ -143,12 +143,12 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#domainBody.
-    def enterDomainBody(self, ctx:EvansParser.DomainBodyContext):
+    # Enter a parse tree produced by EvansParser#nameList.
+    def enterNameList(self, ctx:EvansParser.NameListContext):
         pass
 
-    # Exit a parse tree produced by EvansParser#domainBody.
-    def exitDomainBody(self, ctx:EvansParser.DomainBodyContext):
+    # Exit a parse tree produced by EvansParser#nameList.
+    def exitNameList(self, ctx:EvansParser.NameListContext):
         pass
 
 
