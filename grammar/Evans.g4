@@ -142,9 +142,9 @@ genExpression
     : '(' genExpression ')'                              # ParensExpression
     | genLiteral                                         # LiteralExpression
     | ID                                                 # VarExpression
+    | genExpression '.' (ID | methodCall )               # AttrExpression
     | genExpression '[' genExpression ']'                # IndexExpression
     | methodCall                                         # CallExpression
-    | genExpression '.' (ID | methodCall )               # AttrExpression
     | '!' genExpression                                  # NotExpression
     | prefix=('+'|'-') genExpression                     # PrefixExpression
     | genExpression op=('*'|'/'|'%') genExpression       # MulDivExpression

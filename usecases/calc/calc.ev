@@ -43,6 +43,8 @@ class stack { # attributes and state variables share the same namespace within c
   func:
     push_key(key k) { # functions have access to attributes, but not to the state variables
       s.append(k.get_value());
+      s.atr1.atr2.f1().f2(arg1.atr5, arg2);  # dummy call
+      b.a[2][i].atr2[f].atr1; # dummy statement
     }
 
     push_reg(alu a) {
@@ -143,6 +145,7 @@ class alu {
       } elif (op == '/') {
         reg /= st1;
       }
+      while(false){} # dummy statement
     }
 
   pred:

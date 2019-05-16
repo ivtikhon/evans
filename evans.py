@@ -57,11 +57,11 @@ class EvansNameTree(EvansListener):
         self.variable_context = self.current_class['attr'] = {}
 
     def enterStateList(self, ctx):
-        ''' Create list of states; assign variable context. '''
+        ''' Create list of states, assign variable context. '''
         self.variable_context = self.current_class['state'] = {}
 
     def enterVarDeclarationStatement(self, ctx):
-        ''' Set code block variable context '''
+        ''' Assign variable context for code block '''
         parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
         if parentContextRuleIndex == EvansParser.RULE_blockStatement:
             if 'vars' not in self.current_code_block:
@@ -110,6 +110,11 @@ class EvansNameTree(EvansListener):
             genCodeBlock (func, pred, if, while, etc...) and pushed to stack.
         '''
         self.current_code_block = self.code_blocks.pop()
+        if ctx.blockStatement() != None:
+            for item in ctx.blockStatement():
+                if item.genStatement() != None:
+                    self.current_code_block['statements'] = []
+                    break
 
     def enterOperatorBody(self, ctx):
         ''' Create operator context and push to stack. '''
@@ -124,6 +129,11 @@ class EvansNameTree(EvansListener):
     def enterOperatorCodeBlock(self, ctx):
         ''' Restore operator variable context from stack'''
         self.current_code_block = self.code_blocks.pop()
+        if ctx.blockStatement() != None:
+            for item in ctx.blockStatement():
+                if item.genStatement() != None:
+                    self.current_code_block['statements'] = []
+                    break
 
     def enterGoalList(self, ctx):
         ''' Create list of goals. '''
@@ -133,11 +143,6 @@ class EvansNameTree(EvansListener):
         ''' Assign goal context. '''
         self.current_method = self.current_class['goal'][ctx.ID().getText()] = {}
         self.code_blocks.append(self.current_method)
-
-    def enterBlockStatement(self, ctx):
-        ''' Create list of statements for current code block '''
-        if ctx.genStatement() != None:
-            self.current_code_block['statements'] = []
 
     def enterIfStatement(self, ctx):
         ''' Push current variable context to stack;
@@ -176,8 +181,9 @@ class EvansNameTree(EvansListener):
             generate for-statement context and push to stack as well. '''
         self.code_blocks.append(self.current_code_block)
         for_statement = {'for': {}}
-        self.variable_context = for_statement['for']
-        self.code_blocks.append(self.variable_context)
+        if ctx.genVarDeclaration() != None:
+            self.variable_context = for_statement['for']['vars'] = {}
+        self.code_blocks.append(for_statement['for'])
         self.current_code_block['statements'].append(for_statement)
 
     def exitForStatement(self, ctx):
@@ -194,14 +200,18 @@ class EvansNameTree(EvansListener):
         self.current_code_block['statements'].append(statement)
 
     def enterExpressionStatement(self, ctx):
-        ''' Add method call statement to list. '''
+        ''' Add expression statement to list. '''
         self.current_code_block['statements'].append('expr')
 
 class EvansCodeTree(EvansListener):
     def enterCodeFile(self, ctx):
-        ''' Create expressions stack '''
+        ''' Create operational stacks '''
         # self.expr_stack = []
         self.code_blocks = []
+
+    def enterMainDeclaration(self, ctx):
+        ''' Create main function structure.'''
+        self.code_blocks.append(self.main)
 
     def enterClassDeclaration(self, ctx):
         ''' Assign class context '''
@@ -230,6 +240,8 @@ class EvansCodeTree(EvansListener):
     def enterGenCodeBlock(self, ctx):
         ''' Restore current variable context from stack. '''
         self.current_code_block = self.code_blocks.pop()
+        if 'statements' in self.current_code_block:
+            self.stat_counter = 0
 
     def enterOperatorBody(self, ctx):
         ''' Create operator context and push to stack. '''
@@ -243,46 +255,97 @@ class EvansCodeTree(EvansListener):
     def enterOperatorCodeBlock(self, ctx):
         ''' Restore operator variable context from stack'''
         self.current_code_block = self.code_blocks.pop()
+        if 'statements' in self.current_code_block:
+            self.stat_counter = 0
 
     def enterGoalDeclaration(self, ctx):
         ''' Assign goal context. '''
         self.current_method = self.current_class['goal'][ctx.ID().getText()]
         self.code_blocks.append(self.current_method)
 
+    def enterIfStatement(self, ctx):
+        ''' Push current variable context to stack;
+            generate if-statement context and push to stack as well. '''
+        self.code_blocks.append(self.current_code_block)
+        statement = self.current_code_block['statements'][self.stat_counter]
+        self.stat_counter += 1
+        # sanity check
+        if 'if' not in statement:
+            raise Exception("Internal error: if-statement expected, but got this: " + str(statement))
+        if ctx.ELSE() != None:
+            self.code_blocks.append(statement['else'])
+        if ctx.ELIF() != None and len(ctx.ELIF()) > 0:
+            elif_len = len(ctx.ELIF())
+            for i in range(elif_len - 1, -1, -1):
+                self.code_blocks.append(statement['elif'][i])
+        self.code_blocks.append(statement['if'])
 
-    # def exitVariableInitializer(self, ctx):
-    #     if ctx.genExpression() != None:
-    #         expr = self.expr_stack.pop()
-    #         print('Variable initialization:')
-    #         pprint.pprint(expr)
+    def exitIfStatement(self, ctx):
+        ''' Restore variable context from stack. '''
+        self.current_code_block = self.code_blocks.pop()
 
-    # def exitOperatorBody(self, ctx):
-    #     if ctx.WHEN() != None:
-    #         # expr = self.expr_stack.pop()
-    #         # self.current_method['when'] = expr
-    #         print('Operator condition: ' + ctx.genExpression().getText(), end='')
-    #         parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
-    #         print("; parent: " + EvansParser.ruleNames[parentContextRuleIndex])
-    #
-    # def exitIfStatement(self, ctx):
-    #     # expr = self.expr_stack.pop()
-    #     print('If-statement expression: ' + ctx.genExpression()[0].getText(), end='')
-    #     # pprint.pprint(expr)
-    #     parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
-    #     print("; parent: " + EvansParser.ruleNames[parentContextRuleIndex])
+    def enterWhileStatement(self, ctx):
+        ''' Push current variable context to stack;
+            generate while-statement context and push to stack as well. '''
+        self.code_blocks.append(self.current_code_block)
+        statement = self.current_code_block['statements'][self.stat_counter]
+        self.stat_counter += 1
+        # sanity check
+        if 'while' not in statement:
+            raise Exception("Internal error: while-statement expected, but got this: " + str(statement))
+        self.code_blocks.append(statement['while'])
 
-    # def exitWhileStatement(self, ctx):
-    #     expr = self.expr_stack.pop()
-    #     print('If-statement condition:')
-    #     pprint.pprint(expr)
-# ForStatement
-# RetStatement
-    # def exitExpressionStatement(self, ctx):
-    #     print("Expression statement: " + ctx.genExpression().getText(), end='')
-    #     parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
-    #     print("; parent: " + EvansParser.ruleNames[parentContextRuleIndex])
-# assignmentStatement
-# expressionList
+    def exitWhileStatement(self, ctx):
+        ''' Restore variable context from stack. '''
+        self.current_code_block = self.code_blocks.pop()
+
+    def enterForStatement(self, ctx):
+        ''' Push current variable context to stack;
+            generate for-statement context and push to stack as well. '''
+        self.code_blocks.append(self.current_code_block)
+        statement = self.current_code_block['statements'][self.stat_counter]
+        self.stat_counter += 1
+        # sanity check
+        if 'for' not in statement:
+            raise Exception("Internal error: for-statement expected, but got this: " + str(statement))
+        self.code_blocks.append(statement['for'])
+
+    def exitForStatement(self, ctx):
+        ''' Restore variable context from stack. '''
+        self.current_code_block = self.code_blocks.pop()
+
+    def enterRetStatement(self, ctx):
+        statement = self.current_code_block['statements'][self.stat_counter]
+        self.stat_counter += 1
+        # sanity check
+        if 'ret' not in statement:
+            raise Exception("Internal error: ret-statement expected, but got this: " + str(statement))
+
+    def enterBreakContStatement(self, ctx):
+        statement = self.current_code_block['statements'][self.stat_counter]
+        self.stat_counter += 1
+        # sanity check
+        statement = 'break' if ctx.BREAK() != None else 'cont'
+        if statement not in statement:
+            raise Exception("Internal error: " + statement + "-statement expected, but got this: " + str(statement))
+
+    def enterExpressionStatement(self, ctx):
+        statement = self.current_code_block['statements'][self.stat_counter]
+        self.stat_counter += 1
+        # sanity check
+        if 'expr' not in statement:
+            raise Exception("Internal error: expr-statement expected, but got this: " + str(statement))
+
+# genExpression is used in:
+# - variableInitializer
+# - operatorBody
+# - ifStatement
+# - whileStatement
+# - forStatement
+# - retStatement
+# - expressionStatement
+# - assignmentStatement
+# - expressionList
 
     # def enterParensExpression(self, ctx):
     #     print("Expression with parens: " + ctx.genExpression().getText(), end='')
@@ -293,12 +356,40 @@ class EvansCodeTree(EvansListener):
     #     print("Literal expression: " + ctx.genLiteral().getText(), end='')
     #     parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
     #     print("; parent: " + EvansParser.ruleNames[parentContextRuleIndex])
-    #
-    # def enterVarExpression(self, ctx):
-    #     print("Var expression: " + ctx.ID().getText(), end='')
-    #     parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
-    #     print("; parent: " + EvansParser.ruleNames[parentContextRuleIndex])
-    #
+
+    def enterVarExpression(self, ctx):
+        ''' Variable can be defined in following contexts:
+                - current_code_block (vars)
+                - current_method (parameters and vars)
+                - current_class (attributes)
+                - global (not implemented yet)
+        '''
+        var_name = ctx.ID().getText()
+        # print("Var expression: " + var_name, end='')
+        # parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
+        # print("; parent: " + EvansParser.ruleNames[parentContextRuleIndex])
+        context_list = []
+        context_names = ['current code block', 'method params', 'method vars', 'class attrs', 'class states']
+        if hasattr(self, 'current_code_block') and 'var' in self.current_code_block:
+            context_list.append(self.current_code_block['vars'])
+        if hasattr(self, 'current_method') and 'params' in self.current_method:
+            context_list.append(self.current_method['params'])
+        if hasattr(self, 'current_method') and 'vars' in self.current_method:
+            context_list.append(self.current_method['vars'])
+        if 'attrs' in self.current_class:
+            context_list.append(self.current_class['attr'])
+        if 'state' in self.current_class:
+            context_list.append(self.current_class['state'])
+        var_context = None
+        for index, context_item in enumerate(context_list):
+            if var_name in context_item:
+                var_context = context_item
+                break
+        if var_context != None:
+            print('Var: ' + var_name + ' found in ' + context_names[index])
+        else:
+            print ('Var: ' + var_name + ' not found')
+
     # def enterNotExpression(self, ctx):
     #     print("Not expression: " + ctx.genExpression().getText(), end='')
     #     parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
@@ -313,23 +404,39 @@ class EvansCodeTree(EvansListener):
     #     print("Or expression: " + ctx.genExpression()[0].getText() + ' OR ' + ctx.genExpression()[1].getText(), end='')
     #     parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
     #     print("; parent: " + EvansParser.ruleNames[parentContextRuleIndex])
-
+    #
     # def enterIndexExpression(self, ctx):
-    #     pprint.pprint("Index expression: " + ctx.genExpression().getText())
-
+    #     print("Index expression: " + ctx.genExpression()[0].getText() + ' -> ' + ctx.genExpression()[1].getText())
+    #
     # def enterCallExpression(self, ctx):
     #     print("Method call expression: " + ctx.methodCall().getText(), end='')
     #     parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
     #     print("; parent: " + EvansParser.ruleNames[parentContextRuleIndex])
     #
     # def enterAttrExpression(self, ctx):
-    #     print("Attribute access expression: " + ctx.genExpression().getText(), end=' . ')
+    #     ''' Attribute expression
+    #         - starts with:
+    #             * literal
+    #             * ID
+    #             * index expression
+    #             * method call
+    #             * expresson surrounded by parens (not supported);
+    #         - continues with:
+    #             * ID
+    #             * index expression
+    #             * method call;
+    #         - ends with:
+    #             * ID
+    #             * method call;
+    #     '''
+    #     print("Attribute access expression: " + ctx.genExpression().getText(), end=' -> ')
     #     if ctx.ID() != None:
     #         print('ID: ' + ctx.ID().getText(), end='')
     #     elif ctx.methodCall() != None:
     #         print('method: ' + ctx.methodCall().getText(), end='')
     #     parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
     #     print("; parent: " + EvansParser.ruleNames[parentContextRuleIndex])
+    #     # self.expr_stack.append(ctx.genExpression())
     #
     # def enterMethodCall(self, ctx):
     #     print('Method call: ', end='')
@@ -350,14 +457,14 @@ def main(argv):
     name_walker = ParseTreeWalker()
     # First pass: create name tree
     name_walker.walk(evans_names, tree)
-    pprint.pprint(evans_names.classes)
-    pprint.pprint(evans_names.main)
+    # pprint.pprint(evans_names.classes)
+    # pprint.pprint(evans_names.main)
     # Second pass: generate code
-    # code_walker = ParseTreeWalker()
-    # evans_code = EvansCodeTree()
-    # evans_code.classes = evans_names.classes
-    # evans_code.main = evans_names.main
-    # code_walker.walk(evans_code, tree)
+    code_walker = ParseTreeWalker()
+    evans_code = EvansCodeTree()
+    evans_code.classes = evans_names.classes
+    evans_code.main = evans_names.main
+    code_walker.walk(evans_code, tree)
 
 if __name__ == '__main__':
     main(sys.argv)

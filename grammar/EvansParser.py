@@ -48,7 +48,7 @@ def serializedATN():
         buf.write("\n\37\f\37\16\37\u016d\13\37\3\37\3\37\3\37\3\37\3 \3")
         buf.write(" \3 \3 \3 \3 \3 \3 \3 \3 \3 \3 \5 \u017f\n \3 \3 \3 \3")
         buf.write(" \3 \3 \3 \3 \3 \3 \3 \3 \3 \3 \3 \3 \3 \3 \3 \3 \3 \3")
-        buf.write(" \3 \3 \3 \3 \3 \3 \3 \3 \3 \3 \3 \5 \u01a2\n \7 \u01a4")
+        buf.write(" \3 \3 \3 \3 \3 \3 \5 \u019d\n \3 \3 \3 \3 \3 \7 \u01a4")
         buf.write("\n \f \16 \u01a7\13 \3!\3!\5!\u01ab\n!\3!\3!\5!\u01af")
         buf.write("\n!\3!\3!\3\"\3\"\3\"\7\"\u01b6\n\"\f\"\16\"\u01b9\13")
         buf.write("\"\3#\3#\3$\3$\5$\u01bf\n$\3%\3%\3&\3&\3\'\3\'\3\'\2\3")
@@ -192,14 +192,14 @@ def serializedATN():
         buf.write("\u018f\u0190\f\4\2\2\u0190\u0191\7 \2\2\u0191\u01a4\5")
         buf.write("> \5\u0192\u0193\f\3\2\2\u0193\u0194\7!\2\2\u0194\u0195")
         buf.write("\5> \2\u0195\u0196\7\5\2\2\u0196\u0197\5> \4\u0197\u01a4")
-        buf.write("\3\2\2\2\u0198\u0199\f\16\2\2\u0199\u019a\7\21\2\2\u019a")
-        buf.write("\u019b\5> \2\u019b\u019c\7\22\2\2\u019c\u01a4\3\2\2\2")
-        buf.write("\u019d\u019e\f\f\2\2\u019e\u01a1\7\13\2\2\u019f\u01a2")
-        buf.write("\7C\2\2\u01a0\u01a2\5@!\2\u01a1\u019f\3\2\2\2\u01a1\u01a0")
-        buf.write("\3\2\2\2\u01a2\u01a4\3\2\2\2\u01a3\u0180\3\2\2\2\u01a3")
+        buf.write("\3\2\2\2\u0198\u0199\f\16\2\2\u0199\u019c\7\13\2\2\u019a")
+        buf.write("\u019d\7C\2\2\u019b\u019d\5@!\2\u019c\u019a\3\2\2\2\u019c")
+        buf.write("\u019b\3\2\2\2\u019d\u01a4\3\2\2\2\u019e\u019f\f\r\2\2")
+        buf.write("\u019f\u01a0\7\21\2\2\u01a0\u01a1\5> \2\u01a1\u01a2\7")
+        buf.write("\22\2\2\u01a2\u01a4\3\2\2\2\u01a3\u0180\3\2\2\2\u01a3")
         buf.write("\u0183\3\2\2\2\u01a3\u0186\3\2\2\2\u01a3\u0189\3\2\2\2")
         buf.write("\u01a3\u018c\3\2\2\2\u01a3\u018f\3\2\2\2\u01a3\u0192\3")
-        buf.write("\2\2\2\u01a3\u0198\3\2\2\2\u01a3\u019d\3\2\2\2\u01a4\u01a7")
+        buf.write("\2\2\2\u01a3\u0198\3\2\2\2\u01a3\u019e\3\2\2\2\u01a4\u01a7")
         buf.write("\3\2\2\2\u01a5\u01a3\3\2\2\2\u01a5\u01a6\3\2\2\2\u01a6")
         buf.write("?\3\2\2\2\u01a7\u01a5\3\2\2\2\u01a8\u01ab\7C\2\2\u01a9")
         buf.write("\u01ab\5F$\2\u01aa\u01a8\3\2\2\2\u01aa\u01a9\3\2\2\2\u01ab")
@@ -216,7 +216,7 @@ def serializedATN():
         buf.write("\2\2\64QT]`cfilory\u0080\u0087\u008e\u0095\u009c\u00a3")
         buf.write("\u00aa\u00b4\u00b9\u00c0\u00c8\u00d2\u00d8\u00e2\u00ea")
         buf.write("\u00ed\u00f9\u00ff\u0107\u0111\u0119\u011e\u0124\u012c")
-        buf.write("\u0131\u0142\u0147\u0153\u015c\u0164\u016b\u017e\u01a1")
+        buf.write("\u0131\u0142\u0147\u0153\u015c\u0164\u016b\u017e\u019c")
         buf.write("\u01a3\u01a5\u01aa\u01ae\u01b7\u01be")
         return buf.getvalue()
 
@@ -3131,43 +3131,43 @@ class EvansParser ( Parser ):
                         pass
 
                     elif la_ == 8:
-                        localctx = EvansParser.IndexExpressionContext(self, EvansParser.GenExpressionContext(self, _parentctx, _parentState))
+                        localctx = EvansParser.AttrExpressionContext(self, EvansParser.GenExpressionContext(self, _parentctx, _parentState))
                         self.pushNewRecursionContext(localctx, _startState, self.RULE_genExpression)
                         self.state = 406
                         if not self.precpred(self._ctx, 12):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 12)")
                         self.state = 407
-                        self.match(EvansParser.T__14)
-                        self.state = 408
-                        self.genExpression(0)
-                        self.state = 409
-                        self.match(EvansParser.T__15)
-                        pass
-
-                    elif la_ == 9:
-                        localctx = EvansParser.AttrExpressionContext(self, EvansParser.GenExpressionContext(self, _parentctx, _parentState))
-                        self.pushNewRecursionContext(localctx, _startState, self.RULE_genExpression)
-                        self.state = 411
-                        if not self.precpred(self._ctx, 10):
-                            from antlr4.error.Errors import FailedPredicateException
-                            raise FailedPredicateException(self, "self.precpred(self._ctx, 10)")
-                        self.state = 412
                         self.match(EvansParser.T__8)
-                        self.state = 415
+                        self.state = 410
                         self._errHandler.sync(self)
                         la_ = self._interp.adaptivePredict(self._input,43,self._ctx)
                         if la_ == 1:
-                            self.state = 413
+                            self.state = 408
                             self.match(EvansParser.ID)
                             pass
 
                         elif la_ == 2:
-                            self.state = 414
+                            self.state = 409
                             self.methodCall()
                             pass
 
 
+                        pass
+
+                    elif la_ == 9:
+                        localctx = EvansParser.IndexExpressionContext(self, EvansParser.GenExpressionContext(self, _parentctx, _parentState))
+                        self.pushNewRecursionContext(localctx, _startState, self.RULE_genExpression)
+                        self.state = 412
+                        if not self.precpred(self._ctx, 11):
+                            from antlr4.error.Errors import FailedPredicateException
+                            raise FailedPredicateException(self, "self.precpred(self._ctx, 11)")
+                        self.state = 413
+                        self.match(EvansParser.T__14)
+                        self.state = 414
+                        self.genExpression(0)
+                        self.state = 415
+                        self.match(EvansParser.T__15)
                         pass
 
              
@@ -3617,7 +3617,7 @@ class EvansParser ( Parser ):
          
 
             if predIndex == 8:
-                return self.precpred(self._ctx, 10)
+                return self.precpred(self._ctx, 11)
          
 
 
