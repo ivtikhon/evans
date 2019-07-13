@@ -1,0 +1,14 @@
+class element {
+
+}
+
+class sort {
+  attr:
+    list l;
+  stat:
+    num cost;
+  oper:
+    compare(l1, l2 from l)
+  goal:
+
+}

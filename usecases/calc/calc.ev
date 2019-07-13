@@ -45,6 +45,7 @@ class stack { # attributes and state variables share the same namespace within c
       s.append(k.get_value());
       s.atr1.atr2.f1().f2(arg1.atr5, arg2);  # dummy call
       b.a[2][i].atr2[f].atr1; # dummy statement
+      num a1, a2 = (4+3, v8); # dummy statement
     }
 
     push_reg(alu a) {
@@ -62,7 +63,9 @@ class stack { # attributes and state variables share the same namespace within c
     is_dec_point(){ ret dec_point; }
 
   oper:
-    push (key k) {
+    push (key k) {  # parameters of operators form the class interface;
+                    # instances of classes listed as operators' parameters participating in planning
+                    # and satisfying preconditions become the actual parameters
       when: # precondition and effect sections have access to states, and no access to attributes
         !changed &&
         !k.processed &&
@@ -234,12 +237,12 @@ class key {
     set_value(str val) { k = val;}
 
   pred:
-    is_op() {ret (k_val == op);}
-    is_digit() {ret (k_val == digit);}
-    is_point() {ret (k_val == point);}
-    is_eq() {ret (k_val == eq);}
-    is_clear() {ret (k_val == clear);}
-    is_erase() {ret (k_val == erase);}
+    is_op() {ret k_val == op;}
+    is_digit() {ret k_val == digit;}
+    is_point() {ret k_val == point;}
+    is_eq() {ret k_val == eq;}
+    is_clear() {ret k_val == clear;}
+    is_erase() {ret k_val == erase;}
 
   oper:
     no_op (stack s){
@@ -279,10 +282,12 @@ class calculator {
     display ds;
     alu al;
 
-  goal:  # TODO: introduce functions either/any, all for goals
+  goal:   # TODO: introduce functions either/any, all for goals
+          # TODO: how to specify objects participating in planning?
+          #       for now, these are attributes of the class with some goal(s) defined
     process_key(key k){
       ret k.processed == true &&
-          ds.updated == (st.changed ? true : False);
+          ds.updated == (st.changed ? true : false);
     }
 }
 
