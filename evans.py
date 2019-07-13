@@ -361,7 +361,22 @@ class EvansCodeTree(EvansListener):
             type var = expression
             type var1, var2, ... = (expression1, expression2, ...)     // assignement unpacking
         '''
-        print("Var declaration statement " + ctx.genVarDeclaration().getText())
+        if ctx.variableInitializer() == None:
+            return
+        print("Var declaration statement: " + ctx.genVarDeclaration().genType().getText() + \
+            ' ' + ctx.genVarDeclaration().nameList().getText())
+        var_context = None
+        parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
+        if parentContextRuleIndex == EvansParser.RULE_blockStatement:
+            var_context = self.current_code_block['vars']
+        elif parentContextRuleIndex == EvansParser.RULE_attributeList:
+            var_context = self.current_class['attr']
+        elif parentContextRuleIndex == EvansParser.RULE_stateList:
+            var_context = self.current_class['attr']
+        else:
+            raise Exception("Internal error: variable declaration statement: " + \
+                ctx.genVarDeclaration().nameList().getText() + " - unexpected parent context: " + \
+                EvansParser.ruleNames[parentContextRuleIndex])
         # init_list = []
         # if ctx.variableInitializer() != None:
         #     counter = 1
