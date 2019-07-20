@@ -255,6 +255,19 @@ INT : 'int' ;
 NUM: 'num' ;
 VAR: 'var' ;
 
+# Operations and comparisons
+MUL: '*' ;
+DIV: '/' ;
+MOD: '%' ;
+ADD: '+' ;
+SUB: '-' ;
+LT: '<' ;
+GT: '>' ;
+LE: '<=' ;
+GE: '>=' ;
+NE: '!=' ;
+EQ: '==';
+
 // Identifier
 ID  : LETTER (LETTER | '_' | DIGIT)* ;
 
