@@ -211,6 +211,7 @@ class EvansCodeTree(EvansListener):
         self.current_code_block = None
         self.expr_stack = []
         self.code_blocks = []
+        self.process_expressions = False
 
     def enterMainDeclaration(self, ctx):
         ''' Create main function structure.'''
@@ -356,11 +357,16 @@ class EvansCodeTree(EvansListener):
         if 'expr' not in statement:
             raise Exception("Internal error: expr-statement expected, but got this: " + str(statement))
 
+    def enterVarDeclarationStatement(self, ctx):
+        ''' For DEBUG only: trigger expression processing'''
+        self.process_expressions = True
+
     def exitVarDeclarationStatement(self, ctx):
         ''' Initialize declared variable(s)
             type var = expression
             type var1, var2, ... = (expression1, expression2, ...)     // assignement unpacking
         '''
+        self.process_expressions = True
         if ctx.variableInitializer() == None:
             return
         print("Var declaration statement: " + ctx.genVarDeclaration().genType().getText() + \
@@ -372,54 +378,69 @@ class EvansCodeTree(EvansListener):
         elif parentContextRuleIndex == EvansParser.RULE_attributeList:
             var_context = self.current_class['attr']
         elif parentContextRuleIndex == EvansParser.RULE_stateList:
-            var_context = self.current_class['attr']
+            var_context = self.current_class['state']
         else:
             raise Exception("Internal error: variable declaration statement: " + \
                 ctx.genVarDeclaration().nameList().getText() + " - unexpected parent context: " + \
                 EvansParser.ruleNames[parentContextRuleIndex])
-        # init_list = []
-        # if ctx.variableInitializer() != None:
-        #     counter = 1
-        #     while counter > 0:
-        #         expr_stack_item = self.expr_stack.pop()
-        #         counter -= 1
-        #         if expr_stack_item[0] == 'VariableInitializer':
-        #             counter = expr_stack_item[1]
-        #             continue
-        #         elif expr_stack_item[0] == 'VarExpression':
-        #             init_list.insert(0, expr_stack_item)
-        #         else:
-        #             raise Exception("Internal error: " + expr_stack_item[0] + " not implemented yet in variable declaration")
-        # var_list = []
-        # for item in ctx.genVarDeclaration().nameList().ID():
-        #     var_name = item.getText()
-        #     print("Var declaration: " + var_name)
-        #     var_list.append(self.variable_context[var_name])
-        # var_len = len(var_list)
-        # init_len = len(init_list)
-        # if var_len == init_len:
-        #     for variable, initializer in zip(var_list, init_list):
-        #         variable['val'] = initializer
-        # elif var_len == 1 and init_len > 1:  # List assignment
-        #     var_list[0]['val'] = init_list
-        # elif init_len == 1:
-        #     for variable in var_list:
-        #         variable['val'] = init_list[0]
-        # elif init_len == 0:
-        #     for variable in var_list:
-        #         variable['val'] = None
-        # else:
-        #     raise Exception("Error, unexpected assignment: " + ctx.genVarDeclaration().getText())
+        init_list = []
+        counter = 1
+        while counter > 0:
+            expr_stack_item = self.expr_stack.pop()
+            counter -= 1
+            if expr_stack_item[0] == 'VariableInitializer':
+                counter = expr_stack_item[1]
+                continue
+            elif expr_stack_item[0] in ['VarExpression', 'LiteralExpression']:
+                init_list.insert(0, expr_stack_item)
+            else:
+                raise Exception("Internal error: " + expr_stack_item[0] + " not implemented yet in variable declaration")
+        var_list = []
+        for item in ctx.genVarDeclaration().nameList().ID():
+            var_name = item.getText()
+            var_list.append(var_context[var_name])
+        var_list_len = len(var_list)
+        init_list_len = len(init_list)
+        if var_list_len == init_list_len:
+            for variable, initializer in zip(var_list, init_list):
+                variable['val'] = initializer
+        elif var_list_len == 1 and init_list_len > 1:  # List assignment
+            var_list[0]['val'] = init_list
+        elif init_list_len == 1:
+            for variable in var_list:
+                variable['val'] = init_list[0]
+        elif init_list_len == 0:
+            for variable in var_list:
+                variable['val'] = None
+        else:
+            raise Exception("Error, unexpected assignment: " + ctx.genVarDeclaration().getText())
+        print("Variable declaration and initialization:")
+        for variable in var_list:
+            pprint.pprint(variable)
 
 # genExpression is used in:
 # - variableInitializer
 # - operatorBody
-# - ifStatement
-# - whileStatement
-# - forStatement
-# - retStatement
-# - expressionStatement
+# - genStatement
+#   - ifStatement
+#   - whileStatement
+#   - forStatement
+#   - retStatement
+#   - expressionStatement
 # - assignmentStatement
+# - genExpression
+#   - ParensExpression
+#   - AttrExpression
+#   - IndexExpression
+#   - NotExpression
+#   - PrefixExpression
+#   - MulDivExpression
+#   - AddSubExpression
+#   - CompareExpression
+#   - EqualExpression
+#   - AndExpression
+#   - OrExpression
+#   - TernaryExpression
 # - expressionList
 
     # def enterParensExpression(self, ctx):
@@ -427,15 +448,14 @@ class EvansCodeTree(EvansListener):
     #     parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
     #     print("; parent: " + EvansParser.ruleNames[parentContextRuleIndex])
     #
-    # def enterLiteralExpression(self, ctx):
-    #     print("Literal expression: " + ctx.genLiteral().getText(), end='')
-    #     parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
-    #     print("; parent: " + EvansParser.ruleNames[parentContextRuleIndex])
-
     def exitVariableInitializer(self, ctx):
         ''' If listInitializer is defined, push its length to the expression stack'''
         if ctx.listInitializer() != None:
             self.expr_stack.append(('VariableInitializer', len(ctx.listInitializer().variableInitializer())))
+
+    def exitLiteralExpression(self, ctx):
+        parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
+        self.expr_stack.append(('LiteralExpression', ctx.getText()))
 
     def exitVarExpression(self, ctx):
         ''' Variable can be defined in following contexts:
@@ -444,9 +464,9 @@ class EvansCodeTree(EvansListener):
                 - global (not implemented yet)
         '''
         var_name = ctx.ID().getText()
-        print("Var expression: " + var_name, end='')
+        # print("Var expression: " + var_name, end='')
         parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
-        print("; parent: " + EvansParser.ruleNames[parentContextRuleIndex])
+        # print("; parent: " + EvansParser.ruleNames[parentContextRuleIndex])
         context_list = []
         # current method
         if self.current_code_block != None:
@@ -469,8 +489,7 @@ class EvansCodeTree(EvansListener):
             if var_name in context_item:
                 var_context = context_item
                 break
-        if parentContextRuleIndex == EvansParser.RULE_variableInitializer:
-            self.expr_stack.append(('VarExpression', var_name, var_context))
+        self.expr_stack.append(('VarExpression', var_name, var_context))
 
     # def enterNotExpression(self, ctx):
     #     print("Not expression: " + ctx.genExpression().getText(), end='')
@@ -527,6 +546,13 @@ class EvansCodeTree(EvansListener):
     #         print(ctx.genType().getText(), end='')
     #     parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
     #     print("; parent: " + EvansParser.ruleNames[parentContextRuleIndex])
+
+    def exitAddSubExpression(self, ctx):
+        parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
+        right = self.expr_stack.pop()
+        left = self.expr_stack.pop()
+        pprint.pprint(ctx.op)
+        # self.expr_stack.append(('AddSubExpression', left[1] + ctx.op.getType() + right[1]))
 
 def main(argv):
     input = FileStream(argv[1])
