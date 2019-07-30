@@ -53,47 +53,47 @@ def serializedATN():
         buf.write("\n!\3!\3!\3\"\3\"\3\"\7\"\u01b6\n\"\f\"\16\"\u01b9\13")
         buf.write("\"\3#\3#\3$\3$\5$\u01bf\n$\3%\3%\3&\3&\3\'\3\'\3\'\2\3")
         buf.write(">(\2\4\6\b\n\f\16\20\22\24\26\30\32\34\36 \"$&(*,.\60")
-        buf.write("\62\64\668:<>@BDFHJL\2\n\3\2\62\63\4\2\t\t\f\20\3\2\24")
-        buf.write("\25\3\2\26\30\3\2\31\34\3\2\35\36\3\2\"%\3\2<B\2\u01e2")
-        buf.write("\2O\3\2\2\2\4V\3\2\2\2\6]\3\2\2\2\bt\3\2\2\2\n{\3\2\2")
-        buf.write("\2\f\u0082\3\2\2\2\16\u0089\3\2\2\2\20\u0090\3\2\2\2\22")
-        buf.write("\u0097\3\2\2\2\24\u009e\3\2\2\2\26\u00a5\3\2\2\2\30\u00ac")
-        buf.write("\3\2\2\2\32\u00b1\3\2\2\2\34\u00bd\3\2\2\2\36\u00c5\3")
-        buf.write("\2\2\2 \u00cd\3\2\2\2\"\u00d5\3\2\2\2$\u00dd\3\2\2\2&")
-        buf.write("\u00e2\3\2\2\2(\u00e4\3\2\2\2*\u00f1\3\2\2\2,\u00fc\3")
-        buf.write("\2\2\2.\u0104\3\2\2\2\60\u0111\3\2\2\2\62\u011c\3\2\2")
-        buf.write("\2\64\u0120\3\2\2\2\66\u012c\3\2\2\28\u012e\3\2\2\2:\u0164")
-        buf.write("\3\2\2\2<\u0166\3\2\2\2>\u017e\3\2\2\2@\u01aa\3\2\2\2")
-        buf.write("B\u01b2\3\2\2\2D\u01ba\3\2\2\2F\u01be\3\2\2\2H\u01c0\3")
-        buf.write("\2\2\2J\u01c2\3\2\2\2L\u01c4\3\2\2\2NP\5\4\3\2ON\3\2\2")
-        buf.write("\2PQ\3\2\2\2QO\3\2\2\2QR\3\2\2\2RT\3\2\2\2SU\5\36\20\2")
-        buf.write("TS\3\2\2\2TU\3\2\2\2U\3\3\2\2\2VW\7&\2\2WX\7C\2\2XY\7")
-        buf.write("\3\2\2YZ\5\6\4\2Z[\7\4\2\2[\5\3\2\2\2\\^\5\b\5\2]\\\3")
-        buf.write("\2\2\2]^\3\2\2\2^`\3\2\2\2_a\5\n\6\2`_\3\2\2\2`a\3\2\2")
-        buf.write("\2ac\3\2\2\2bd\5\22\n\2cb\3\2\2\2cd\3\2\2\2df\3\2\2\2")
-        buf.write("eg\5\f\7\2fe\3\2\2\2fg\3\2\2\2gi\3\2\2\2hj\5\16\b\2ih")
-        buf.write("\3\2\2\2ij\3\2\2\2jl\3\2\2\2km\5\20\t\2lk\3\2\2\2lm\3")
-        buf.write("\2\2\2mo\3\2\2\2np\5\24\13\2on\3\2\2\2op\3\2\2\2pr\3\2")
-        buf.write("\2\2qs\5\26\f\2rq\3\2\2\2rs\3\2\2\2s\7\3\2\2\2tu\7\'\2")
-        buf.write("\2uw\7\5\2\2vx\58\35\2wv\3\2\2\2xy\3\2\2\2yw\3\2\2\2y")
-        buf.write("z\3\2\2\2z\t\3\2\2\2{|\7(\2\2|~\7\5\2\2}\177\58\35\2~")
-        buf.write("}\3\2\2\2\177\u0080\3\2\2\2\u0080~\3\2\2\2\u0080\u0081")
-        buf.write("\3\2\2\2\u0081\13\3\2\2\2\u0082\u0083\7;\2\2\u0083\u0085")
+        buf.write("\62\64\668:<>@BDFHJL\2\n\3\2\'(\4\2\t\t\f\20\3\2;<\3\2")
+        buf.write("8:\3\2=@\3\2AB\3\2\27\32\3\2\61\67\2\u01e2\2O\3\2\2\2")
+        buf.write("\4V\3\2\2\2\6]\3\2\2\2\bt\3\2\2\2\n{\3\2\2\2\f\u0082\3")
+        buf.write("\2\2\2\16\u0089\3\2\2\2\20\u0090\3\2\2\2\22\u0097\3\2")
+        buf.write("\2\2\24\u009e\3\2\2\2\26\u00a5\3\2\2\2\30\u00ac\3\2\2")
+        buf.write("\2\32\u00b1\3\2\2\2\34\u00bd\3\2\2\2\36\u00c5\3\2\2\2")
+        buf.write(" \u00cd\3\2\2\2\"\u00d5\3\2\2\2$\u00dd\3\2\2\2&\u00e2")
+        buf.write("\3\2\2\2(\u00e4\3\2\2\2*\u00f1\3\2\2\2,\u00fc\3\2\2\2")
+        buf.write(".\u0104\3\2\2\2\60\u0111\3\2\2\2\62\u011c\3\2\2\2\64\u0120")
+        buf.write("\3\2\2\2\66\u012c\3\2\2\28\u012e\3\2\2\2:\u0164\3\2\2")
+        buf.write("\2<\u0166\3\2\2\2>\u017e\3\2\2\2@\u01aa\3\2\2\2B\u01b2")
+        buf.write("\3\2\2\2D\u01ba\3\2\2\2F\u01be\3\2\2\2H\u01c0\3\2\2\2")
+        buf.write("J\u01c2\3\2\2\2L\u01c4\3\2\2\2NP\5\4\3\2ON\3\2\2\2PQ\3")
+        buf.write("\2\2\2QO\3\2\2\2QR\3\2\2\2RT\3\2\2\2SU\5\36\20\2TS\3\2")
+        buf.write("\2\2TU\3\2\2\2U\3\3\2\2\2VW\7\33\2\2WX\7C\2\2XY\7\3\2")
+        buf.write("\2YZ\5\6\4\2Z[\7\4\2\2[\5\3\2\2\2\\^\5\b\5\2]\\\3\2\2")
+        buf.write("\2]^\3\2\2\2^`\3\2\2\2_a\5\n\6\2`_\3\2\2\2`a\3\2\2\2a")
+        buf.write("c\3\2\2\2bd\5\22\n\2cb\3\2\2\2cd\3\2\2\2df\3\2\2\2eg\5")
+        buf.write("\f\7\2fe\3\2\2\2fg\3\2\2\2gi\3\2\2\2hj\5\16\b\2ih\3\2")
+        buf.write("\2\2ij\3\2\2\2jl\3\2\2\2km\5\20\t\2lk\3\2\2\2lm\3\2\2")
+        buf.write("\2mo\3\2\2\2np\5\24\13\2on\3\2\2\2op\3\2\2\2pr\3\2\2\2")
+        buf.write("qs\5\26\f\2rq\3\2\2\2rs\3\2\2\2s\7\3\2\2\2tu\7\34\2\2")
+        buf.write("uw\7\5\2\2vx\58\35\2wv\3\2\2\2xy\3\2\2\2yw\3\2\2\2yz\3")
+        buf.write("\2\2\2z\t\3\2\2\2{|\7\35\2\2|~\7\5\2\2}\177\58\35\2~}")
+        buf.write("\3\2\2\2\177\u0080\3\2\2\2\u0080~\3\2\2\2\u0080\u0081")
+        buf.write("\3\2\2\2\u0081\13\3\2\2\2\u0082\u0083\7\60\2\2\u0083\u0085")
         buf.write("\7\5\2\2\u0084\u0086\5\30\r\2\u0085\u0084\3\2\2\2\u0086")
         buf.write("\u0087\3\2\2\2\u0087\u0085\3\2\2\2\u0087\u0088\3\2\2\2")
-        buf.write("\u0088\r\3\2\2\2\u0089\u008a\7\67\2\2\u008a\u008c\7\5")
-        buf.write("\2\2\u008b\u008d\5\"\22\2\u008c\u008b\3\2\2\2\u008d\u008e")
+        buf.write("\u0088\r\3\2\2\2\u0089\u008a\7,\2\2\u008a\u008c\7\5\2")
+        buf.write("\2\u008b\u008d\5\"\22\2\u008c\u008b\3\2\2\2\u008d\u008e")
         buf.write("\3\2\2\2\u008e\u008c\3\2\2\2\u008e\u008f\3\2\2\2\u008f")
-        buf.write("\17\3\2\2\2\u0090\u0091\7)\2\2\u0091\u0093\7\5\2\2\u0092")
+        buf.write("\17\3\2\2\2\u0090\u0091\7\36\2\2\u0091\u0093\7\5\2\2\u0092")
         buf.write("\u0094\5\32\16\2\u0093\u0092\3\2\2\2\u0094\u0095\3\2\2")
         buf.write("\2\u0095\u0093\3\2\2\2\u0095\u0096\3\2\2\2\u0096\21\3")
-        buf.write("\2\2\2\u0097\u0098\78\2\2\u0098\u009a\7\5\2\2\u0099\u009b")
+        buf.write("\2\2\2\u0097\u0098\7-\2\2\u0098\u009a\7\5\2\2\u0099\u009b")
         buf.write("\5\34\17\2\u009a\u0099\3\2\2\2\u009b\u009c\3\2\2\2\u009c")
         buf.write("\u009a\3\2\2\2\u009c\u009d\3\2\2\2\u009d\23\3\2\2\2\u009e")
-        buf.write("\u009f\7*\2\2\u009f\u00a1\7\5\2\2\u00a0\u00a2\5,\27\2")
-        buf.write("\u00a1\u00a0\3\2\2\2\u00a2\u00a3\3\2\2\2\u00a3\u00a1\3")
-        buf.write("\2\2\2\u00a3\u00a4\3\2\2\2\u00a4\25\3\2\2\2\u00a5\u00a6")
-        buf.write("\7+\2\2\u00a6\u00a8\7\5\2\2\u00a7\u00a9\5.\30\2\u00a8")
+        buf.write("\u009f\7\37\2\2\u009f\u00a1\7\5\2\2\u00a0\u00a2\5,\27")
+        buf.write("\2\u00a1\u00a0\3\2\2\2\u00a2\u00a3\3\2\2\2\u00a3\u00a1")
+        buf.write("\3\2\2\2\u00a3\u00a4\3\2\2\2\u00a4\25\3\2\2\2\u00a5\u00a6")
+        buf.write("\7 \2\2\u00a6\u00a8\7\5\2\2\u00a7\u00a9\5.\30\2\u00a8")
         buf.write("\u00a7\3\2\2\2\u00a9\u00aa\3\2\2\2\u00aa\u00a8\3\2\2\2")
         buf.write("\u00aa\u00ab\3\2\2\2\u00ab\27\3\2\2\2\u00ac\u00ad\7C\2")
         buf.write("\2\u00ad\u00ae\7\3\2\2\u00ae\u00af\5 \21\2\u00af\u00b0")
@@ -106,7 +106,7 @@ def serializedATN():
         buf.write("\7\6\2\2\u00bf\u00c1\5*\26\2\u00c0\u00bf\3\2\2\2\u00c0")
         buf.write("\u00c1\3\2\2\2\u00c1\u00c2\3\2\2\2\u00c2\u00c3\7\7\2\2")
         buf.write("\u00c3\u00c4\5\64\33\2\u00c4\35\3\2\2\2\u00c5\u00c6\7")
-        buf.write("9\2\2\u00c6\u00c8\7\6\2\2\u00c7\u00c9\5*\26\2\u00c8\u00c7")
+        buf.write(".\2\2\u00c6\u00c8\7\6\2\2\u00c7\u00c9\5*\26\2\u00c8\u00c7")
         buf.write("\3\2\2\2\u00c8\u00c9\3\2\2\2\u00c9\u00ca\3\2\2\2\u00ca")
         buf.write("\u00cb\7\7\2\2\u00cb\u00cc\5\64\33\2\u00cc\37\3\2\2\2")
         buf.write("\u00cd\u00d2\7C\2\2\u00ce\u00cf\7\b\2\2\u00cf\u00d1\7")
@@ -135,62 +135,62 @@ def serializedATN():
         buf.write("\u0106\3\2\2\2\u0107\u0108\3\2\2\2\u0108\u0109\3\2\2\2")
         buf.write("\u0109\u010a\7\7\2\2\u010a\u010b\7\3\2\2\u010b\u010c\5")
         buf.write("\60\31\2\u010c\u010d\7\4\2\2\u010d/\3\2\2\2\u010e\u010f")
-        buf.write("\7\64\2\2\u010f\u0110\7\5\2\2\u0110\u0112\5> \2\u0111")
-        buf.write("\u010e\3\2\2\2\u0111\u0112\3\2\2\2\u0112\u0113\3\2\2\2")
-        buf.write("\u0113\u0114\7\65\2\2\u0114\u0115\7\5\2\2\u0115\u0119")
-        buf.write("\5\62\32\2\u0116\u0117\7\66\2\2\u0117\u0118\7\5\2\2\u0118")
-        buf.write("\u011a\5\62\32\2\u0119\u0116\3\2\2\2\u0119\u011a\3\2\2")
-        buf.write("\2\u011a\61\3\2\2\2\u011b\u011d\5\66\34\2\u011c\u011b")
-        buf.write("\3\2\2\2\u011d\u011e\3\2\2\2\u011e\u011c\3\2\2\2\u011e")
-        buf.write("\u011f\3\2\2\2\u011f\63\3\2\2\2\u0120\u0124\7\3\2\2\u0121")
-        buf.write("\u0123\5\66\34\2\u0122\u0121\3\2\2\2\u0123\u0126\3\2\2")
-        buf.write("\2\u0124\u0122\3\2\2\2\u0124\u0125\3\2\2\2\u0125\u0127")
-        buf.write("\3\2\2\2\u0126\u0124\3\2\2\2\u0127\u0128\7\4\2\2\u0128")
-        buf.write("\65\3\2\2\2\u0129\u012d\58\35\2\u012a\u012d\5:\36\2\u012b")
-        buf.write("\u012d\5<\37\2\u012c\u0129\3\2\2\2\u012c\u012a\3\2\2\2")
-        buf.write("\u012c\u012b\3\2\2\2\u012d\67\3\2\2\2\u012e\u0131\5$\23")
-        buf.write("\2\u012f\u0130\7\t\2\2\u0130\u0132\5&\24\2\u0131\u012f")
-        buf.write("\3\2\2\2\u0131\u0132\3\2\2\2\u0132\u0133\3\2\2\2\u0133")
-        buf.write("\u0134\7\n\2\2\u01349\3\2\2\2\u0135\u0136\7,\2\2\u0136")
-        buf.write("\u0137\7\6\2\2\u0137\u0138\5> \2\u0138\u0139\7\7\2\2\u0139")
-        buf.write("\u0142\5\64\33\2\u013a\u013b\7-\2\2\u013b\u013c\7\6\2")
-        buf.write("\2\u013c\u013d\5> \2\u013d\u013e\7\7\2\2\u013e\u013f\5")
-        buf.write("\64\33\2\u013f\u0141\3\2\2\2\u0140\u013a\3\2\2\2\u0141")
-        buf.write("\u0144\3\2\2\2\u0142\u0140\3\2\2\2\u0142\u0143\3\2\2\2")
-        buf.write("\u0143\u0147\3\2\2\2\u0144\u0142\3\2\2\2\u0145\u0146\7")
-        buf.write(".\2\2\u0146\u0148\5\64\33\2\u0147\u0145\3\2\2\2\u0147")
-        buf.write("\u0148\3\2\2\2\u0148\u0165\3\2\2\2\u0149\u014a\7\60\2")
-        buf.write("\2\u014a\u014b\7\6\2\2\u014b\u014c\5> \2\u014c\u014d\7")
-        buf.write("\7\2\2\u014d\u014e\5\64\33\2\u014e\u0165\3\2\2\2\u014f")
-        buf.write("\u0150\7/\2\2\u0150\u0153\7\6\2\2\u0151\u0154\5$\23\2")
-        buf.write("\u0152\u0154\5 \21\2\u0153\u0151\3\2\2\2\u0153\u0152\3")
-        buf.write("\2\2\2\u0154\u0155\3\2\2\2\u0155\u0156\7:\2\2\u0156\u0157")
-        buf.write("\5> \2\u0157\u0158\7\7\2\2\u0158\u0159\5\64\33\2\u0159")
-        buf.write("\u0165\3\2\2\2\u015a\u015c\7\61\2\2\u015b\u015d\5> \2")
-        buf.write("\u015c\u015b\3\2\2\2\u015c\u015d\3\2\2\2\u015d\u015e\3")
-        buf.write("\2\2\2\u015e\u0165\7\n\2\2\u015f\u0160\t\2\2\2\u0160\u0165")
-        buf.write("\7\n\2\2\u0161\u0162\5> \2\u0162\u0163\7\n\2\2\u0163\u0165")
-        buf.write("\3\2\2\2\u0164\u0135\3\2\2\2\u0164\u0149\3\2\2\2\u0164")
-        buf.write("\u014f\3\2\2\2\u0164\u015a\3\2\2\2\u0164\u015f\3\2\2\2")
-        buf.write("\u0164\u0161\3\2\2\2\u0165;\3\2\2\2\u0166\u016b\7C\2\2")
-        buf.write("\u0167\u0168\7\13\2\2\u0168\u016a\7C\2\2\u0169\u0167\3")
-        buf.write("\2\2\2\u016a\u016d\3\2\2\2\u016b\u0169\3\2\2\2\u016b\u016c")
-        buf.write("\3\2\2\2\u016c\u016e\3\2\2\2\u016d\u016b\3\2\2\2\u016e")
-        buf.write("\u016f\t\3\2\2\u016f\u0170\5> \2\u0170\u0171\7\n\2\2\u0171")
-        buf.write("=\3\2\2\2\u0172\u0173\b \1\2\u0173\u0174\7\6\2\2\u0174")
-        buf.write("\u0175\5> \2\u0175\u0176\7\7\2\2\u0176\u017f\3\2\2\2\u0177")
-        buf.write("\u017f\5H%\2\u0178\u017f\7C\2\2\u0179\u017f\5@!\2\u017a")
-        buf.write("\u017b\7\23\2\2\u017b\u017f\5> \13\u017c\u017d\t\4\2\2")
-        buf.write("\u017d\u017f\5> \n\u017e\u0172\3\2\2\2\u017e\u0177\3\2")
-        buf.write("\2\2\u017e\u0178\3\2\2\2\u017e\u0179\3\2\2\2\u017e\u017a")
-        buf.write("\3\2\2\2\u017e\u017c\3\2\2\2\u017f\u01a5\3\2\2\2\u0180")
-        buf.write("\u0181\f\t\2\2\u0181\u0182\t\5\2\2\u0182\u01a4\5> \n\u0183")
-        buf.write("\u0184\f\b\2\2\u0184\u0185\t\4\2\2\u0185\u01a4\5> \t\u0186")
-        buf.write("\u0187\f\7\2\2\u0187\u0188\t\6\2\2\u0188\u01a4\5> \b\u0189")
-        buf.write("\u018a\f\6\2\2\u018a\u018b\t\7\2\2\u018b\u01a4\5> \7\u018c")
-        buf.write("\u018d\f\5\2\2\u018d\u018e\7\37\2\2\u018e\u01a4\5> \6")
-        buf.write("\u018f\u0190\f\4\2\2\u0190\u0191\7 \2\2\u0191\u01a4\5")
-        buf.write("> \5\u0192\u0193\f\3\2\2\u0193\u0194\7!\2\2\u0194\u0195")
+        buf.write("\7)\2\2\u010f\u0110\7\5\2\2\u0110\u0112\5> \2\u0111\u010e")
+        buf.write("\3\2\2\2\u0111\u0112\3\2\2\2\u0112\u0113\3\2\2\2\u0113")
+        buf.write("\u0114\7*\2\2\u0114\u0115\7\5\2\2\u0115\u0119\5\62\32")
+        buf.write("\2\u0116\u0117\7+\2\2\u0117\u0118\7\5\2\2\u0118\u011a")
+        buf.write("\5\62\32\2\u0119\u0116\3\2\2\2\u0119\u011a\3\2\2\2\u011a")
+        buf.write("\61\3\2\2\2\u011b\u011d\5\66\34\2\u011c\u011b\3\2\2\2")
+        buf.write("\u011d\u011e\3\2\2\2\u011e\u011c\3\2\2\2\u011e\u011f\3")
+        buf.write("\2\2\2\u011f\63\3\2\2\2\u0120\u0124\7\3\2\2\u0121\u0123")
+        buf.write("\5\66\34\2\u0122\u0121\3\2\2\2\u0123\u0126\3\2\2\2\u0124")
+        buf.write("\u0122\3\2\2\2\u0124\u0125\3\2\2\2\u0125\u0127\3\2\2\2")
+        buf.write("\u0126\u0124\3\2\2\2\u0127\u0128\7\4\2\2\u0128\65\3\2")
+        buf.write("\2\2\u0129\u012d\58\35\2\u012a\u012d\5:\36\2\u012b\u012d")
+        buf.write("\5<\37\2\u012c\u0129\3\2\2\2\u012c\u012a\3\2\2\2\u012c")
+        buf.write("\u012b\3\2\2\2\u012d\67\3\2\2\2\u012e\u0131\5$\23\2\u012f")
+        buf.write("\u0130\7\t\2\2\u0130\u0132\5&\24\2\u0131\u012f\3\2\2\2")
+        buf.write("\u0131\u0132\3\2\2\2\u0132\u0133\3\2\2\2\u0133\u0134\7")
+        buf.write("\n\2\2\u01349\3\2\2\2\u0135\u0136\7!\2\2\u0136\u0137\7")
+        buf.write("\6\2\2\u0137\u0138\5> \2\u0138\u0139\7\7\2\2\u0139\u0142")
+        buf.write("\5\64\33\2\u013a\u013b\7\"\2\2\u013b\u013c\7\6\2\2\u013c")
+        buf.write("\u013d\5> \2\u013d\u013e\7\7\2\2\u013e\u013f\5\64\33\2")
+        buf.write("\u013f\u0141\3\2\2\2\u0140\u013a\3\2\2\2\u0141\u0144\3")
+        buf.write("\2\2\2\u0142\u0140\3\2\2\2\u0142\u0143\3\2\2\2\u0143\u0147")
+        buf.write("\3\2\2\2\u0144\u0142\3\2\2\2\u0145\u0146\7#\2\2\u0146")
+        buf.write("\u0148\5\64\33\2\u0147\u0145\3\2\2\2\u0147\u0148\3\2\2")
+        buf.write("\2\u0148\u0165\3\2\2\2\u0149\u014a\7%\2\2\u014a\u014b")
+        buf.write("\7\6\2\2\u014b\u014c\5> \2\u014c\u014d\7\7\2\2\u014d\u014e")
+        buf.write("\5\64\33\2\u014e\u0165\3\2\2\2\u014f\u0150\7$\2\2\u0150")
+        buf.write("\u0153\7\6\2\2\u0151\u0154\5$\23\2\u0152\u0154\5 \21\2")
+        buf.write("\u0153\u0151\3\2\2\2\u0153\u0152\3\2\2\2\u0154\u0155\3")
+        buf.write("\2\2\2\u0155\u0156\7/\2\2\u0156\u0157\5> \2\u0157\u0158")
+        buf.write("\7\7\2\2\u0158\u0159\5\64\33\2\u0159\u0165\3\2\2\2\u015a")
+        buf.write("\u015c\7&\2\2\u015b\u015d\5> \2\u015c\u015b\3\2\2\2\u015c")
+        buf.write("\u015d\3\2\2\2\u015d\u015e\3\2\2\2\u015e\u0165\7\n\2\2")
+        buf.write("\u015f\u0160\t\2\2\2\u0160\u0165\7\n\2\2\u0161\u0162\5")
+        buf.write("> \2\u0162\u0163\7\n\2\2\u0163\u0165\3\2\2\2\u0164\u0135")
+        buf.write("\3\2\2\2\u0164\u0149\3\2\2\2\u0164\u014f\3\2\2\2\u0164")
+        buf.write("\u015a\3\2\2\2\u0164\u015f\3\2\2\2\u0164\u0161\3\2\2\2")
+        buf.write("\u0165;\3\2\2\2\u0166\u016b\7C\2\2\u0167\u0168\7\13\2")
+        buf.write("\2\u0168\u016a\7C\2\2\u0169\u0167\3\2\2\2\u016a\u016d")
+        buf.write("\3\2\2\2\u016b\u0169\3\2\2\2\u016b\u016c\3\2\2\2\u016c")
+        buf.write("\u016e\3\2\2\2\u016d\u016b\3\2\2\2\u016e\u016f\t\3\2\2")
+        buf.write("\u016f\u0170\5> \2\u0170\u0171\7\n\2\2\u0171=\3\2\2\2")
+        buf.write("\u0172\u0173\b \1\2\u0173\u0174\7\6\2\2\u0174\u0175\5")
+        buf.write("> \2\u0175\u0176\7\7\2\2\u0176\u017f\3\2\2\2\u0177\u017f")
+        buf.write("\5H%\2\u0178\u017f\7C\2\2\u0179\u017f\5@!\2\u017a\u017b")
+        buf.write("\7\23\2\2\u017b\u017f\5> \13\u017c\u017d\t\4\2\2\u017d")
+        buf.write("\u017f\5> \n\u017e\u0172\3\2\2\2\u017e\u0177\3\2\2\2\u017e")
+        buf.write("\u0178\3\2\2\2\u017e\u0179\3\2\2\2\u017e\u017a\3\2\2\2")
+        buf.write("\u017e\u017c\3\2\2\2\u017f\u01a5\3\2\2\2\u0180\u0181\f")
+        buf.write("\t\2\2\u0181\u0182\t\5\2\2\u0182\u01a4\5> \n\u0183\u0184")
+        buf.write("\f\b\2\2\u0184\u0185\t\4\2\2\u0185\u01a4\5> \t\u0186\u0187")
+        buf.write("\f\7\2\2\u0187\u0188\t\6\2\2\u0188\u01a4\5> \b\u0189\u018a")
+        buf.write("\f\6\2\2\u018a\u018b\t\7\2\2\u018b\u01a4\5> \7\u018c\u018d")
+        buf.write("\f\5\2\2\u018d\u018e\7\24\2\2\u018e\u01a4\5> \6\u018f")
+        buf.write("\u0190\f\4\2\2\u0190\u0191\7\25\2\2\u0191\u01a4\5> \5")
+        buf.write("\u0192\u0193\f\3\2\2\u0193\u0194\7\26\2\2\u0194\u0195")
         buf.write("\5> \2\u0195\u0196\7\5\2\2\u0196\u0197\5> \4\u0197\u01a4")
         buf.write("\3\2\2\2\u0198\u0199\f\16\2\2\u0199\u019c\7\13\2\2\u019a")
         buf.write("\u019d\7C\2\2\u019b\u019d\5@!\2\u019c\u019a\3\2\2\2\u019c")
@@ -233,30 +233,29 @@ class EvansParser ( Parser ):
 
     literalNames = [ "<INVALID>", "'{'", "'}'", "':'", "'('", "')'", "','", 
                      "'='", "';'", "'.'", "'+='", "'-='", "'*='", "'/='", 
-                     "'%='", "'['", "']'", "'!'", "'+'", "'-'", "'*'", "'/'", 
-                     "'%'", "'<'", "'>'", "'<='", "'>='", "'!='", "'=='", 
-                     "'&&'", "'||'", "'?'", "<INVALID>", "<INVALID>", "<INVALID>", 
-                     "<INVALID>", "'class'", "'attr'", "'state'", "'func'", 
-                     "'pred'", "'oper'", "'if'", "'elif'", "'else'", "'for'", 
-                     "'while'", "'ret'", "'break'", "'cont'", "'when'", 
-                     "'eff'", "'exec'", "'init'", "'goal'", "'main'", "'in'", 
-                     "'dom'", "'list'", "'bool'", "'str'", "'float'", "'int'", 
-                     "'num'", "'var'" ]
+                     "'%='", "'['", "']'", "'!'", "'&&'", "'||'", "'?'", 
+                     "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
+                     "'class'", "'attr'", "'state'", "'func'", "'pred'", 
+                     "'oper'", "'if'", "'elif'", "'else'", "'for'", "'while'", 
+                     "'ret'", "'break'", "'cont'", "'when'", "'eff'", "'exec'", 
+                     "'init'", "'goal'", "'main'", "'in'", "'dom'", "'list'", 
+                     "'bool'", "'str'", "'float'", "'int'", "'num'", "'var'", 
+                     "'*'", "'/'", "'%'", "'+'", "'-'", "'<'", "'>'", "'<='", 
+                     "'>='", "'!='", "'=='" ]
 
     symbolicNames = [ "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                       "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                       "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                       "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                       "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                      "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
-                      "STRING_LITERAL", "DECIMAL_LITERAL", "FLOAT_LITERAL", 
-                      "BOOL_LITERAL", "CLASS", "ATTR", "STATE", "FUNC", 
-                      "PRED", "OPER", "IF", "ELIF", "ELSE", "FOR", "WHILE", 
-                      "RET", "BREAK", "CONT", "WHEN", "EFF", "EXEC", "INIT", 
-                      "GOAL", "MAIN", "IN", "DOM", "LIST", "BOOL", "STR", 
-                      "FLOAT", "INT", "NUM", "VAR", "ID", "COMMENT", "WS" ]
+                      "<INVALID>", "STRING_LITERAL", "DECIMAL_LITERAL", 
+                      "FLOAT_LITERAL", "BOOL_LITERAL", "CLASS", "ATTR", 
+                      "STATE", "FUNC", "PRED", "OPER", "IF", "ELIF", "ELSE", 
+                      "FOR", "WHILE", "RET", "BREAK", "CONT", "WHEN", "EFF", 
+                      "EXEC", "INIT", "GOAL", "MAIN", "IN", "DOM", "LIST", 
+                      "BOOL", "STR", "FLOAT", "INT", "NUM", "VAR", "MUL", 
+                      "DIV", "MOD", "ADD", "SUB", "LT", "GT", "LE", "GE", 
+                      "NE", "EQ", "ID", "COMMENT", "WS" ]
 
     RULE_codeFile = 0
     RULE_classDeclaration = 1
@@ -330,50 +329,50 @@ class EvansParser ( Parser ):
     T__17=18
     T__18=19
     T__19=20
-    T__20=21
-    T__21=22
-    T__22=23
-    T__23=24
-    T__24=25
-    T__25=26
-    T__26=27
-    T__27=28
-    T__28=29
-    T__29=30
-    T__30=31
-    STRING_LITERAL=32
-    DECIMAL_LITERAL=33
-    FLOAT_LITERAL=34
-    BOOL_LITERAL=35
-    CLASS=36
-    ATTR=37
-    STATE=38
-    FUNC=39
-    PRED=40
-    OPER=41
-    IF=42
-    ELIF=43
-    ELSE=44
-    FOR=45
-    WHILE=46
-    RET=47
-    BREAK=48
-    CONT=49
-    WHEN=50
-    EFF=51
-    EXEC=52
-    INIT=53
-    GOAL=54
-    MAIN=55
-    IN=56
-    DOM=57
-    LIST=58
-    BOOL=59
-    STR=60
-    FLOAT=61
-    INT=62
-    NUM=63
-    VAR=64
+    STRING_LITERAL=21
+    DECIMAL_LITERAL=22
+    FLOAT_LITERAL=23
+    BOOL_LITERAL=24
+    CLASS=25
+    ATTR=26
+    STATE=27
+    FUNC=28
+    PRED=29
+    OPER=30
+    IF=31
+    ELIF=32
+    ELSE=33
+    FOR=34
+    WHILE=35
+    RET=36
+    BREAK=37
+    CONT=38
+    WHEN=39
+    EFF=40
+    EXEC=41
+    INIT=42
+    GOAL=43
+    MAIN=44
+    IN=45
+    DOM=46
+    LIST=47
+    BOOL=48
+    STR=49
+    FLOAT=50
+    INT=51
+    NUM=52
+    VAR=53
+    MUL=54
+    DIV=55
+    MOD=56
+    ADD=57
+    SUB=58
+    LT=59
+    GT=60
+    LE=61
+    GE=62
+    NE=63
+    EQ=64
     ID=65
     COMMENT=66
     WS=67
@@ -691,7 +690,7 @@ class EvansParser ( Parser ):
                 self.state = 119 
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if not (((((_la - 58)) & ~0x3f) == 0 and ((1 << (_la - 58)) & ((1 << (EvansParser.LIST - 58)) | (1 << (EvansParser.BOOL - 58)) | (1 << (EvansParser.STR - 58)) | (1 << (EvansParser.FLOAT - 58)) | (1 << (EvansParser.INT - 58)) | (1 << (EvansParser.NUM - 58)) | (1 << (EvansParser.VAR - 58)) | (1 << (EvansParser.ID - 58)))) != 0)):
+                if not (((((_la - 47)) & ~0x3f) == 0 and ((1 << (_la - 47)) & ((1 << (EvansParser.LIST - 47)) | (1 << (EvansParser.BOOL - 47)) | (1 << (EvansParser.STR - 47)) | (1 << (EvansParser.FLOAT - 47)) | (1 << (EvansParser.INT - 47)) | (1 << (EvansParser.NUM - 47)) | (1 << (EvansParser.VAR - 47)) | (1 << (EvansParser.ID - 47)))) != 0)):
                     break
 
         except RecognitionException as re:
@@ -753,7 +752,7 @@ class EvansParser ( Parser ):
                 self.state = 126 
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if not (((((_la - 58)) & ~0x3f) == 0 and ((1 << (_la - 58)) & ((1 << (EvansParser.LIST - 58)) | (1 << (EvansParser.BOOL - 58)) | (1 << (EvansParser.STR - 58)) | (1 << (EvansParser.FLOAT - 58)) | (1 << (EvansParser.INT - 58)) | (1 << (EvansParser.NUM - 58)) | (1 << (EvansParser.VAR - 58)) | (1 << (EvansParser.ID - 58)))) != 0)):
+                if not (((((_la - 47)) & ~0x3f) == 0 and ((1 << (_la - 47)) & ((1 << (EvansParser.LIST - 47)) | (1 << (EvansParser.BOOL - 47)) | (1 << (EvansParser.STR - 47)) | (1 << (EvansParser.FLOAT - 47)) | (1 << (EvansParser.INT - 47)) | (1 << (EvansParser.NUM - 47)) | (1 << (EvansParser.VAR - 47)) | (1 << (EvansParser.ID - 47)))) != 0)):
                     break
 
         except RecognitionException as re:
@@ -1236,7 +1235,7 @@ class EvansParser ( Parser ):
             self.state = 178
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if ((((_la - 58)) & ~0x3f) == 0 and ((1 << (_la - 58)) & ((1 << (EvansParser.LIST - 58)) | (1 << (EvansParser.BOOL - 58)) | (1 << (EvansParser.STR - 58)) | (1 << (EvansParser.FLOAT - 58)) | (1 << (EvansParser.INT - 58)) | (1 << (EvansParser.NUM - 58)) | (1 << (EvansParser.VAR - 58)) | (1 << (EvansParser.ID - 58)))) != 0):
+            if ((((_la - 47)) & ~0x3f) == 0 and ((1 << (_la - 47)) & ((1 << (EvansParser.LIST - 47)) | (1 << (EvansParser.BOOL - 47)) | (1 << (EvansParser.STR - 47)) | (1 << (EvansParser.FLOAT - 47)) | (1 << (EvansParser.INT - 47)) | (1 << (EvansParser.NUM - 47)) | (1 << (EvansParser.VAR - 47)) | (1 << (EvansParser.ID - 47)))) != 0):
                 self.state = 177
                 self.genParameters()
 
@@ -1309,7 +1308,7 @@ class EvansParser ( Parser ):
             self.state = 190
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if ((((_la - 58)) & ~0x3f) == 0 and ((1 << (_la - 58)) & ((1 << (EvansParser.LIST - 58)) | (1 << (EvansParser.BOOL - 58)) | (1 << (EvansParser.STR - 58)) | (1 << (EvansParser.FLOAT - 58)) | (1 << (EvansParser.INT - 58)) | (1 << (EvansParser.NUM - 58)) | (1 << (EvansParser.VAR - 58)) | (1 << (EvansParser.ID - 58)))) != 0):
+            if ((((_la - 47)) & ~0x3f) == 0 and ((1 << (_la - 47)) & ((1 << (EvansParser.LIST - 47)) | (1 << (EvansParser.BOOL - 47)) | (1 << (EvansParser.STR - 47)) | (1 << (EvansParser.FLOAT - 47)) | (1 << (EvansParser.INT - 47)) | (1 << (EvansParser.NUM - 47)) | (1 << (EvansParser.VAR - 47)) | (1 << (EvansParser.ID - 47)))) != 0):
                 self.state = 189
                 self.genParameters()
 
@@ -1372,7 +1371,7 @@ class EvansParser ( Parser ):
             self.state = 198
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if ((((_la - 58)) & ~0x3f) == 0 and ((1 << (_la - 58)) & ((1 << (EvansParser.LIST - 58)) | (1 << (EvansParser.BOOL - 58)) | (1 << (EvansParser.STR - 58)) | (1 << (EvansParser.FLOAT - 58)) | (1 << (EvansParser.INT - 58)) | (1 << (EvansParser.NUM - 58)) | (1 << (EvansParser.VAR - 58)) | (1 << (EvansParser.ID - 58)))) != 0):
+            if ((((_la - 47)) & ~0x3f) == 0 and ((1 << (_la - 47)) & ((1 << (EvansParser.LIST - 47)) | (1 << (EvansParser.BOOL - 47)) | (1 << (EvansParser.STR - 47)) | (1 << (EvansParser.FLOAT - 47)) | (1 << (EvansParser.INT - 47)) | (1 << (EvansParser.NUM - 47)) | (1 << (EvansParser.VAR - 47)) | (1 << (EvansParser.ID - 47)))) != 0):
                 self.state = 197
                 self.genParameters()
 
@@ -1492,7 +1491,7 @@ class EvansParser ( Parser ):
             self.state = 214
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if ((((_la - 58)) & ~0x3f) == 0 and ((1 << (_la - 58)) & ((1 << (EvansParser.LIST - 58)) | (1 << (EvansParser.BOOL - 58)) | (1 << (EvansParser.STR - 58)) | (1 << (EvansParser.FLOAT - 58)) | (1 << (EvansParser.INT - 58)) | (1 << (EvansParser.NUM - 58)) | (1 << (EvansParser.VAR - 58)) | (1 << (EvansParser.ID - 58)))) != 0):
+            if ((((_la - 47)) & ~0x3f) == 0 and ((1 << (_la - 47)) & ((1 << (EvansParser.LIST - 47)) | (1 << (EvansParser.BOOL - 47)) | (1 << (EvansParser.STR - 47)) | (1 << (EvansParser.FLOAT - 47)) | (1 << (EvansParser.INT - 47)) | (1 << (EvansParser.NUM - 47)) | (1 << (EvansParser.VAR - 47)) | (1 << (EvansParser.ID - 47)))) != 0):
                 self.state = 213
                 self.genParameters()
 
@@ -1654,7 +1653,7 @@ class EvansParser ( Parser ):
             self.state = 235
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if ((((_la - 4)) & ~0x3f) == 0 and ((1 << (_la - 4)) & ((1 << (EvansParser.T__3 - 4)) | (1 << (EvansParser.T__16 - 4)) | (1 << (EvansParser.T__17 - 4)) | (1 << (EvansParser.T__18 - 4)) | (1 << (EvansParser.STRING_LITERAL - 4)) | (1 << (EvansParser.DECIMAL_LITERAL - 4)) | (1 << (EvansParser.FLOAT_LITERAL - 4)) | (1 << (EvansParser.BOOL_LITERAL - 4)) | (1 << (EvansParser.LIST - 4)) | (1 << (EvansParser.BOOL - 4)) | (1 << (EvansParser.STR - 4)) | (1 << (EvansParser.FLOAT - 4)) | (1 << (EvansParser.INT - 4)) | (1 << (EvansParser.NUM - 4)) | (1 << (EvansParser.VAR - 4)) | (1 << (EvansParser.ID - 4)))) != 0):
+            if ((((_la - 4)) & ~0x3f) == 0 and ((1 << (_la - 4)) & ((1 << (EvansParser.T__3 - 4)) | (1 << (EvansParser.T__16 - 4)) | (1 << (EvansParser.STRING_LITERAL - 4)) | (1 << (EvansParser.DECIMAL_LITERAL - 4)) | (1 << (EvansParser.FLOAT_LITERAL - 4)) | (1 << (EvansParser.BOOL_LITERAL - 4)) | (1 << (EvansParser.LIST - 4)) | (1 << (EvansParser.BOOL - 4)) | (1 << (EvansParser.STR - 4)) | (1 << (EvansParser.FLOAT - 4)) | (1 << (EvansParser.INT - 4)) | (1 << (EvansParser.NUM - 4)) | (1 << (EvansParser.VAR - 4)) | (1 << (EvansParser.ADD - 4)) | (1 << (EvansParser.SUB - 4)) | (1 << (EvansParser.ID - 4)))) != 0):
                 self.state = 227
                 self.variableInitializer()
                 self.state = 232
@@ -1794,7 +1793,7 @@ class EvansParser ( Parser ):
             self.state = 253
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if ((((_la - 58)) & ~0x3f) == 0 and ((1 << (_la - 58)) & ((1 << (EvansParser.LIST - 58)) | (1 << (EvansParser.BOOL - 58)) | (1 << (EvansParser.STR - 58)) | (1 << (EvansParser.FLOAT - 58)) | (1 << (EvansParser.INT - 58)) | (1 << (EvansParser.NUM - 58)) | (1 << (EvansParser.VAR - 58)) | (1 << (EvansParser.ID - 58)))) != 0):
+            if ((((_la - 47)) & ~0x3f) == 0 and ((1 << (_la - 47)) & ((1 << (EvansParser.LIST - 47)) | (1 << (EvansParser.BOOL - 47)) | (1 << (EvansParser.STR - 47)) | (1 << (EvansParser.FLOAT - 47)) | (1 << (EvansParser.INT - 47)) | (1 << (EvansParser.NUM - 47)) | (1 << (EvansParser.VAR - 47)) | (1 << (EvansParser.ID - 47)))) != 0):
                 self.state = 252
                 self.genParameters()
 
@@ -1857,7 +1856,7 @@ class EvansParser ( Parser ):
             self.state = 261
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if ((((_la - 58)) & ~0x3f) == 0 and ((1 << (_la - 58)) & ((1 << (EvansParser.LIST - 58)) | (1 << (EvansParser.BOOL - 58)) | (1 << (EvansParser.STR - 58)) | (1 << (EvansParser.FLOAT - 58)) | (1 << (EvansParser.INT - 58)) | (1 << (EvansParser.NUM - 58)) | (1 << (EvansParser.VAR - 58)) | (1 << (EvansParser.ID - 58)))) != 0):
+            if ((((_la - 47)) & ~0x3f) == 0 and ((1 << (_la - 47)) & ((1 << (EvansParser.LIST - 47)) | (1 << (EvansParser.BOOL - 47)) | (1 << (EvansParser.STR - 47)) | (1 << (EvansParser.FLOAT - 47)) | (1 << (EvansParser.INT - 47)) | (1 << (EvansParser.NUM - 47)) | (1 << (EvansParser.VAR - 47)) | (1 << (EvansParser.ID - 47)))) != 0):
                 self.state = 260
                 self.genParameters()
 
@@ -2008,7 +2007,7 @@ class EvansParser ( Parser ):
                 self.state = 284 
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if not (((((_la - 4)) & ~0x3f) == 0 and ((1 << (_la - 4)) & ((1 << (EvansParser.T__3 - 4)) | (1 << (EvansParser.T__16 - 4)) | (1 << (EvansParser.T__17 - 4)) | (1 << (EvansParser.T__18 - 4)) | (1 << (EvansParser.STRING_LITERAL - 4)) | (1 << (EvansParser.DECIMAL_LITERAL - 4)) | (1 << (EvansParser.FLOAT_LITERAL - 4)) | (1 << (EvansParser.BOOL_LITERAL - 4)) | (1 << (EvansParser.IF - 4)) | (1 << (EvansParser.FOR - 4)) | (1 << (EvansParser.WHILE - 4)) | (1 << (EvansParser.RET - 4)) | (1 << (EvansParser.BREAK - 4)) | (1 << (EvansParser.CONT - 4)) | (1 << (EvansParser.LIST - 4)) | (1 << (EvansParser.BOOL - 4)) | (1 << (EvansParser.STR - 4)) | (1 << (EvansParser.FLOAT - 4)) | (1 << (EvansParser.INT - 4)) | (1 << (EvansParser.NUM - 4)) | (1 << (EvansParser.VAR - 4)) | (1 << (EvansParser.ID - 4)))) != 0)):
+                if not (((((_la - 4)) & ~0x3f) == 0 and ((1 << (_la - 4)) & ((1 << (EvansParser.T__3 - 4)) | (1 << (EvansParser.T__16 - 4)) | (1 << (EvansParser.STRING_LITERAL - 4)) | (1 << (EvansParser.DECIMAL_LITERAL - 4)) | (1 << (EvansParser.FLOAT_LITERAL - 4)) | (1 << (EvansParser.BOOL_LITERAL - 4)) | (1 << (EvansParser.IF - 4)) | (1 << (EvansParser.FOR - 4)) | (1 << (EvansParser.WHILE - 4)) | (1 << (EvansParser.RET - 4)) | (1 << (EvansParser.BREAK - 4)) | (1 << (EvansParser.CONT - 4)) | (1 << (EvansParser.LIST - 4)) | (1 << (EvansParser.BOOL - 4)) | (1 << (EvansParser.STR - 4)) | (1 << (EvansParser.FLOAT - 4)) | (1 << (EvansParser.INT - 4)) | (1 << (EvansParser.NUM - 4)) | (1 << (EvansParser.VAR - 4)) | (1 << (EvansParser.ADD - 4)) | (1 << (EvansParser.SUB - 4)) | (1 << (EvansParser.ID - 4)))) != 0)):
                     break
 
         except RecognitionException as re:
@@ -2059,7 +2058,7 @@ class EvansParser ( Parser ):
             self.state = 290
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while ((((_la - 4)) & ~0x3f) == 0 and ((1 << (_la - 4)) & ((1 << (EvansParser.T__3 - 4)) | (1 << (EvansParser.T__16 - 4)) | (1 << (EvansParser.T__17 - 4)) | (1 << (EvansParser.T__18 - 4)) | (1 << (EvansParser.STRING_LITERAL - 4)) | (1 << (EvansParser.DECIMAL_LITERAL - 4)) | (1 << (EvansParser.FLOAT_LITERAL - 4)) | (1 << (EvansParser.BOOL_LITERAL - 4)) | (1 << (EvansParser.IF - 4)) | (1 << (EvansParser.FOR - 4)) | (1 << (EvansParser.WHILE - 4)) | (1 << (EvansParser.RET - 4)) | (1 << (EvansParser.BREAK - 4)) | (1 << (EvansParser.CONT - 4)) | (1 << (EvansParser.LIST - 4)) | (1 << (EvansParser.BOOL - 4)) | (1 << (EvansParser.STR - 4)) | (1 << (EvansParser.FLOAT - 4)) | (1 << (EvansParser.INT - 4)) | (1 << (EvansParser.NUM - 4)) | (1 << (EvansParser.VAR - 4)) | (1 << (EvansParser.ID - 4)))) != 0):
+            while ((((_la - 4)) & ~0x3f) == 0 and ((1 << (_la - 4)) & ((1 << (EvansParser.T__3 - 4)) | (1 << (EvansParser.T__16 - 4)) | (1 << (EvansParser.STRING_LITERAL - 4)) | (1 << (EvansParser.DECIMAL_LITERAL - 4)) | (1 << (EvansParser.FLOAT_LITERAL - 4)) | (1 << (EvansParser.BOOL_LITERAL - 4)) | (1 << (EvansParser.IF - 4)) | (1 << (EvansParser.FOR - 4)) | (1 << (EvansParser.WHILE - 4)) | (1 << (EvansParser.RET - 4)) | (1 << (EvansParser.BREAK - 4)) | (1 << (EvansParser.CONT - 4)) | (1 << (EvansParser.LIST - 4)) | (1 << (EvansParser.BOOL - 4)) | (1 << (EvansParser.STR - 4)) | (1 << (EvansParser.FLOAT - 4)) | (1 << (EvansParser.INT - 4)) | (1 << (EvansParser.NUM - 4)) | (1 << (EvansParser.VAR - 4)) | (1 << (EvansParser.ADD - 4)) | (1 << (EvansParser.SUB - 4)) | (1 << (EvansParser.ID - 4)))) != 0):
                 self.state = 287
                 self.blockStatement()
                 self.state = 292
@@ -2476,7 +2475,7 @@ class EvansParser ( Parser ):
                 self.state = 346
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if ((((_la - 4)) & ~0x3f) == 0 and ((1 << (_la - 4)) & ((1 << (EvansParser.T__3 - 4)) | (1 << (EvansParser.T__16 - 4)) | (1 << (EvansParser.T__17 - 4)) | (1 << (EvansParser.T__18 - 4)) | (1 << (EvansParser.STRING_LITERAL - 4)) | (1 << (EvansParser.DECIMAL_LITERAL - 4)) | (1 << (EvansParser.FLOAT_LITERAL - 4)) | (1 << (EvansParser.BOOL_LITERAL - 4)) | (1 << (EvansParser.LIST - 4)) | (1 << (EvansParser.BOOL - 4)) | (1 << (EvansParser.STR - 4)) | (1 << (EvansParser.FLOAT - 4)) | (1 << (EvansParser.INT - 4)) | (1 << (EvansParser.NUM - 4)) | (1 << (EvansParser.VAR - 4)) | (1 << (EvansParser.ID - 4)))) != 0):
+                if ((((_la - 4)) & ~0x3f) == 0 and ((1 << (_la - 4)) & ((1 << (EvansParser.T__3 - 4)) | (1 << (EvansParser.T__16 - 4)) | (1 << (EvansParser.STRING_LITERAL - 4)) | (1 << (EvansParser.DECIMAL_LITERAL - 4)) | (1 << (EvansParser.FLOAT_LITERAL - 4)) | (1 << (EvansParser.BOOL_LITERAL - 4)) | (1 << (EvansParser.LIST - 4)) | (1 << (EvansParser.BOOL - 4)) | (1 << (EvansParser.STR - 4)) | (1 << (EvansParser.FLOAT - 4)) | (1 << (EvansParser.INT - 4)) | (1 << (EvansParser.NUM - 4)) | (1 << (EvansParser.VAR - 4)) | (1 << (EvansParser.ADD - 4)) | (1 << (EvansParser.SUB - 4)) | (1 << (EvansParser.ID - 4)))) != 0):
                     self.state = 345
                     self.genExpression(0)
 
@@ -2497,7 +2496,7 @@ class EvansParser ( Parser ):
                 self.state = 350
                 self.match(EvansParser.T__7)
                 pass
-            elif token in [EvansParser.T__3, EvansParser.T__16, EvansParser.T__17, EvansParser.T__18, EvansParser.STRING_LITERAL, EvansParser.DECIMAL_LITERAL, EvansParser.FLOAT_LITERAL, EvansParser.BOOL_LITERAL, EvansParser.LIST, EvansParser.BOOL, EvansParser.STR, EvansParser.FLOAT, EvansParser.INT, EvansParser.NUM, EvansParser.VAR, EvansParser.ID]:
+            elif token in [EvansParser.T__3, EvansParser.T__16, EvansParser.STRING_LITERAL, EvansParser.DECIMAL_LITERAL, EvansParser.FLOAT_LITERAL, EvansParser.BOOL_LITERAL, EvansParser.LIST, EvansParser.BOOL, EvansParser.STR, EvansParser.FLOAT, EvansParser.INT, EvansParser.NUM, EvansParser.VAR, EvansParser.ADD, EvansParser.SUB, EvansParser.ID]:
                 localctx = EvansParser.ExpressionStatementContext(self, localctx)
                 self.enterOuterAlt(localctx, 6)
                 self.state = 351
@@ -2675,6 +2674,10 @@ class EvansParser ( Parser ):
             else:
                 return self.getTypedRuleContext(EvansParser.GenExpressionContext,i)
 
+        def NE(self):
+            return self.getToken(EvansParser.NE, 0)
+        def EQ(self):
+            return self.getToken(EvansParser.EQ, 0)
 
         def enterRule(self, listener:ParseTreeListener):
             if hasattr( listener, "enterEqualExpression" ):
@@ -2739,6 +2742,14 @@ class EvansParser ( Parser ):
             else:
                 return self.getTypedRuleContext(EvansParser.GenExpressionContext,i)
 
+        def LT(self):
+            return self.getToken(EvansParser.LT, 0)
+        def GT(self):
+            return self.getToken(EvansParser.GT, 0)
+        def LE(self):
+            return self.getToken(EvansParser.LE, 0)
+        def GE(self):
+            return self.getToken(EvansParser.GE, 0)
 
         def enterRule(self, listener:ParseTreeListener):
             if hasattr( listener, "enterCompareExpression" ):
@@ -2803,6 +2814,10 @@ class EvansParser ( Parser ):
             else:
                 return self.getTypedRuleContext(EvansParser.GenExpressionContext,i)
 
+        def ADD(self):
+            return self.getToken(EvansParser.ADD, 0)
+        def SUB(self):
+            return self.getToken(EvansParser.SUB, 0)
 
         def enterRule(self, listener:ParseTreeListener):
             if hasattr( listener, "enterAddSubExpression" ):
@@ -2845,6 +2860,10 @@ class EvansParser ( Parser ):
         def genExpression(self):
             return self.getTypedRuleContext(EvansParser.GenExpressionContext,0)
 
+        def ADD(self):
+            return self.getToken(EvansParser.ADD, 0)
+        def SUB(self):
+            return self.getToken(EvansParser.SUB, 0)
 
         def enterRule(self, listener:ParseTreeListener):
             if hasattr( listener, "enterPrefixExpression" ):
@@ -2911,6 +2930,12 @@ class EvansParser ( Parser ):
             else:
                 return self.getTypedRuleContext(EvansParser.GenExpressionContext,i)
 
+        def MUL(self):
+            return self.getToken(EvansParser.MUL, 0)
+        def DIV(self):
+            return self.getToken(EvansParser.DIV, 0)
+        def MOD(self):
+            return self.getToken(EvansParser.MOD, 0)
 
         def enterRule(self, listener:ParseTreeListener):
             if hasattr( listener, "enterMulDivExpression" ):
@@ -2989,7 +3014,7 @@ class EvansParser ( Parser ):
                 self.state = 378
                 localctx.prefix = self._input.LT(1)
                 _la = self._input.LA(1)
-                if not(_la==EvansParser.T__17 or _la==EvansParser.T__18):
+                if not(_la==EvansParser.ADD or _la==EvansParser.SUB):
                     localctx.prefix = self._errHandler.recoverInline(self)
                 else:
                     self._errHandler.reportMatch(self)
@@ -3021,7 +3046,7 @@ class EvansParser ( Parser ):
                         self.state = 383
                         localctx.op = self._input.LT(1)
                         _la = self._input.LA(1)
-                        if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << EvansParser.T__19) | (1 << EvansParser.T__20) | (1 << EvansParser.T__21))) != 0)):
+                        if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << EvansParser.MUL) | (1 << EvansParser.DIV) | (1 << EvansParser.MOD))) != 0)):
                             localctx.op = self._errHandler.recoverInline(self)
                         else:
                             self._errHandler.reportMatch(self)
@@ -3040,7 +3065,7 @@ class EvansParser ( Parser ):
                         self.state = 386
                         localctx.op = self._input.LT(1)
                         _la = self._input.LA(1)
-                        if not(_la==EvansParser.T__17 or _la==EvansParser.T__18):
+                        if not(_la==EvansParser.ADD or _la==EvansParser.SUB):
                             localctx.op = self._errHandler.recoverInline(self)
                         else:
                             self._errHandler.reportMatch(self)
@@ -3059,7 +3084,7 @@ class EvansParser ( Parser ):
                         self.state = 389
                         localctx.op = self._input.LT(1)
                         _la = self._input.LA(1)
-                        if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << EvansParser.T__22) | (1 << EvansParser.T__23) | (1 << EvansParser.T__24) | (1 << EvansParser.T__25))) != 0)):
+                        if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << EvansParser.LT) | (1 << EvansParser.GT) | (1 << EvansParser.LE) | (1 << EvansParser.GE))) != 0)):
                             localctx.op = self._errHandler.recoverInline(self)
                         else:
                             self._errHandler.reportMatch(self)
@@ -3078,7 +3103,7 @@ class EvansParser ( Parser ):
                         self.state = 392
                         localctx.op = self._input.LT(1)
                         _la = self._input.LA(1)
-                        if not(_la==EvansParser.T__26 or _la==EvansParser.T__27):
+                        if not(_la==EvansParser.NE or _la==EvansParser.EQ):
                             localctx.op = self._errHandler.recoverInline(self)
                         else:
                             self._errHandler.reportMatch(self)
@@ -3095,7 +3120,7 @@ class EvansParser ( Parser ):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 3)")
                         self.state = 395
-                        self.match(EvansParser.T__28)
+                        self.match(EvansParser.T__17)
                         self.state = 396
                         self.genExpression(4)
                         pass
@@ -3108,7 +3133,7 @@ class EvansParser ( Parser ):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 2)")
                         self.state = 398
-                        self.match(EvansParser.T__29)
+                        self.match(EvansParser.T__18)
                         self.state = 399
                         self.genExpression(3)
                         pass
@@ -3121,7 +3146,7 @@ class EvansParser ( Parser ):
                             from antlr4.error.Errors import FailedPredicateException
                             raise FailedPredicateException(self, "self.precpred(self._ctx, 1)")
                         self.state = 401
-                        self.match(EvansParser.T__30)
+                        self.match(EvansParser.T__19)
                         self.state = 402
                         self.genExpression(0)
                         self.state = 403
@@ -3241,7 +3266,7 @@ class EvansParser ( Parser ):
             self.state = 428
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if ((((_la - 4)) & ~0x3f) == 0 and ((1 << (_la - 4)) & ((1 << (EvansParser.T__3 - 4)) | (1 << (EvansParser.T__16 - 4)) | (1 << (EvansParser.T__17 - 4)) | (1 << (EvansParser.T__18 - 4)) | (1 << (EvansParser.STRING_LITERAL - 4)) | (1 << (EvansParser.DECIMAL_LITERAL - 4)) | (1 << (EvansParser.FLOAT_LITERAL - 4)) | (1 << (EvansParser.BOOL_LITERAL - 4)) | (1 << (EvansParser.LIST - 4)) | (1 << (EvansParser.BOOL - 4)) | (1 << (EvansParser.STR - 4)) | (1 << (EvansParser.FLOAT - 4)) | (1 << (EvansParser.INT - 4)) | (1 << (EvansParser.NUM - 4)) | (1 << (EvansParser.VAR - 4)) | (1 << (EvansParser.ID - 4)))) != 0):
+            if ((((_la - 4)) & ~0x3f) == 0 and ((1 << (_la - 4)) & ((1 << (EvansParser.T__3 - 4)) | (1 << (EvansParser.T__16 - 4)) | (1 << (EvansParser.STRING_LITERAL - 4)) | (1 << (EvansParser.DECIMAL_LITERAL - 4)) | (1 << (EvansParser.FLOAT_LITERAL - 4)) | (1 << (EvansParser.BOOL_LITERAL - 4)) | (1 << (EvansParser.LIST - 4)) | (1 << (EvansParser.BOOL - 4)) | (1 << (EvansParser.STR - 4)) | (1 << (EvansParser.FLOAT - 4)) | (1 << (EvansParser.INT - 4)) | (1 << (EvansParser.NUM - 4)) | (1 << (EvansParser.VAR - 4)) | (1 << (EvansParser.ADD - 4)) | (1 << (EvansParser.SUB - 4)) | (1 << (EvansParser.ID - 4)))) != 0):
                 self.state = 427
                 self.expressionList()
 
@@ -3558,7 +3583,7 @@ class EvansParser ( Parser ):
             self.enterOuterAlt(localctx, 1)
             self.state = 450
             _la = self._input.LA(1)
-            if not(((((_la - 58)) & ~0x3f) == 0 and ((1 << (_la - 58)) & ((1 << (EvansParser.LIST - 58)) | (1 << (EvansParser.BOOL - 58)) | (1 << (EvansParser.STR - 58)) | (1 << (EvansParser.FLOAT - 58)) | (1 << (EvansParser.INT - 58)) | (1 << (EvansParser.NUM - 58)) | (1 << (EvansParser.VAR - 58)))) != 0)):
+            if not((((_la) & ~0x3f) == 0 and ((1 << _la) & ((1 << EvansParser.LIST) | (1 << EvansParser.BOOL) | (1 << EvansParser.STR) | (1 << EvansParser.FLOAT) | (1 << EvansParser.INT) | (1 << EvansParser.NUM) | (1 << EvansParser.VAR))) != 0)):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)

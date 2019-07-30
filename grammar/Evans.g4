@@ -255,7 +255,7 @@ INT : 'int' ;
 NUM: 'num' ;
 VAR: 'var' ;
 
-# Operations and comparisons
+// Operations and comparisons
 MUL: '*' ;
 DIV: '/' ;
 MOD: '%' ;
