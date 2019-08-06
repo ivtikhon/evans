@@ -358,7 +358,7 @@ class EvansCodeTree(EvansListener):
             raise Exception("Internal error: expr-statement expected, but got this: " + str(statement))
 
     def enterVarDeclarationStatement(self, ctx):
-        ''' For DEBUG only: trigger expression processing'''
+        ''' For DEBUG purposes only: trigger expression processing'''
         self.process_expressions = True
 
     def exitVarDeclarationStatement(self, ctx):
@@ -366,10 +366,10 @@ class EvansCodeTree(EvansListener):
             type var = expression
             type var1, var2, ... = (expression1, expression2, ...)     // assignement unpacking
         '''
-        self.process_expressions = True
+        self.process_expressions = False
         if ctx.variableInitializer() == None:
             return
-        print("Var declaration statement: " + ctx.genVarDeclaration().genType().getText() + \
+        print("Variable declaration statement: " + ctx.genVarDeclaration().genType().getText() + \
             ' ' + ctx.genVarDeclaration().nameList().getText())
         var_context = None
         parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
@@ -401,17 +401,17 @@ class EvansCodeTree(EvansListener):
             var_list.append(var_context[var_name])
         var_list_len = len(var_list)
         init_list_len = len(init_list)
-        if var_list_len == init_list_len:
+        if var_list_len == init_list_len: # unpacking
             for variable, initializer in zip(var_list, init_list):
-                variable['val'] = initializer
+                variable['value'] = initializer
         elif var_list_len == 1 and init_list_len > 1:  # List assignment
-            var_list[0]['val'] = init_list
-        elif init_list_len == 1:
+            var_list[0]['value'] = init_list
+        elif init_list_len == 1: # assign single value to multiple variables
             for variable in var_list:
-                variable['val'] = init_list[0]
+                variable['value'] = init_list[0]
         elif init_list_len == 0:
             for variable in var_list:
-                variable['val'] = None
+                variable['value'] = None
         else:
             raise Exception("Error, unexpected assignment: " + ctx.genVarDeclaration().getText())
         print("Variable declaration and initialization:")
@@ -450,10 +450,14 @@ class EvansCodeTree(EvansListener):
     #
     def exitVariableInitializer(self, ctx):
         ''' If listInitializer is defined, push its length to the expression stack'''
+        if not self.process_expressions:
+            return
         if ctx.listInitializer() != None:
             self.expr_stack.append(('VariableInitializer', len(ctx.listInitializer().variableInitializer())))
 
     def exitLiteralExpression(self, ctx):
+        if not self.process_expressions:
+            return
         parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
         self.expr_stack.append(('LiteralExpression', ctx.getText()))
 
@@ -463,6 +467,8 @@ class EvansCodeTree(EvansListener):
                 - current_class (attrs & states)
                 - global (not implemented yet)
         '''
+        if not self.process_expressions:
+            return
         var_name = ctx.ID().getText()
         # print("Var expression: " + var_name, end='')
         parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
@@ -548,11 +554,13 @@ class EvansCodeTree(EvansListener):
     #     print("; parent: " + EvansParser.ruleNames[parentContextRuleIndex])
 
     def exitAddSubExpression(self, ctx):
+        if not self.process_expressions:
+            return
         parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
         right = self.expr_stack.pop()
         left = self.expr_stack.pop()
-        pprint.pprint(ctx.op)
-        # self.expr_stack.append(('AddSubExpression', left[1] + ctx.op.getType() + right[1]))
+        op = '+' if ctx.op.type == EvansParser.ADD else '-'
+        self.expr_stack.append(('AddSubExpression', left[1] + op + right[1]))
 
 def main(argv):
     input = FileStream(argv[1])
