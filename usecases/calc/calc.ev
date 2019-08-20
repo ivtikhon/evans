@@ -26,7 +26,7 @@ class stack { # attributes and state variables share the same namespace within c
     list s; # uninitialized list is empty
   state:
     last_key_domain last_key = digit;  # we don't have to refer to the domain in the assignment,
-                                  # like key_domain.digit because we can recover the domain
+                                  # like key_domain.digit because we can recover the state domain
                                   # name from the variable declaration
     bool dec_point, changed = false;
     bool tobe_cleaned; # bool variables are initialized to false by default
