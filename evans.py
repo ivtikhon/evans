@@ -14,7 +14,8 @@ class EvansNameTree(EvansListener):
     def enterCodeFile(self, ctx):
         ''' Create list of classess and variable context stack. '''
         self.classes = {}
-        self.code_blocks = []
+        self.global_names = {'labels': {}}
+        self.code_blocks = []  # stack of blocks of code
 
     def enterMainDeclaration(self, ctx):
         ''' Create main function structure.'''
@@ -23,7 +24,8 @@ class EvansNameTree(EvansListener):
 
     def enterClassDeclaration(self, ctx):
         ''' Create class structure, assign class context '''
-        self.current_class = self.classes[ctx.ID().getText()] = {}
+        name = ctx.ID().getText()
+        self.current_class = self.classes[name] = {'name': name, 'who': 'class'}
 
     def enterFunctionList(self, ctx):
         ''' Create list of functions. '''
@@ -31,7 +33,9 @@ class EvansNameTree(EvansListener):
 
     def enterFunctionDeclaration(self, ctx):
         ''' Assign function context. '''
-        self.current_method = self.current_class['func'][ctx.ID().getText()] = {}
+        name = ctx.ID().getText()
+        self.current_method = self.current_class['func'][name] = \
+            {'name': name, 'who': 'func'}
         self.code_blocks.append(self.current_method)
 
     def enterConstructorList(self, ctx):
@@ -40,7 +44,9 @@ class EvansNameTree(EvansListener):
 
     def enterConstructorDeclaration(self, ctx):
         ''' Assign constructor context. '''
-        self.current_method = self.current_class['init'][ctx.classType().getText()] = {}
+        name = ctx.classType().getText()
+        self.current_method = self.current_class['init'][name] = \
+            {'name': name, 'who': 'init'}
         self.code_blocks.append(self.current_method)
 
     def enterPredicateList(self, ctx):
@@ -49,7 +55,9 @@ class EvansNameTree(EvansListener):
 
     def enterPredicateDeclaration(self, ctx):
         ''' Assign predicate context. '''
-        self.current_method = self.current_class['pred'][ctx.ID().getText()] = {}
+        name = ctx.ID().getText()
+        self.current_method = self.current_class['pred'][name] = \
+            {'name': name, 'who': 'pred'}
         self.code_blocks.append(self.current_method)
 
     def enterAttributeList(self, ctx):
@@ -67,12 +75,15 @@ class EvansNameTree(EvansListener):
             if 'vars' not in self.current_code_block:
                 self.current_code_block['vars'] = {}
             self.variable_context = self.current_code_block['vars']
+            self.current_code_block['statements'].append('vardec')
 
     def enterGenVarDeclaration(self, ctx):
         ''' Add new variables to the current context. '''
         type = ctx.genType().getText()
         for item in ctx.nameList().ID():
-            self.variable_context[item.getText()] = {'type': type}
+            name = item.getText()
+            self.variable_context[name] = \
+                {'name': name, 'who': 'genvar', 'type': type}
 
     def enterDomainList(self, ctx):
         ''' Create list of domains. '''
@@ -80,9 +91,14 @@ class EvansNameTree(EvansListener):
 
     def enterDomainDeclaration(self, ctx):
         ''' Add domain definition to the current class. '''
-        self.current_domain = self.current_class['dom'][ctx.ID().getText()] = []
+        name = ctx.ID().getText()
+        domain = self.current_class['dom'][name] = []
         for item in ctx.nameList().ID():
-            self.current_domain.append(item.getText())
+            label = item.getText()
+            domain.append(label)
+            if label not in self.global_names['labels']:
+                self.global_names['labels'][label] = {}
+            self.global_names['labels'][label][self.current_class['name']] = name
 
     def enterOperatorList(self, ctx):
         ''' Create list of operators. '''
@@ -93,7 +109,9 @@ class EvansNameTree(EvansListener):
             From the variable context perspective, operator doesn't differ much
             from method, so here current_method is assigned and pushed to stack.
         '''
-        self.current_method = self.current_class['oper'][ctx.ID().getText()] = {}
+        name = ctx.ID().getText()
+        self.current_method = self.current_class['oper'][name] = \
+            {'name': name, 'who': 'oper'}
         self.code_blocks.append(self.current_method)
 
     def enterGenParameters(self, ctx):
@@ -102,7 +120,8 @@ class EvansNameTree(EvansListener):
             if 'vars' not in self.current_method:
                 self.current_method['vars'] = {}
             for type, name in zip(ctx.genType(), ctx.ID()):
-                self.current_method['vars'][name.getText()] = {'type': type.getText()}
+                self.current_method['vars'][name.getText()] = \
+                    {'name': name.getText(), 'type': type.getText(), 'who': 'param'}
 
     def enterGenCodeBlock(self, ctx):
         ''' Restore current variable context from stack.
@@ -111,10 +130,7 @@ class EvansNameTree(EvansListener):
         '''
         self.current_code_block = self.code_blocks.pop()
         if ctx.blockStatement() != None:
-            for item in ctx.blockStatement():
-                if item.genStatement() != None:
-                    self.current_code_block['statements'] = []
-                    break
+            self.current_code_block['statements'] = []
 
     def enterOperatorBody(self, ctx):
         ''' Create operator context and push to stack. '''
@@ -130,10 +146,7 @@ class EvansNameTree(EvansListener):
         ''' Restore operator variable context from stack'''
         self.current_code_block = self.code_blocks.pop()
         if ctx.blockStatement() != None:
-            for item in ctx.blockStatement():
-                if item.genStatement() != None:
-                    self.current_code_block['statements'] = []
-                    break
+            self.current_code_block['statements'] = []
 
     def enterGoalList(self, ctx):
         ''' Create list of goals. '''
@@ -203,10 +216,17 @@ class EvansNameTree(EvansListener):
         ''' Add expression statement to list. '''
         self.current_code_block['statements'].append('expr')
 
+    def enterAssignmentStatement(self, ctx):
+        ''' Add assignment statement to list. '''
+        self.current_code_block['statements'].append('assign')
+
 class EvansCodeElement:
     CLASS, ATTR, STATE, DOM, FUNC, INIT, PRED, OPER, GOAL, MAIN = range(10)
 
 class EvansCodeTree(EvansListener):
+    def __init__(self):
+        self.debug = False
+
     def enterCodeFile(self, ctx):
         ''' Create environment '''
         self.current_class = None
@@ -215,7 +235,6 @@ class EvansCodeTree(EvansListener):
         self.expr_stack = []
         self.code_blocks = []
         self.process_expressions = False
-        self.debug = False
         self.current_code_element = None
 
     def enterMainDeclaration(self, ctx):
@@ -488,7 +507,7 @@ class EvansCodeTree(EvansListener):
                 - code_blocks belong to the current_method (vars);
                 - current_class (attrs & states);
                 - global (not implemented yet).
-            State names look like variables too; their context can be retrieved
+            State labels look like variables too; their context can be retrieved
             from state variable definition.
         '''
         if not self.process_expressions:
@@ -599,6 +618,7 @@ def main(argv):
     evans_code = EvansCodeTree()
     evans_code.classes = evans_names.classes
     evans_code.main = evans_names.main
+    evans_code.debug = True
     code_walker.walk(evans_code, tree)
     # for cl_name, cl_def in evans_code.classes.items():
     #     print('\n'.join(cl_def['code']))
