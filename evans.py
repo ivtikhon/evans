@@ -12,7 +12,10 @@ from EvansListener import EvansListener
 
 class EvansNameTree(EvansListener):
     def enterCodeFile(self, ctx):
-        ''' Create list of classess and variable context stack. '''
+        ''' Create list of classess and variable context stack.
+            State labels form the labels namespace at the global level
+            to be visible everywhere.
+        '''
         self.classes = {}
         self.global_names = {'labels': {}}
         self.code_blocks = []  # stack of blocks of code
@@ -23,9 +26,26 @@ class EvansNameTree(EvansListener):
         self.code_blocks.append(self.main)
 
     def enterClassDeclaration(self, ctx):
-        ''' Create class structure, assign class context '''
+        ''' Create class structure, assign class context.
+            Attributes and states form the properties namespace.
+            Constuctors, functions, predicates and operators
+            form the namespace of methods.
+        '''
         name = ctx.ID().getText()
-        self.current_class = self.classes[name] = {'name': name, 'who': 'class'}
+        self.current_class = self.classes[name] = {
+            'name': name,
+            'who': 'class',
+        }
+        class_body = ctx.classBody()
+        attr_list = ['attributeList', 'stateList']
+        if any(getattr(class_body, attr)() for attr in attr_list):
+            self.current_class['prop_names'] = {}
+        method_list = [
+            'constructorList', 'functionList',
+            'predicateList', 'operatorList'
+        ]
+        if any(getattr(class_body, method)() for method in method_list):
+            self.current_class['method_names'] = {}
 
     def enterFunctionList(self, ctx):
         ''' Create list of functions. '''
@@ -36,6 +56,7 @@ class EvansNameTree(EvansListener):
         name = ctx.ID().getText()
         self.current_method = self.current_class['func'][name] = \
             {'name': name, 'who': 'func'}
+        self.current_class['method_names'][name] = 'func'
         self.code_blocks.append(self.current_method)
 
     def enterConstructorList(self, ctx):
@@ -83,7 +104,7 @@ class EvansNameTree(EvansListener):
         for item in ctx.nameList().ID():
             name = item.getText()
             self.variable_context[name] = \
-                {'name': name, 'who': 'genvar', 'type': type}
+                {'name': name, 'who': 'var', 'type': type}
 
     def enterDomainList(self, ctx):
         ''' Create list of domains. '''
@@ -227,6 +248,16 @@ class EvansCodeTree(EvansListener):
     def __init__(self):
         self.debug = False
 
+    def getCurrentStatementIndex(self):
+        if self.current_code_block:
+            return self.current_code_block.get('statement_index', 0)
+        else:
+            return None
+
+    def setCurrentStatementIndex(self, index):
+        if self.current_code_block:
+            self.current_code_block['statement_index'] = index
+
     def enterCodeFile(self, ctx):
         ''' Create environment '''
         self.current_class = None
@@ -291,7 +322,7 @@ class EvansCodeTree(EvansListener):
         ''' Restore current variable context from stack. '''
         self.current_code_block = self.code_blocks.pop()
         if 'statements' in self.current_code_block:
-            self.statement_index = 0
+            self.setCurrentStatementIndex(0)
 
     def enterOperatorBody(self, ctx):
         ''' Create operator context and push to stack. '''
@@ -308,7 +339,7 @@ class EvansCodeTree(EvansListener):
         ''' Restore operator variable context from stack'''
         self.current_code_block = self.code_blocks.pop()
         if 'statements' in self.current_code_block:
-            self.statement_index = 0
+            self.setCurrentStatementIndex(0)
 
     def enterGoalDeclaration(self, ctx):
         ''' Assign goal context. '''
@@ -320,8 +351,9 @@ class EvansCodeTree(EvansListener):
         ''' Push current variable context to stack;
             generate if-statement context and push to stack as well. '''
         self.code_blocks.append(self.current_code_block)
-        statement = self.current_code_block['statements'][self.statement_index]
-        self.statement_index += 1
+        index = self.getCurrentStatementIndex()
+        statement = self.current_code_block['statements'][index]
+        self.setCurrentStatementIndex(index + 1)
         # sanity check
         if 'if' not in statement:
             raise Exception("Internal error: if-statement expected, but got this: " + str(statement))
@@ -344,8 +376,9 @@ class EvansCodeTree(EvansListener):
         ''' Push current variable context to stack;
             generate while-statement context and push to stack as well. '''
         self.code_blocks.append(self.current_code_block)
-        statement = self.current_code_block['statements'][self.statement_index]
-        self.statement_index += 1
+        index = self.getCurrentStatementIndex()
+        statement = self.current_code_block['statements'][index]
+        self.setCurrentStatementIndex(index + 1)
         # sanity check
         if 'while' not in statement:
             raise Exception("Internal error: while-statement expected, but got this: " + str(statement))
@@ -360,8 +393,9 @@ class EvansCodeTree(EvansListener):
         ''' Push current variable context to stack;
             generate for-statement context and push to stack as well. '''
         self.code_blocks.append(self.current_code_block)
-        statement = self.current_code_block['statements'][self.statement_index]
-        self.statement_index += 1
+        index = self.getCurrentStatementIndex()
+        statement = self.current_code_block['statements'][index]
+        self.setCurrentStatementIndex(index + 1)
         # sanity check
         if 'for' not in statement:
             raise Exception("Internal error: for-statement expected, but got this: " + str(statement))
@@ -374,32 +408,52 @@ class EvansCodeTree(EvansListener):
 
     def enterRetStatement(self, ctx):
         ''' Process ret-statement '''
-        statement = self.current_code_block['statements'][self.statement_index]
-        self.statement_index += 1
+        index = self.getCurrentStatementIndex()
+        statement = self.current_code_block['statements'][index]
+        self.setCurrentStatementIndex(index + 1)
         # sanity check
         if 'ret' not in statement:
             raise Exception("Internal error: ret-statement expected, but got this: " + str(statement))
 
     def enterBreakContStatement(self, ctx):
         ''' Process break/cont-statement '''
-        statement = self.current_code_block['statements'][self.statement_index]
-        self.statement_index += 1
+        index = self.getCurrentStatementIndex()
+        statement = self.current_code_block['statements'][index]
+        self.setCurrentStatementIndex(index + 1)
         # sanity check
-        statement = 'break' if ctx.BREAK() != None else 'cont'
-        if statement not in statement:
-            raise Exception("Internal error: " + statement + "-statement expected, but got this: " + str(statement))
+        control = 'break' if ctx.BREAK() != None else 'cont'
+        if control not in statement:
+            raise Exception("Internal error: " + control + "-statement expected, but got this: " + str(statement))
 
     def enterExpressionStatement(self, ctx):
         ''' Process expression statement '''
-        statement = self.current_code_block['statements'][self.statement_index]
-        self.statement_index += 1
+        index = self.getCurrentStatementIndex()
+        statement = self.current_code_block['statements'][index]
+        self.setCurrentStatementIndex(index + 1)
         # sanity check
         if 'expr' not in statement:
             raise Exception("Internal error: expr-statement expected, but got this: " + str(statement))
 
-    # def enterVarDeclarationStatement(self, ctx):
-    #     ''' For DEBUG purposes only: trigger expression processing'''
-    #     self.process_expressions = True
+    def enterAssignmentStatement(self, ctx):
+        ''' Process assignment statement '''
+        index = self.getCurrentStatementIndex()
+        statement = self.current_code_block['statements'][index]
+        self.setCurrentStatementIndex(index + 1)
+        # sanity check
+        if 'assign' not in statement:
+            raise Exception("Internal error: assign-statement expected, but got this: " + str(statement))
+
+    def enterVarDeclarationStatement(self, ctx):
+        ''' Process variable declaration statement'''
+        parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
+        if parentContextRuleIndex == EvansParser.RULE_blockStatement:
+            index = self.getCurrentStatementIndex()
+            statement = self.current_code_block['statements'][index]
+            self.setCurrentStatementIndex(index + 1)
+            # sanity check
+            if 'vardec' not in statement:
+                raise Exception("Internal error: var declaration statement expected, but got this: " + str(statement))
+            # self.process_expressions = True
     #
     # def exitVarDeclarationStatement(self, ctx):
     #     ''' Initialize declared variable(s)
@@ -612,6 +666,7 @@ def main(argv):
     # First pass: create name tree
     name_walker.walk(evans_names, tree)
     # pprint.pprint(evans_names.classes)
+    # pprint.pprint(evans_names.global_names)
     # pprint.pprint(evans_names.main)
     # Second pass: generate code
     code_walker = ParseTreeWalker()
@@ -620,8 +675,8 @@ def main(argv):
     evans_code.main = evans_names.main
     evans_code.debug = True
     code_walker.walk(evans_code, tree)
-    # for cl_name, cl_def in evans_code.classes.items():
-    #     print('\n'.join(cl_def['code']))
+    # # for cl_name, cl_def in evans_code.classes.items():
+    # #     print('\n'.join(cl_def['code']))
 
 if __name__ == '__main__':
     main(sys.argv)
