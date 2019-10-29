@@ -15,7 +15,7 @@ classDeclaration
 
 classBody
     : attributeList? stateList?
-      goalList? domainList? constructorList?
+      goalList? constructorList?
       functionList? predicateList? operatorList?
     ;
 
@@ -25,10 +25,6 @@ attributeList
 
 stateList
     : STATE ':' varDeclarationStatement+
-    ;
-
-domainList
-    : DOM ':' domainDeclaration+
     ;
 
 constructorList
@@ -51,10 +47,6 @@ operatorList
     : OPER ':' operatorDeclaration+
     ;
 
-domainDeclaration
-    : ID '{' nameList '}'
-    ;
-
 functionDeclaration
     : ID '(' genParameters? ')' (':' returnType )? genCodeBlock
     ;
@@ -71,12 +63,21 @@ nameList
     : ID (',' ID)*
     ;
 
+nameWithAttr
+    : '[' validAttr ']' ID
+    ;
+
+nameWithAttrList
+    : nameWithAttr (',' nameWithAttr)*
+    ;
+
 constructorDeclaration
     : classType '(' genParameters? ')' genCodeBlock
     ;
 
 genVarDeclaration
-    : genType nameList
+    : primType=( STR | NUM ) nameWithAttrList
+    | genType nameList
     ;
 
 variableInitializer
@@ -127,8 +128,7 @@ genStatement
       (ELIF '(' genExpression ')' genCodeBlock)*
       (ELSE genCodeBlock)?                               # IfStatement
     | WHILE '(' genExpression ')' genCodeBlock           # WhileStatement
-    | FOR '(' (genVarDeclaration | nameList)
-      IN genExpression ')' genCodeBlock                  # ForStatement
+    | FOR '(' nameList IN genExpression ')' genCodeBlock # ForStatement
     | RET genExpression? ';'                             # RetStatement
     | (BREAK | CONT) ';'                                 # BreakContStatement
     | genExpression ';'                                  # ExpressionStatement
@@ -158,6 +158,10 @@ genExpression
 
 methodCall
     : (ID | genType) '(' expressionList? ')'
+    ;
+
+validAttr
+    : ( SET | RANGE ) '(' expressionList? ')'
     ;
 
 expressionList
@@ -245,6 +249,8 @@ GOAL : 'goal' ;
 MAIN : 'main' ;
 IN : 'in' ;
 DOM : 'dom' ;
+SET : 'set' ;
+RANGE : 'range' ;
 
 // Embedded types
 LIST : 'list' ;

@@ -53,15 +53,6 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#domainList.
-    def enterDomainList(self, ctx:EvansParser.DomainListContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#domainList.
-    def exitDomainList(self, ctx:EvansParser.DomainListContext):
-        pass
-
-
     # Enter a parse tree produced by EvansParser#constructorList.
     def enterConstructorList(self, ctx:EvansParser.ConstructorListContext):
         pass
@@ -107,15 +98,6 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#domainDeclaration.
-    def enterDomainDeclaration(self, ctx:EvansParser.DomainDeclarationContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#domainDeclaration.
-    def exitDomainDeclaration(self, ctx:EvansParser.DomainDeclarationContext):
-        pass
-
-
     # Enter a parse tree produced by EvansParser#functionDeclaration.
     def enterFunctionDeclaration(self, ctx:EvansParser.FunctionDeclarationContext):
         pass
@@ -149,6 +131,24 @@ class EvansListener(ParseTreeListener):
 
     # Exit a parse tree produced by EvansParser#nameList.
     def exitNameList(self, ctx:EvansParser.NameListContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#nameWithAttr.
+    def enterNameWithAttr(self, ctx:EvansParser.NameWithAttrContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#nameWithAttr.
+    def exitNameWithAttr(self, ctx:EvansParser.NameWithAttrContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#nameWithAttrList.
+    def enterNameWithAttrList(self, ctx:EvansParser.NameWithAttrListContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#nameWithAttrList.
+    def exitNameWithAttrList(self, ctx:EvansParser.NameWithAttrListContext):
         pass
 
 
@@ -464,6 +464,15 @@ class EvansListener(ParseTreeListener):
 
     # Exit a parse tree produced by EvansParser#methodCall.
     def exitMethodCall(self, ctx:EvansParser.MethodCallContext):
+        pass
+
+
+    # Enter a parse tree produced by EvansParser#validAttr.
+    def enterValidAttr(self, ctx:EvansParser.ValidAttrContext):
+        pass
+
+    # Exit a parse tree produced by EvansParser#validAttr.
+    def exitValidAttr(self, ctx:EvansParser.ValidAttrContext):
         pass
 
 
