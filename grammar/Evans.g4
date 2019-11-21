@@ -161,7 +161,7 @@ methodCall
     ;
 
 validAttr
-    : ( SET | RANGE ) '(' expressionList? ')'
+    : attr=( SET | RANGE ) '(' expressionList? ')'
     ;
 
 expressionList

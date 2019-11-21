@@ -454,11 +454,17 @@ class EvansCodeTree(EvansListener):
         ''' Process variable declaration statement'''
         parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
         if self.debug:
-            print("Variable declaration statement: " +
-                ctx.genVarDeclaration().genType().getText() + ' ' +
-                ctx.genVarDeclaration().nameList().getText(),
-                end=''
-            )
+            print("Variable declaration statement: ", end='')
+            if ctx.genVarDeclaration().genType():
+                print(ctx.genVarDeclaration().genType().getText() + ' ' +
+                    ctx.genVarDeclaration().nameList().getText(),
+                    end=''
+                )
+            else:
+                print(ctx.genVarDeclaration().primType.text + ' ' +
+                    ctx.genVarDeclaration().nameWithAttrList().getText(),
+                    end=''
+                )
             if ctx.variableInitializer():
                 print(' = ' + ctx.variableInitializer().getText(), end='')
             print('')
@@ -563,11 +569,14 @@ class EvansCodeTree(EvansListener):
     #     if ctx.listInitializer() != None:
     #         self.exprStack.append(('VariableInitializer', len(ctx.listInitializer().variableInitializer())))
 
-    # def exitLiteralExpression(self, ctx):
-    #     if not self.process_expressions:
-    #         return
-    #     parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
-    #     self.exprStack.append(('LiteralExpression', ctx.getText()))
+    def exitLiteralExpression(self, ctx):
+        ''' Process literals '''
+        if self.debug:
+            print("LiteralExpression: " + ctx.genLiteral().getText())
+        if not self.process_expressions:
+            return
+        # parentContextRuleIndex = ctx.parentCtx.getRuleIndex()
+        # self.exprStack.append(('LiteralExpression', ctx.getText()))
 
     def exitVarExpression(self, ctx):
         ''' Variable can be defined in following contexts:
@@ -682,19 +691,19 @@ def main(argv):
     name_walker = ParseTreeWalker()
     # First pass: create name tree
     name_walker.walk(evans_names, tree)
-    pprint.pprint(evans_names.classes)
-    pprint.pprint(evans_names.global_names)
-    pprint.pprint(evans_names.main)
+    # pprint.pprint(evans_names.classes)
+    # pprint.pprint(evans_names.global_names)
+    # pprint.pprint(evans_names.main)
     # Second pass: generate code
-    # code_walker = ParseTreeWalker()
-    # evans_code = EvansCodeTree(
-    #     classes = evans_names.classes,
-    #     main = evans_names.main,
-    #     global_names = evans_names.global_names
-    # )
-    # evans_code.debug = True
-    # # pprint.pprint(evans_code.classes)
-    # code_walker.walk(evans_code, tree)
+    code_walker = ParseTreeWalker()
+    evans_code = EvansCodeTree(
+        classes = evans_names.classes,
+        main = evans_names.main,
+        global_names = evans_names.global_names
+    )
+    evans_code.debug = True
+    code_walker.walk(evans_code, tree)
+    # pprint.pprint(evans_code.classes)
     # # # for cl_name, cl_def in evans_code.classes.items():
     # # #     print('\n'.join(cl_def['code']))
 
