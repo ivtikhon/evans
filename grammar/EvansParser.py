@@ -3295,6 +3295,7 @@ class EvansParser ( Parser ):
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
             self.parser = parser
+            self.attr = None # Token
 
         def SET(self):
             return self.getToken(EvansParser.SET, 0)
@@ -3328,9 +3329,10 @@ class EvansParser ( Parser ):
         try:
             self.enterOuterAlt(localctx, 1)
             self.state = 433
+            localctx.attr = self._input.LT(1)
             _la = self._input.LA(1)
             if not(_la==EvansParser.SET or _la==EvansParser.RANGE):
-                self._errHandler.recoverInline(self)
+                localctx.attr = self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
                 self.consume()

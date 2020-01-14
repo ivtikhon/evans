@@ -30,7 +30,7 @@
 
 class stack { # attributes and state variables share the same namespace within class
   attr:
-    list s; # uninitialized variables non-trivial types have null assigned automatically
+    list s; # uninitialized variables of non-trivial types have null assigned automatically
   state:
     str [set('digit', 'point')] last_key = 'digit';
     bool dec_point, changed = false;
@@ -45,10 +45,10 @@ class stack { # attributes and state variables share the same namespace within c
   func:
     push_key(key k) { # functions have access to attributes, but not to the state variables
       s.append(k.get_value());
-      f(); # dummy call
-      s.atr1.atr2.f1().f2(arg1.atr5, arg2);  # dummy call
-      b.a[2][i].atr2[f].atr1; # dummy statement
-      num a1, a2 = (4+3, v8); # dummy statement
+#      f(); # dummy call
+#      s.atr1.atr2.f1().f2(arg1.atr5, arg2);  # dummy call
+#      b.a[2][i].atr2[f].atr1; # dummy statement
+#      num a1, a2 = (4+3, v8); # dummy statement
     }
 
     push_reg(alu a) {
