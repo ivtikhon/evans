@@ -5,6 +5,7 @@
 
 import sys
 import pprint
+import os.path
 from antlr4 import *
 from EvansLexer import EvansLexer
 from EvansParser import EvansParser
@@ -244,6 +245,32 @@ class EvansCodeElement:
     elementNames = ['CLASS', 'ATTR', 'STATE', 'FUNC', 'INIT', 'PRED',
                     'OPER', 'GOAL', 'MAIN']
 
+class EvansPythonCode:
+    def __init__(self):
+        self.codeClasses = []
+        self.currentIndent = 0 
+        self.codeMain = ['def main:']
+    
+    def printCode(self):
+        print('\n'.join(self.codeClasses + self.codeMain))
+        self.currentIndent = 0
+
+    def addClass(self, name):
+        self.codeClasses.append('class ' + name + ':')
+        self.currentIndent = 1
+
+    def addFunction(self, name):
+        self.codeClasses.append(' ' * 4 + 'def ' + name + ':')
+        self.currentIndent = 2
+
+    def addLineToClasses(self, line, indent = 0):
+        self.codeClasses.append(' ' * (self.currentIndent * 4) + line)
+        self.currentIndent += indent
+
+    def addLineToMain(self, line, indent = 0):
+        self.codeMain.append(' ' * (self.currentIndent * 4) + line)
+        self.currentIndent += indent
+
 class EvansCodeTree(EvansListener):
     def __init__(self, classes, main, global_names):
         self.classes = classes
@@ -252,16 +279,22 @@ class EvansCodeTree(EvansListener):
         self.debug = False
 
     def internalError(self, msg):
+        ''' Print internal error and exit '''
         raise Exception(
             'Internal error: ' + msg + '\n' +
             '  Class: ' + self.current_class['name'] + '\n' +
             '  Method: ' + self.current_method['name']
         )
 
-    def nameNotDefinedError(self, name):
+    def runTimeError(self, ctx, msg):
+        ''' Print runtime error and exit '''
+        startToken = ctx.start
+        lineNumber = startToken.line
+        inputStream = startToken.getInputStream()
+        fileName = os.path.normpath(inputStream.fileName)
+        line = inputStream.strdata.split('\n')[lineNumber - 1].strip()
         raise Exception(
-            "Runtime error: variable '" + name + "' is not defined"
-            # TODO: add file name and line number here
+            "Runtime error: " + msg + "\n File: " + fileName + "\n Line: " + line
         )
 
     def getCurrentStatement(self):
@@ -288,6 +321,8 @@ class EvansCodeTree(EvansListener):
         self.code_blocks.append(self.main)
         self.current_method = self.main
         self.current_class = None
+        code = self.current_method.code = []
+        code.append('def main:')
         self.currentCodeElement = EvansCodeElement.MAIN
         if self.debug:
             print('Main function')
@@ -299,6 +334,7 @@ class EvansCodeTree(EvansListener):
         self.current_method = None
         self.current_code_block = None
         self.currentCodeElement = EvansCodeElement.CLASS
+        self.code = []
         if self.debug:
             print('Class: ' + name)
 
@@ -341,6 +377,8 @@ class EvansCodeTree(EvansListener):
     def enterGenCodeBlock(self, ctx):
         ''' Restore current variable context from stack. '''
         self.current_code_block = self.code_blocks.pop()
+        if not self.current_code_block.code:
+            self.current_code_block.code = []
         if 'statements' in self.current_code_block:
             self.setCurrentStatementIndex(0)
 
@@ -358,6 +396,8 @@ class EvansCodeTree(EvansListener):
     def enterOperatorCodeBlock(self, ctx):
         ''' Restore operator variable context from stack'''
         self.current_code_block = self.code_blocks.pop()
+        if not self.current_code_block.code:
+            self.current_code_block.code = []
         if 'statements' in self.current_code_block:
             self.setCurrentStatementIndex(0)
 
@@ -629,7 +669,7 @@ class EvansCodeTree(EvansListener):
             varContext = 'global'
 
         if not varContext:
-            self.nameNotDefinedError(varName)
+            self.runTimeError(ctx, "Variable is not defined: " + varName)
 
         self.exprStack.append(('VarExpression', varName, varContext))
 
