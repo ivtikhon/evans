@@ -249,7 +249,7 @@ class EvansPythonCode:
     def __init__(self):
         self.codeClasses = []
         self.currentIndent = 0 
-        self.codeMain = ['def main:']
+        self.codeMain = []
     
     def printCode(self):
         print('\n'.join(self.codeClasses + self.codeMain))
@@ -262,6 +262,10 @@ class EvansPythonCode:
     def addFunction(self, name):
         self.codeClasses.append(' ' * 4 + 'def ' + name + ':')
         self.currentIndent = 2
+
+    def addMain(self):
+        self.codeMain.append('def main:')
+        self.currentIndent = 1
 
     def addLineToClasses(self, line, indent = 0):
         self.codeClasses.append(' ' * (self.currentIndent * 4) + line)
@@ -277,6 +281,7 @@ class EvansCodeTree(EvansListener):
         self.main = main
         self.globalNames = global_names
         self.debug = False
+        self.pythonCode = EvansPythonCode()
 
     def internalError(self, msg):
         ''' Print internal error and exit '''
@@ -321,8 +326,6 @@ class EvansCodeTree(EvansListener):
         self.code_blocks.append(self.main)
         self.current_method = self.main
         self.current_class = None
-        code = self.current_method.code = []
-        code.append('def main:')
         self.currentCodeElement = EvansCodeElement.MAIN
         if self.debug:
             print('Main function')
@@ -334,7 +337,7 @@ class EvansCodeTree(EvansListener):
         self.current_method = None
         self.current_code_block = None
         self.currentCodeElement = EvansCodeElement.CLASS
-        self.code = []
+        self.pythonCode.addClass(name)
         if self.debug:
             print('Class: ' + name)
 
@@ -344,6 +347,7 @@ class EvansCodeTree(EvansListener):
         self.current_method = self.current_class['func'][name]
         self.code_blocks.append(self.current_method)
         self.currentCodeElement = EvansCodeElement.FUNC
+        self.pythonCode.addFunction(name)
         if self.debug:
             print('Function: ' + name)
 
@@ -353,6 +357,7 @@ class EvansCodeTree(EvansListener):
         self.current_method = self.current_class['init'][name]
         self.code_blocks.append(self.current_method)
         self.currentCodeElement = EvansCodeElement.INIT
+        self.pythonCode.addFunction(name)
         if self.debug:
             print('Constructor: ' + name)
 
@@ -362,6 +367,7 @@ class EvansCodeTree(EvansListener):
         self.current_method = self.current_class['pred'][name]
         self.code_blocks.append(self.current_method)
         self.currentCodeElement = EvansCodeElement.PRED
+        self.pythonCode.addFunction(name)
         if self.debug:
             print('Predicate: ' + name)
 
@@ -371,14 +377,13 @@ class EvansCodeTree(EvansListener):
         self.current_method = self.current_class['oper'][name]
         self.code_blocks.append(self.current_method)
         self.currentCodeElement = EvansCodeElement.OPER
+        self.pythonCode.addFunction(name)
         if self.debug:
             print('Operator: ' + name)
 
     def enterGenCodeBlock(self, ctx):
         ''' Restore current variable context from stack. '''
         self.current_code_block = self.code_blocks.pop()
-        if not self.current_code_block.code:
-            self.current_code_block.code = []
         if 'statements' in self.current_code_block:
             self.setCurrentStatementIndex(0)
 
@@ -396,8 +401,6 @@ class EvansCodeTree(EvansListener):
     def enterOperatorCodeBlock(self, ctx):
         ''' Restore operator variable context from stack'''
         self.current_code_block = self.code_blocks.pop()
-        if not self.current_code_block.code:
-            self.current_code_block.code = []
         if 'statements' in self.current_code_block:
             self.setCurrentStatementIndex(0)
 
@@ -506,6 +509,7 @@ class EvansCodeTree(EvansListener):
         varTypeRef = varDeclarationRef.genType()
         varNameRef = varDeclarationRef.nameList()
         varTypeNameText = None
+        # General type variable or variable with controlled set of values
         if varTypeRef:
             varTypeNameText = varTypeRef.getText()
         else:
@@ -518,9 +522,8 @@ class EvansCodeTree(EvansListener):
             if ctx.variableInitializer():
                 print(' = ' + ctx.variableInitializer().getText(), end='')
             print('')
-        # codeRef = self.current_class['code']
+        self.pythonCode.addLineToClasses(varNameText + ' = None')
         if parentContextRuleIndex == EvansParser.RULE_blockStatement:
-            # codeRef = self.current_code_block['code']
             statement = self.getCurrentStatementIncrementIndex()
             # sanity check
             if 'vardec' not in statement:
@@ -756,8 +759,9 @@ def main(argv):
         main = evans_names.main,
         global_names = evans_names.global_names
     )
-    evans_code.debug = True
+    # evans_code.debug = True
     code_walker.walk(evans_code, tree)
+    evans_code.pythonCode.printCode()
     # pprint.pprint(evans_code.classes)
     # # # for cl_name, cl_def in evans_code.classes.items():
     # # #     print('\n'.join(cl_def['code']))
