@@ -134,15 +134,6 @@ class EvansListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by EvansParser#nameWithAttr.
-    def enterNameWithAttr(self, ctx:EvansParser.NameWithAttrContext):
-        pass
-
-    # Exit a parse tree produced by EvansParser#nameWithAttr.
-    def exitNameWithAttr(self, ctx:EvansParser.NameWithAttrContext):
-        pass
-
-
     # Enter a parse tree produced by EvansParser#nameWithAttrList.
     def enterNameWithAttrList(self, ctx:EvansParser.NameWithAttrListContext):
         pass

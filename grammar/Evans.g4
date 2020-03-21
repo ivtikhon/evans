@@ -63,12 +63,8 @@ nameList
     : ID (',' ID)*
     ;
 
-nameWithAttr
-    : '[' validAttr ']' ID
-    ;
-
 nameWithAttrList
-    : nameWithAttr (',' nameWithAttr)*
+    : '[' validAttr ']' ID (',' '[' validAttr ']' ID)*
     ;
 
 constructorDeclaration
