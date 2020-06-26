@@ -2,25 +2,26 @@
     (:requirements :adl)
     (:types queen cell)
     (:predicates
-        (queen_placed ?q - queen ?c - cell)
+        (queen_placed ?q - queen)
+        (cell_occupied ?c - cell)
         (path_exists ?from ?to - cell)
     )
     (:action place_queen
         :parameters (?q - queen ?c - cell)
         :precondition (and 
-            (not (queen_placed ?q ?c))
+            (not (queen_placed ?q))
+            (not (cell_occupied ?c))
             (not 
-                (exists (and
-                            (?c1 - cell)
-                            (?q1 - queen)
-                        )
-                        (and
-                                (path_exists ?c ?c1)
-                                (queen_placed ?q1 ?c1)
-                        )
+                (exists (?c1 - cell)(and
+                        (path_exists ?c ?c1)
+                        (cell_occupied ?c1)
                     )
                 )
             )
-        :effect (queen_placed ?q ?c)
+        )
+        :effect (and
+            (queen_placed ?q)
+            (cell_occupied ?c)
+        )
     )
 )
