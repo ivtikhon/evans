@@ -1,17 +1,19 @@
 import subprocess
 import pprint
 
-class Evans:
-    def __init__(self):
+class Plan:
+    def __init__(self, domain_file, problem_file):
         self.actions = {}
         self.objects = {}
         self.planner = {
-            'path': '/opt/fast-downward/fast-downward.py',
+            'path': '/vagrant/downward/fast-downward.py',
             'options': '--evaluator "hff=ff()" --search "lazy_greedy([hff], preferred=[hff])"',
             'result': 'sas_plan'
         }
         self.debug_opt = ['plan']
         self.plan = None
+        self.domain_file = domain_file
+        self.problem_file = problem_file
     
     def add_action(self, name, act):
         self.actions[name] = act
@@ -19,10 +21,10 @@ class Evans:
     def add_object(self, name, obj):
         self.objects[name] = obj
 
-    def generate_plan(self, domain_file, problem_file):
+    def generate_plan(self):
         plan = []
         tempdir = '/tmp'
-        args = self.planner['path'] + ' ' + domain_file + ' ' + problem_file + ' ' + self.planner['options']
+        args = self.planner['path'] + ' ' + self.domain_file + ' ' + self.problem_file + ' ' + self.planner['options']
         with subprocess.Popen(args, cwd=tempdir, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as planner:
             planner.wait()
             if 'planner_stdout' in self.debug_opt:
@@ -53,7 +55,8 @@ class Cell:
 
 class Chessboard:
     def __init__(self):
-        self.plan = Evans()
+        path = '/vagrant/evans/usecases/8queens'
+        self.plan = Plan(path + '/8queens_domain.pddl', path + '/8queens_problem.pddl')
         self.__queens = []
         self.__cells = []
 
@@ -73,10 +76,12 @@ class Chessboard:
                 self.plan.add_object('%s%i' % (letter, number), c)
 
     def place_queen(self, queen, cell):
+        def precondition():
+            pass
+        def effect():
+            pass
         print('arg1: ' + queen + ' arg2: ' + cell)
 
 if __name__ == "__main__":
     board = Chessboard()
-    pprint.pprint(board.plan.actions)
-    a = board.plan.actions['place_queen']
-    a('q1', 'a1')
+    board.plan.generate_plan()
