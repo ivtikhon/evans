@@ -48,39 +48,42 @@ class Plan:
         self.plan = plan
 
 class Queen:
-    pass
+    def __init__(self, index):
+        self.placed = False
+        self.number = index
 
 class Cell:
-    pass
+    def __init__(self, name):
+        self.occupied = False
+        self.name = name
+
+class Path:
+    def __init__(self, begin: Cell, end: Cell):
+        self.begin = begin
+        self.end = to
 
 class Chessboard:
     def __init__(self):
-        path = '/vagrant/evans/usecases/8queens'
-        self.plan = Plan(path + '/8queens_domain.pddl', path + '/8queens_problem.pddl')
-        self.__queens = []
-        self.__cells = []
-
-        # Add action
-        self.plan.add_action(self.place_queen.__name__, self.place_queen)
+        self.plan = Plan()
+        self.queens = []
+        self.cells = []
+        self.paths = []
 
         # Add queens
-        for i, q in enumerate([Queen()] * 8):
-            self.__queens.append(q)
-            self.plan.add_object('q%s' % i, q)
+        for index in range(1, 9):
+            q = Queen(index)
+            self.queens.append(q)
 
         # Add cells
         for letter in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']:
             for number in range(1, 9):
-                c = Cell()
-                self.__cells.append(c)
-                self.plan.add_object('%s%i' % (letter, number), c)
+                c = Cell(letter + str(number))
+                self.cells.append(c)
+        
+        # Add paths
 
-    def place_queen(self, queen, cell):
-        def precondition():
-            pass
-        def effect():
-            pass
-        print('arg1: ' + queen + ' arg2: ' + cell)
+    def place_queen(self, q: Queen, c: Cell):
+        assert not q.placed and not c.occupied and not any(not c1.occupied and c.name + c1.name in self.paths for c1 in self.cells)  
 
 if __name__ == "__main__":
     board = Chessboard()
