@@ -56,18 +56,16 @@ class Cell:
     def __init__(self, name):
         self.occupied = False
         self.name = name
-
-class Path:
-    def __init__(self, begin: Cell, end: Cell):
-        self.begin = begin
-        self.end = to
+        self.__reacheable = []
+    
+    def reacheable(self, c):
+        return c.name in self.__reacheable
 
 class Chessboard:
     def __init__(self):
         self.plan = Plan()
         self.queens = []
         self.cells = []
-        self.paths = []
 
         # Add queens
         for index in range(1, 9):
@@ -83,7 +81,9 @@ class Chessboard:
         # Add paths
 
     def place_queen(self, q: Queen, c: Cell):
-        assert not q.placed and not c.occupied and not any(not c1.occupied and c.name + c1.name in self.paths for c1 in self.cells)  
+        assert not q.placed and not c.occupied and not any(c1.occupied and c.reacheable(c1) for c1 in self.cells)
+        q.placed = True
+        c.occupied = True
 
 if __name__ == "__main__":
     board = Chessboard()
