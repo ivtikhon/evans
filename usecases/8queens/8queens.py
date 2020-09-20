@@ -63,9 +63,12 @@ class Cell:
 
 class Chessboard:
     def __init__(self):
-        self.plan = Plan()
+        # self.plan = Plan()
         self.queens = []
-        self.cells = []
+        self.cells = {}
+
+        letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+        numbers = range(8)
 
         # Add queens
         for index in range(1, 9):
@@ -73,12 +76,37 @@ class Chessboard:
             self.queens.append(q)
 
         # Add cells
-        for letter in ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']:
-            for number in range(1, 9):
-                c = Cell(letter + str(number))
-                self.cells.append(c)
+        for letter in letters:
+            self.cells[letter] = [Cell(letter + str(num)) for num in numbers]
         
-        # Add paths
+        # Specify neighbours for every cell (make the chess board)
+        for letter_index in range(len(letters)):
+            close_letters = [letter_index]
+            if letter_index > 0 and letter_index < len(letters) - 1:
+                close_letters.append(letter_index + 1)
+                close_letters.append(letter_index - 1)
+            elif letter_index == 0:
+                close_letters.append(letter_index + 1)
+            else:
+                close_letters.append(letter_index - 1)
+            for num in numbers:
+                close_num = [num]
+                if num > 0 and num < len(numbers) - 1:
+                    close_num.append(num + 1)
+                    close_num.append(num - 1)
+                elif num == 0:
+                    close_num.append(num + 1)
+                else:
+                    close_num.append(num - 1)
+                
+                print('Cell : ' + letters[letter_index] + str(num + 1))
+                for l in close_letters:
+                    for n in close_num:
+                        if l == letter_index and n == num:
+                            continue
+                        print(letters[l] + str(n + 1))
+
+
 
     def place_queen(self, q: Queen, c: Cell):
         assert not q.placed and not c.occupied and not any(c1.occupied and c.reacheable(c1) for c1 in self.cells)
@@ -87,4 +115,4 @@ class Chessboard:
 
 if __name__ == "__main__":
     board = Chessboard()
-    board.plan.generate_plan()
+    # board.plan.generate_plan()
