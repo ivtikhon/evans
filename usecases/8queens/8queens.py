@@ -1,6 +1,7 @@
-import subprocess
+# import subprocess
 import pprint
 import string
+import ast
 
 # class Plan:
 #     def __init__(self, domain_file, problem_file):
@@ -48,6 +49,10 @@ import string
 #                 raise Exception("FAILURE: Planner found no solution")
 #         self.plan = plan
 
+class Plan:
+    def generate(self, objects, actions, goal):
+        tree = ast.parse(open(__file__, 'r').read())
+        pprint.pprint(ast.dump(tree))
 class Queen:
     def __init__(self, number):
         self.placed = False
@@ -55,7 +60,7 @@ class Queen:
 
 class Cell:
     def __init__(self, name, column, row):
-        self.occupied = False
+        self.queen = None
         self.name = name
         self.column = column
         self.row = row
@@ -116,7 +121,7 @@ class ChessBoard:
     
         # Reacheability
         for c in self.cells:
-            c.reacheable = list(set(columns[c.column] + rows[c.row] + maindiagonals[c.maindiagonal] + antidiagonals[c.antidiagonal]))
+            c.reacheable = list(set(columns[c.column] + rows[c.row] + maindiagonals[c.maindiagonal] + antidiagonals[c.antidiagonal]).difference(set([c])))
 
     def print(self):
         print(' ', end=' ')
@@ -127,26 +132,23 @@ class ChessBoard:
             print(str(i + 1), end=' ')
             for j in range(self.dimension):
                 c = self.cells[i + j * self.dimension]
-                content = self.letters[c.column] + str(c.row + 1)
-                # content = '.'
-                # if self.cells[i + j * self.dimension].occupied:
-                #     content = 'Q'
+                # content = self.letters[c.column] + str(c.row + 1)
+                content = '. '
+                if c.queen:
+                    content = str(c.queen.number)
                 print(content, end=' ')
             print('')
 
 def place_queen(q: Queen, c: Cell):
     assert not q.placed
-    assert not c.occupied
+    assert c.queen == None
     assert not any([c1.occupied for c1 in c.reacheable])
     q.placed = True
-    c.occupied = True
+    c.queen = q
 
 if __name__ == "__main__":
     board = ChessBoard(8)
+    plan = Plan()
+    plan.generate(objects = board.queens + board.cells, actions = [place_queen], goal = lambda: all([q.placed for q in board.queens]))
     board.print()
-    for c in board.cells:
-        print(c.name, end=': ')
-        for c1 in sorted(c.reacheable, key=lambda x: x.name):
-            print(c1.name, end=' ')
-        print('')
     # board.plan.generate_plan()
