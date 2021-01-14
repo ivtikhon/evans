@@ -2,6 +2,7 @@
 import pprint
 import string
 import ast
+import astunparse
 
 # class Plan:
 #     def __init__(self, domain_file, problem_file):
@@ -52,7 +53,17 @@ import ast
 class Plan:
     def generate(self, objects, actions, goal):
         tree = ast.parse(open(__file__, 'r').read())
-        pprint.pprint(ast.dump(tree))
+        print(astunparse.dump(tree))
+
+        # for node in ast.walk(tree):
+        #     if isinstance(node, ast.FunctionDef):
+        #         pprint.pprint(dir(node)) 
+        # pprint.pprint(ast.dump(tree))
+        # pprint.pprint(type(objects[0]))
+        # pprint.pprint(objects[0].__dict__)
+        # pprint.pprint(goal)
+        # pprint.pprint(actions)
+
 class Queen:
     def __init__(self, number):
         self.placed = False
