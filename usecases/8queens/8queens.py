@@ -149,6 +149,6 @@ def place_queen(q: Queen, c: Cell):
 if __name__ == "__main__":
     board = ChessBoard(8)
     plan = Plan()
-    plan.generate(objects = board.queens + board.cells, actions = [place_queen], goal = lambda: all([q.placed for q in board.queens]))
+    plan.generate(objects = board.queens + board.cells, actions = [place_queen], goal = lambda queens=board.queens: all([q.placed for q in queens]))
     board.print()
     # board.plan.generate_plan()
