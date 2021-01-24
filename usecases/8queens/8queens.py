@@ -3,6 +3,7 @@ import pprint
 import string
 import ast
 import astunparse
+from functools import partial
 
 # class Plan:
 #     def __init__(self, domain_file, problem_file):
@@ -52,8 +53,8 @@ import astunparse
 
 class Plan:
     def generate(self, objects, actions, goal):
-        tree = ast.parse(open(__file__, 'r').read())
-        print(astunparse.dump(tree))
+        # tree = ast.parse(open(__file__, 'r').read())
+        # print(astunparse.dump(tree))
 
         # for node in ast.walk(tree):
         #     if isinstance(node, ast.FunctionDef):
@@ -61,7 +62,8 @@ class Plan:
         # pprint.pprint(ast.dump(tree))
         # pprint.pprint(type(objects[0]))
         # pprint.pprint(objects[0].__dict__)
-        # pprint.pprint(goal)
+        pprint.pprint(goal)
+        pprint.pprint(goal.func.__code__)
         # pprint.pprint(actions)
 
 class Queen:
@@ -157,9 +159,11 @@ def place_queen(q: Queen, c: Cell):
     q.placed = True
     c.queen = q
 
+def goal(queens: list):
+    assert all([q.placed for q in queens])
+
 if __name__ == "__main__":
     board = ChessBoard(8)
     plan = Plan()
-    plan.generate(objects = board.queens + board.cells, actions = [place_queen], goal = lambda queens=board.queens: all([q.placed for q in queens]))
+    plan.generate(objects = board.queens + board.cells, actions = [place_queen], goal = partial(goal, board.queens))
     board.print()
-    # board.plan.generate_plan()
