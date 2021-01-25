@@ -1,8 +1,11 @@
 # import subprocess
-import pprint
 import string
+import inspect
+import os
 import ast
 import astunparse
+from ast import AST
+from pprint import pprint
 from functools import partial
 
 # class Plan:
@@ -51,20 +54,35 @@ from functools import partial
 #                 raise Exception("FAILURE: Planner found no solution")
 #         self.plan = plan
 
-class Plan:
-    def generate(self, objects, actions, goal):
-        # tree = ast.parse(open(__file__, 'r').read())
-        # print(astunparse.dump(tree))
+class Action:
+    def __init__(self, file: str, tree: AST):
+        self.tree = tree
+        self.file = file
 
-        # for node in ast.walk(tree):
-        #     if isinstance(node, ast.FunctionDef):
-        #         pprint.pprint(dir(node)) 
-        # pprint.pprint(ast.dump(tree))
-        # pprint.pprint(type(objects[0]))
-        # pprint.pprint(objects[0].__dict__)
-        pprint.pprint(goal)
-        pprint.pprint(goal.func.__code__)
-        # pprint.pprint(actions)
+class Goal:
+    def __init__(self, file: str, tree: AST, args: tuple):
+        self.tree = tree
+        self.file = file
+        self.args = args
+
+class Plan:
+    def __init__(self, objects: list, actions: list, goal: partial):
+        # Actions
+        self.actions = []
+        for a in actions:
+            file = os.path.normpath(inspect.getfile(a))
+            source = inspect.getsource(a)
+            self.actions.append(Action(file, ast.parse(source)))
+        # Goal
+        file = os.path.normpath(inspect.getfile(a))
+        source = inspect.getsource(goal.func)
+        tree = ast.parse(source)
+        self.goal = Goal(file, tree, goal.args)
+        print(astunparse.dump(tree))
+
+
+    def generate(self):
+        pass
 
 class Queen:
     def __init__(self, number):
@@ -159,11 +177,11 @@ def place_queen(q: Queen, c: Cell):
     q.placed = True
     c.queen = q
 
-def goal(queens: list):
+def queens_placed(queens: list):
     assert all([q.placed for q in queens])
 
 if __name__ == "__main__":
-    board = ChessBoard(8)
-    plan = Plan()
-    plan.generate(objects = board.queens + board.cells, actions = [place_queen], goal = partial(goal, board.queens))
+    board = ChessBoard()
+    plan = Plan(objects = board.queens + board.cells, actions = [place_queen, pprint], goal = partial(queens_placed, board.queens))
+    plan.generate()
     board.print()
