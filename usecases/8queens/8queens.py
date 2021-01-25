@@ -55,30 +55,27 @@ from functools import partial
 #         self.plan = plan
 
 class Action:
-    def __init__(self, file: str, tree: AST):
-        self.tree = tree
-        self.file = file
+    def __init__(self, action: function):
+        self.file = os.path.normpath(inspect.getfile(action))
+        source = inspect.getsource(action)
+        self.tree = ast.parse(source)
 
 class Goal:
-    def __init__(self, file: str, tree: AST, args: tuple):
-        self.tree = tree
-        self.file = file
-        self.args = args
+    def __init__(self, goal: partial):
+        self.file = os.path.normpath(inspect.getfile(goal.func))
+        source = inspect.getsource(goal.func)
+        self.tree = ast.parse(source)
+        self.args = goal.args
+        print(astunparse.dump(self.tree))
 
 class Plan:
     def __init__(self, objects: list, actions: list, goal: partial):
         # Actions
         self.actions = []
         for a in actions:
-            file = os.path.normpath(inspect.getfile(a))
-            source = inspect.getsource(a)
-            self.actions.append(Action(file, ast.parse(source)))
+            self.actions.append(Action(a))
         # Goal
-        file = os.path.normpath(inspect.getfile(a))
-        source = inspect.getsource(goal.func)
-        tree = ast.parse(source)
-        self.goal = Goal(file, tree, goal.args)
-        print(astunparse.dump(tree))
+        self.goal = Goal(goal)
 
 
     def generate(self):
