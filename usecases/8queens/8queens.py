@@ -55,7 +55,7 @@ from functools import partial
 #         self.plan = plan
 
 class Action:
-    def __init__(self, action: function):
+    def __init__(self, action):
         self.file = os.path.normpath(inspect.getfile(action))
         source = inspect.getsource(action)
         self.tree = ast.parse(source)
