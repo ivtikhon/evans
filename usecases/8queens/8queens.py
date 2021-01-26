@@ -59,6 +59,10 @@ class Action:
         self.file = os.path.normpath(inspect.getfile(action))
         source = inspect.getsource(action)
         self.tree = ast.parse(source)
+        print(astunparse.dump(self.tree))
+        # for node in ast.walk(self.tree):
+        #     print(node)
+
 
 class Goal:
     def __init__(self, goal: partial):
@@ -179,6 +183,6 @@ def queens_placed(queens: list):
 
 if __name__ == "__main__":
     board = ChessBoard()
-    plan = Plan(objects = board.queens + board.cells, actions = [place_queen, pprint], goal = partial(queens_placed, board.queens))
+    plan = Plan(objects = board.queens + board.cells, actions = [place_queen], goal = partial(queens_placed, board.queens))
     plan.generate()
     board.print()
