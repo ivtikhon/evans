@@ -3,8 +3,8 @@ import string
 import inspect
 import os
 import ast
+from typing import Any
 import astunparse
-from ast import AST
 from pprint import pprint
 from functools import partial
 
@@ -54,11 +54,34 @@ from functools import partial
 #                 raise Exception("FAILURE: Planner found no solution")
 #         self.plan = plan
 
+class NodeNotImplementedException(Exception):
+    def __init__(self, node: str):
+        Exception.__init__(self, node + ' is not implemented')
+
+class EvansNodeVisitor(ast.NodeVisitor):
+    def generic_visit(self, node: ast.AST) -> Any:
+        print(node.__class__)
+        return super().generic_visit(node)
+
+    def visit_UnaryOp(self, node: ast.UnaryOp) -> Any:
+        raise NodeNotImplementedException(type(node).__name__)
+        return super().generic_visit(node)
+
+    def visit_Dict(self, node: ast.Dict) -> Any:
+        raise NodeNotImplementedException(type(node).__name__)
+        return super().generic_visit(node)
+
+    def visit_Name(self, node: ast.Name) -> Any:
+        print(f"Name: {node._fields}")
+        return super().generic_visit(node)
+
 class Action:
     def __init__(self, action):
         self.file = os.path.normpath(inspect.getfile(action))
         source = inspect.getsource(action)
         self.tree = ast.parse(source)
+        # v = EvansNodeVisitor()
+        # v.visit(self.tree)
         print(astunparse.dump(self.tree))
         # for node in ast.walk(self.tree):
         #     print(node)
@@ -70,7 +93,7 @@ class Goal:
         source = inspect.getsource(goal.func)
         self.tree = ast.parse(source)
         self.args = goal.args
-        print(astunparse.dump(self.tree))
+        # print(astunparse.dump(self.tree))
 
 class Plan:
     def __init__(self, objects: list, actions: list, goal: partial):
@@ -177,6 +200,7 @@ def place_queen(q: Queen, c: Cell):
     assert not any([c1.occupied for c1 in c.reacheable])
     q.placed = True
     c.queen = q
+    q = c + 1
 
 def queens_placed(queens: list):
     assert all([q.placed for q in queens])
