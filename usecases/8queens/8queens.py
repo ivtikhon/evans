@@ -59,37 +59,137 @@ class NodeNotImplementedException(Exception):
         Exception.__init__(self, node + ' is not implemented')
 
 class EvansNodeVisitor(ast.NodeVisitor):
+    def __init__(self):
+        self.indent = 0
+
     def generic_visit(self, node: ast.AST) -> Any:
         raise NodeNotImplementedException(type(node).__name__)
-        return super().generic_visit(node)
 
     def visit_arguments(self, node: ast.arguments) -> Any:
-        print(f"arguments: {node._fields}")
-        return super().generic_visit(node)
+        print(f"{'':<{self.indent * 2}}arguments: {node._fields}")
+        self.indent += 1
+        ret = super().generic_visit(node)
+        self.indent -= 1
+        return ret
 
     def visit_arg(self, node: ast.arg) -> Any:
-        print(f"arg: {node.arg}, {node._fields}")
-        return super().generic_visit(node)
+        print(f"{'':<{self.indent * 2}}arg: {node.arg}, {node._fields}")
+        self.indent += 1
+        ret = super().generic_visit(node)
+        self.indent -= 1
+        return ret
 
     def visit_Module(self, node: ast.Module) -> Any:
-        print(f"Module: {node._fields}")
-        return super().generic_visit(node)
+        print(f"{'':<{self.indent * 2}}Module: {node._fields}")
+        self.indent += 1
+        ret = super().generic_visit(node)
+        self.indent -= 1
+        return ret
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> Any:
-        print(f"FunctionDef: {node.name}, {node._fields}")
-        return super().generic_visit(node)
-    
+        print(f"{'':<{self.indent * 2}}FunctionDef: {node.name}, {node._fields}")
+        self.indent += 1
+        ret = super().generic_visit(node)
+        self.indent -= 1
+        return ret
+
     def visit_Assert(self, node: ast.Assert) -> Any:
-        print(f"Assert: {node._fields}")
-        return super().generic_visit(node)
+        print(f"{'':<{self.indent * 2}}Assert: {node._fields}")
+        self.indent += 1
+        ret = super().generic_visit(node)
+        self.indent -= 1
+        return ret
 
     def visit_Name(self, node: ast.Name) -> Any:
-        print(f"Name: {node.id}, {node._fields}")
-        return super().generic_visit(node)
+        print(f"{'':<{self.indent * 2}}Name: {node.id}, {node._fields}")
+        self.indent += 1
+        ret = super().generic_visit(node)
+        self.indent -= 1
+        return ret
+
+    def visit_Constant(self, node: ast.Constant) -> Any:
+        print(f"{'':<{self.indent * 2}}Constant: {node._fields}")
+        self.indent += 1
+        ret = super().generic_visit(node)
+        self.indent -= 1
+        return ret
+
+    def visit_Attribute(self, node: ast.Attribute) -> Any:
+        print(f"{'':<{self.indent * 2}}Attribute: {node.attr}, {node._fields}")
+        self.indent += 1
+        ret = super().generic_visit(node)
+        self.indent -= 1
+        return ret
 
     def visit_Load(self, node: ast.Load) -> Any:
-        print(f"Load: {node._fields}")
-        return super().generic_visit(node)
+        # print(f"{'':<{self.indent * 2}}Load: {node._fields}")
+        self.indent += 1
+        ret = super().generic_visit(node)
+        self.indent -= 1
+        return ret
+
+    def visit_Store(self, node: ast.Store) -> Any:
+        # print(f"{'':<{self.indent * 2}}Store: {node._fields}")
+        self.indent += 1
+        ret = super().generic_visit(node)
+        self.indent -= 1
+        return ret
+
+    def visit_UnaryOp(self, node: ast.UnaryOp) -> Any:
+        print(f"{'':<{self.indent * 2}}UnaryOp: {type(node.op).__name__}, {node._fields}")
+        self.indent += 1
+        ret = super().generic_visit(node)
+        self.indent -= 1
+        return ret
+
+    def visit_Not(self, node: ast.Not) -> Any:
+        print(f"{'':<{self.indent * 2}}Not: {node._fields}")
+        self.indent += 1
+        ret = super().generic_visit(node)
+        self.indent -= 1
+        return ret
+
+    def visit_Compare(self, node: ast.Compare) -> Any:
+        print(f"{'':<{self.indent * 2}}Compare: {list(map(lambda op: type(op).__name__, node.ops))}, {node._fields}")
+        self.indent += 1
+        ret = super().generic_visit(node)
+        self.indent -= 1
+        return ret
+
+    def visit_Eq(self, node: ast.Eq) -> Any:
+        print(f"{'':<{self.indent * 2}}Eq: {node._fields}")
+        self.indent += 1
+        ret = super().generic_visit(node)
+        self.indent -= 1
+        return ret
+
+    def visit_Call(self, node: ast.Call) -> Any:
+        print(f"{'':<{self.indent * 2}}Call: {type(node.func).__name__}, {node._fields}")
+        self.indent += 1
+        ret = super().generic_visit(node)
+        self.indent -= 1
+        return ret
+
+    def visit_Assign(self, node: ast.Assign) -> Any:
+        print(f"{'':<{self.indent * 2}}Assign: {node._fields}")
+        self.indent += 1
+        ret = super().generic_visit(node)
+        self.indent -= 1
+        return ret
+
+    def visit_ListComp(self, node: ast.ListComp) -> Any:
+        print(f"{'':<{self.indent * 2}}ListComp: {node._fields}")
+        self.indent += 1
+        ret = super().generic_visit(node)
+        self.indent -= 1
+        return ret
+
+    def visit_comprehension(self, node: ast.comprehension) -> Any:
+        print(f"{'':<{self.indent * 2}}comprehension: {node._fields}")
+        self.indent += 1
+        ret = super().generic_visit(node)
+        self.indent -= 1
+        return ret
 
 class Action:
     def __init__(self, action):
