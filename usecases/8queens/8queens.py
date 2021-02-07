@@ -60,19 +60,35 @@ class NodeNotImplementedException(Exception):
 
 class EvansNodeVisitor(ast.NodeVisitor):
     def generic_visit(self, node: ast.AST) -> Any:
-        print(node.__class__)
-        return super().generic_visit(node)
-
-    def visit_UnaryOp(self, node: ast.UnaryOp) -> Any:
         raise NodeNotImplementedException(type(node).__name__)
         return super().generic_visit(node)
 
-    def visit_Dict(self, node: ast.Dict) -> Any:
-        raise NodeNotImplementedException(type(node).__name__)
+    def visit_arguments(self, node: ast.arguments) -> Any:
+        print(f"arguments: {node._fields}")
+        return super().generic_visit(node)
+
+    def visit_arg(self, node: ast.arg) -> Any:
+        print(f"arg: {node.arg}, {node._fields}")
+        return super().generic_visit(node)
+
+    def visit_Module(self, node: ast.Module) -> Any:
+        print(f"Module: {node._fields}")
+        return super().generic_visit(node)
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> Any:
+        print(f"FunctionDef: {node.name}, {node._fields}")
+        return super().generic_visit(node)
+    
+    def visit_Assert(self, node: ast.Assert) -> Any:
+        print(f"Assert: {node._fields}")
         return super().generic_visit(node)
 
     def visit_Name(self, node: ast.Name) -> Any:
-        print(f"Name: {node._fields}")
+        print(f"Name: {node.id}, {node._fields}")
+        return super().generic_visit(node)
+
+    def visit_Load(self, node: ast.Load) -> Any:
+        print(f"Load: {node._fields}")
         return super().generic_visit(node)
 
 class Action:
@@ -80,11 +96,9 @@ class Action:
         self.file = os.path.normpath(inspect.getfile(action))
         source = inspect.getsource(action)
         self.tree = ast.parse(source)
-        # v = EvansNodeVisitor()
-        # v.visit(self.tree)
-        print(astunparse.dump(self.tree))
-        # for node in ast.walk(self.tree):
-        #     print(node)
+        v = EvansNodeVisitor()
+        v.visit(self.tree)
+        # print(astunparse.dump(self.tree))
 
 
 class Goal:
