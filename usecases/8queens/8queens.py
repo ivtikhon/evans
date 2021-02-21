@@ -4,7 +4,7 @@ import inspect
 import os
 import ast
 from typing import Any
-import astunparse
+# import astunparse
 from pprint import pprint
 from functools import partial
 
@@ -58,153 +58,168 @@ class NodeNotImplementedException(Exception):
     def __init__(self, node: str):
         Exception.__init__(self, node + ' is not implemented')
 
+class FunctionArgAnnotationMissingException(Exception):
+    def __init__(self, arg: str):
+        Exception.__init__(self, f'Function {self.func},  argument {arg}: type annotation is missing')
+
 class EvansNodeVisitor(ast.NodeVisitor):
     def __init__(self):
         self.indent = 0
+        self.vars = {}
+        self.func = None
+        self.debug = True
     
     def generic_visit(self, node: ast.AST) -> Any:
         raise NodeNotImplementedException(type(node).__name__)
 
     def visit_arguments(self, node: ast.arguments) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-        self.indent += 1
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            self.indent += 1
         ret = super().generic_visit(node)
-        self.indent -= 1
+        if self.debug:
+            self.indent -= 1
         return ret
 
-    def visit_arg(self, node: ast.arg) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.arg}, {node._fields}")
-        self.indent += 1
-        ret = super().generic_visit(node)
-        self.indent -= 1
-        return ret
+    # Leaf node
+    def visit_arg(self, node: ast.arg) -> None:
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.arg} {'<' + node.annotation.id + '>' if node.annotation else ''}, {node._fields}")
+        if not node.annotation:
+            raise FunctionArgAnnotationMissingException(node.arg)
+        self.vars[node.arg] = {'class': node.annotation.id}
 
     def visit_Module(self, node: ast.Module) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-        self.indent += 1
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            self.indent += 1
         ret = super().generic_visit(node)
-        self.indent -= 1
+        if self.debug:
+            self.indent -= 1
         return ret
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.name}, {node._fields}")
-        self.indent += 1
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.name}, {node._fields}")
+            self.indent += 1
+        self.func = node.name
         ret = super().generic_visit(node)
-        self.indent -= 1
+        if self.debug:
+            self.indent -= 1
         return ret
 
     def visit_Assert(self, node: ast.Assert) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-        self.indent += 1
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            self.indent += 1
         ret = super().generic_visit(node)
-        self.indent -= 1
+        if self.debug:
+            self.indent -= 1
         return ret
 
-    def visit_Name(self, node: ast.Name) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.id} <{type(node.ctx).__name__}>, {node._fields}")
-        # self.indent += 1
-        # ret = super().generic_visit(node)
-        # self.indent -= 1
-        # return ret
-        # return node.id
+    # Leaf node
+    def visit_Name(self, node: ast.Name) -> None:
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.id} <{type(node.ctx).__name__}>, {node._fields}")
 
-    def visit_Constant(self, node: ast.Constant) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.value}, {node._fields}")
-        self.indent += 1
-        ret = super().generic_visit(node)
-        self.indent -= 1
-        return ret
+    # Leaf node
+    def visit_Constant(self, node: ast.Constant) -> None:
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.value}, {node._fields}")
 
-    def visit_Attribute(self, node: ast.Attribute) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.value.id}.{node.attr} <{type(node.ctx).__name__}>, {node._fields}")
-        # print(f"value {node.value}")
-        # self.indent += 1
-        # ret = super().generic_visit(node)
-        # self.indent -= 1
-        # return ret
-
-    # def visit_Load(self, node: ast.Load) -> Any:
-    #     print(f"{'':<{self.indent * 2}}Load: {node._fields}")
-    #     self.indent += 1
-    #     ret = super().generic_visit(node)
-    #     self.indent -= 1
-    #     return ret
-
-    # def visit_Store(self, node: ast.Store) -> Any:
-    #     print(f"{'':<{self.indent * 2}}Store: {node._fields}")
-    #     self.indent += 1
-    #     ret = super().generic_visit(node)
-    #     self.indent -= 1
-    #     return ret
+    # Lef node
+    def visit_Attribute(self, node: ast.Attribute) -> None:
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.value.id}.{node.attr} <{type(node.ctx).__name__}>, {node._fields}")
 
     def visit_UnaryOp(self, node: ast.UnaryOp) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {type(node.op).__name__}, {node._fields}")
-        self.indent += 1
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            self.indent += 1
         ret = super().generic_visit(node)
-        self.indent -= 1
+        if self.debug:
+            self.indent -= 1
         return ret
 
     def visit_Not(self, node: ast.Not) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-        self.indent += 1
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            self.indent += 1
         ret = super().generic_visit(node)
-        self.indent -= 1
+        if self.debug:
+            self.indent -= 1
         return ret
 
     def visit_Compare(self, node: ast.Compare) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {list(map(lambda op: type(op).__name__, node.ops))}, {node._fields}")
-        self.indent += 1
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {list(map(lambda op: type(op).__name__, node.ops))}, {node._fields}")
+            self.indent += 1
         ret = super().generic_visit(node)
-        self.indent -= 1
+        if self.debug:
+            self.indent -= 1
         return ret
 
     def visit_Eq(self, node: ast.Eq) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-        self.indent += 1
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            self.indent += 1
         ret = super().generic_visit(node)
-        self.indent -= 1
+        if self.debug:
+            self.indent -= 1
         return ret
 
     def visit_BinOp(self, node: ast.BinOp) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {type(node.op).__name__}, {node._fields}")
-        self.indent += 1
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            self.indent += 1
         ret = super().generic_visit(node)
-        self.indent -= 1
+        if self.debug:
+            self.indent -= 1
         return ret
 
     def visit_Add(self, node: ast.Add) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-        self.indent += 1
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            self.indent += 1
         ret = super().generic_visit(node)
-        self.indent -= 1
+        if self.debug:
+            self.indent -= 1
         return ret
 
     def visit_Call(self, node: ast.Call) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {type(node.func).__name__}, {node._fields}")
-        self.indent += 1
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {type(node.func).__name__}, {node._fields}")
+            self.indent += 1
         ret = super().generic_visit(node)
-        self.indent -= 1
+        if self.debug:
+            self.indent -= 1
         return ret
 
     def visit_Assign(self, node: ast.Assign) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-        self.indent += 1
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            self.indent += 1
         ret = super().generic_visit(node)
-        self.indent -= 1
+        if self.debug:
+            self.indent -= 1
         return ret
 
     def visit_ListComp(self, node: ast.ListComp) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-        self.indent += 1
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            self.indent += 1
         ret = super().generic_visit(node)
-        self.indent -= 1
+        if self.debug:
+            self.indent -= 1
         return ret
 
     def visit_comprehension(self, node: ast.comprehension) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-        self.indent += 1
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            self.indent += 1
         ret = super().generic_visit(node)
-        self.indent -= 1
+        if self.debug:
+            self.indent -= 1
         return ret
 
 class Action:
@@ -214,8 +229,8 @@ class Action:
         self.tree = ast.parse(source)
         v = EvansNodeVisitor()
         v.visit(self.tree)
+        pprint(v.vars)
         # print(astunparse.dump(self.tree))
-
 
 class Goal:
     def __init__(self, goal: partial):
