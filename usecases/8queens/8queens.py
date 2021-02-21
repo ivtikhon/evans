@@ -109,7 +109,7 @@ class EvansNodeVisitor(ast.NodeVisitor):
         # return node.id
 
     def visit_Constant(self, node: ast.Constant) -> Any:
-        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+        print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.value}, {node._fields}")
         self.indent += 1
         ret = super().generic_visit(node)
         self.indent -= 1
