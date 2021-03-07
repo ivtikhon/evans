@@ -7,6 +7,7 @@ from typing import Any
 import astunparse
 from pprint import pprint
 from functools import partial
+from functools import wraps
 
 # class Plan:
 #     def __init__(self, domain_file, problem_file):
@@ -53,6 +54,7 @@ from functools import partial
 #             else:
 #                 raise Exception("FAILURE: Planner found no solution")
 #         self.plan = plan
+
 
 class NodeNotImplementedException(Exception):
     def __init__(self, node: str):
@@ -246,7 +248,8 @@ class EvansNodeVisitor(ast.NodeVisitor):
 class Action:
     def __init__(self, action):
         self.file = os.path.normpath(inspect.getfile(action))
-        source = inspect.getsource(action)
+        func = inspect.unwrap(action) if hasattr(action, '__wrapped__') else action
+        source = inspect.getsource(func)
         self.tree = ast.parse(source)
         v = EvansNodeVisitor()
         v.visit(self.tree)
@@ -367,17 +370,25 @@ class ChessBoard:
                 print(content, end=' ')
             print('')
 
-def action(func):
-    def wrapper(*args, **kwargs):
-        print(args)
-        func(*args, **kwargs)
-    return wrapper
 
-@action
+def attachfunc(func):
+    def decorator(act):
+        @wraps(act)
+        def wrapper(*args, **kwargs):
+            act(*args, **kwargs)
+            func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+def action(q: Queen, c: Cell):
+    pprint(q)
+    pprint(c)
+
+@attachfunc(action)
 def place_queen(q: Queen, c: Cell):
     assert not q.placed
     assert c.queen == None
-    assert not any([c1.occupied for c1 in c.reacheable])
+    assert not any([c1.queen for c1 in c.reacheable])
     q.placed = True
     c.queen = q
 
@@ -387,5 +398,7 @@ def queens_placed(queens: list):
 if __name__ == "__main__":
     board = ChessBoard()
     plan = Plan(objects = board.queens + board.cells, actions = [place_queen], goal = partial(queens_placed, board.queens))
+    board.cells[0].queen = board.queens[0]
+    place_queen(board.queens[0], board.cells[0])
     # plan.generate()
     # board.print()
