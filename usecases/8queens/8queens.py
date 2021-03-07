@@ -4,7 +4,7 @@ import inspect
 import os
 import ast
 from typing import Any
-# import astunparse
+import astunparse
 from pprint import pprint
 from functools import partial
 
@@ -60,7 +60,7 @@ class NodeNotImplementedException(Exception):
 
 class FunctionArgAnnotationMissingException(Exception):
     def __init__(self, arg: str):
-        Exception.__init__(self, f'Function {self.func},  argument {arg}: type annotation is missing')
+        Exception.__init__(self, f'Function argument {arg}: type annotation is missing')
 
 class EvansNodeVisitor(ast.NodeVisitor):
     def __init__(self):
@@ -69,7 +69,7 @@ class EvansNodeVisitor(ast.NodeVisitor):
         self.func = None
         self.debug = True
         self.first_pass = True
-        self.visiting_assert = False
+        self.visitor_stack = []
     
     def generic_visit(self, node: ast.AST)-> None:
         raise NodeNotImplementedException(type(node).__name__)
@@ -78,7 +78,9 @@ class EvansNodeVisitor(ast.NodeVisitor):
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
             self.indent += 1
+        self.visitor_stack.append(node)
         super().generic_visit(node)
+        self.visitor_stack.pop()
         if self.debug:
             self.indent -= 1
 
@@ -95,7 +97,9 @@ class EvansNodeVisitor(ast.NodeVisitor):
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
             self.indent += 1
+        self.visitor_stack.append(node)
         super().generic_visit(node)
+        self.visitor_stack.pop()
         if self.debug:
             self.indent -= 1
 
@@ -104,7 +108,9 @@ class EvansNodeVisitor(ast.NodeVisitor):
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.name}, {node._fields}")
             self.indent += 1
         self.func = node.name
+        self.visitor_stack.append(node)
         super().generic_visit(node)
+        self.visitor_stack.pop()
         if self.debug:
             self.indent -= 1
 
@@ -112,15 +118,9 @@ class EvansNodeVisitor(ast.NodeVisitor):
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
             self.indent += 1
-        
-        # First pass: collect information about variables used in assert statements
-        if self.first_pass:
-            self.visiting_assert = True
+        self.visitor_stack.append(node)
         super().generic_visit(node)
-        
-        if self.first_pass:
-            self.visiting_assert = False
-
+        self.visitor_stack.pop()
         if self.debug:
             self.indent -= 1
 
@@ -129,7 +129,7 @@ class EvansNodeVisitor(ast.NodeVisitor):
         name = node.id
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {name} <{type(node.ctx).__name__}>, {node._fields}")
-        if self.first_pass and self.visiting_assert:
+        if self.first_pass and type(self.visitor_stack[-1]) in [ast.BinOp, ast.UnaryOp, ast.ListComp, ast.comprehension, ast.Compare, ast.Assign]:
             if name not in self.vars:
                 self.vars[name] = {'type': 'var'}
 
@@ -147,7 +147,9 @@ class EvansNodeVisitor(ast.NodeVisitor):
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
             self.indent += 1
+        self.visitor_stack.append(node)
         super().generic_visit(node)
+        self.visitor_stack.pop()
         if self.debug:
             self.indent -= 1
 
@@ -155,7 +157,9 @@ class EvansNodeVisitor(ast.NodeVisitor):
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
             self.indent += 1
+        self.visitor_stack.append(node)
         super().generic_visit(node)
+        self.visitor_stack.pop()
         if self.debug:
             self.indent -= 1
 
@@ -163,7 +167,9 @@ class EvansNodeVisitor(ast.NodeVisitor):
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {list(map(lambda op: type(op).__name__, node.ops))}, {node._fields}")
             self.indent += 1
+        self.visitor_stack.append(node)
         super().generic_visit(node)
+        self.visitor_stack.pop()
         if self.debug:
             self.indent -= 1
 
@@ -171,7 +177,9 @@ class EvansNodeVisitor(ast.NodeVisitor):
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
             self.indent += 1
+        self.visitor_stack.append(node)
         super().generic_visit(node)
+        self.visitor_stack.pop()
         if self.debug:
             self.indent -= 1
 
@@ -179,7 +187,9 @@ class EvansNodeVisitor(ast.NodeVisitor):
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
             self.indent += 1
+        self.visitor_stack.append(node)
         super().generic_visit(node)
+        self.visitor_stack.pop()
         if self.debug:
             self.indent -= 1
 
@@ -187,15 +197,19 @@ class EvansNodeVisitor(ast.NodeVisitor):
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
             self.indent += 1
+        self.visitor_stack.append(node)
         super().generic_visit(node)
+        self.visitor_stack.pop()
         if self.debug:
             self.indent -= 1
 
     def visit_Call(self, node: ast.Call)-> None:
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {type(node.func).__name__}, {node._fields}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
             self.indent += 1
+        self.visitor_stack.append(node)
         super().generic_visit(node)
+        self.visitor_stack.pop()
         if self.debug:
             self.indent -= 1
 
@@ -203,7 +217,9 @@ class EvansNodeVisitor(ast.NodeVisitor):
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
             self.indent += 1
+        self.visitor_stack.append(node)
         super().generic_visit(node)
+        self.visitor_stack.pop()
         if self.debug:
             self.indent -= 1
 
@@ -211,7 +227,9 @@ class EvansNodeVisitor(ast.NodeVisitor):
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
             self.indent += 1
+        self.visitor_stack.append(node)
         super().generic_visit(node)
+        self.visitor_stack.pop()
         if self.debug:
             self.indent -= 1
 
@@ -219,7 +237,9 @@ class EvansNodeVisitor(ast.NodeVisitor):
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
             self.indent += 1
+        self.visitor_stack.append(node)
         super().generic_visit(node)
+        self.visitor_stack.pop()
         if self.debug:
             self.indent -= 1
 
@@ -249,7 +269,6 @@ class Plan:
             self.actions.append(Action(a))
         # Goal
         self.goal = Goal(goal)
-
 
     def generate(self):
         pass
@@ -348,13 +367,19 @@ class ChessBoard:
                 print(content, end=' ')
             print('')
 
+def action(func):
+    def wrapper(*args, **kwargs):
+        print(args)
+        func(*args, **kwargs)
+    return wrapper
+
+@action
 def place_queen(q: Queen, c: Cell):
     assert not q.placed
     assert c.queen == None
     assert not any([c1.occupied for c1 in c.reacheable])
     q.placed = True
     c.queen = q
-    q = c + 1 # test
 
 def queens_placed(queens: list):
     assert all([q.placed for q in queens])
@@ -362,5 +387,5 @@ def queens_placed(queens: list):
 if __name__ == "__main__":
     board = ChessBoard()
     plan = Plan(objects = board.queens + board.cells, actions = [place_queen], goal = partial(queens_placed, board.queens))
-    plan.generate()
-    board.print()
+    # plan.generate()
+    # board.print()
