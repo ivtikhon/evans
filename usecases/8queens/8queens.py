@@ -67,183 +67,142 @@ class FunctionArgAnnotationMissingException(Exception):
 class EvansNodeVisitor(ast.NodeVisitor):
     def __init__(self):
         self.indent = 0
-        self.vars = {}
         self.func = None
         self.debug = True
-        self.first_pass = True
-        self.visitor_stack = []
+        self.current_node = None
+        self.vars = {}
+        self.statement_list = []
     
+    def visit_node(self, node: ast.AST):
+        if self.debug:
+            self.indent += 1
+        current_node = self.current_node
+        self.current_node = node
+        super().generic_visit(node)
+        self.current_node = current_node
+        if self.debug:
+            self.indent -= 1
+
     def generic_visit(self, node: ast.AST)-> None:
         raise NodeNotImplementedException(type(node).__name__)
 
     def visit_arguments(self, node: ast.arguments)-> None:
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-            self.indent += 1
-        self.visitor_stack.append(node)
-        super().generic_visit(node)
-        self.visitor_stack.pop()
-        if self.debug:
-            self.indent -= 1
+        self.visit_node(node)
 
-    # Leaf node
     def visit_arg(self, node: ast.arg) -> None:
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.arg} {'<' + node.annotation.id + '>' if node.annotation else ''}, {node._fields}")
         if not node.annotation:
             raise FunctionArgAnnotationMissingException(node.arg)
-        if self.first_pass:
-            self.vars[node.arg] = {'class': node.annotation.id, 'type': 'arg'}
+        self.vars[node.arg] = {'class': node.annotation.id, 'type': 'arg'}
+        self.visit_node(node)
 
     def visit_Module(self, node: ast.Module)-> None:
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-            self.indent += 1
-        self.visitor_stack.append(node)
-        super().generic_visit(node)
-        self.visitor_stack.pop()
-        if self.debug:
-            self.indent -= 1
+        self.visit_node(node)
 
     def visit_FunctionDef(self, node: ast.FunctionDef)-> None:
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.name}, {node._fields}")
-            self.indent += 1
         self.func = node.name
-        self.visitor_stack.append(node)
-        super().generic_visit(node)
-        self.visitor_stack.pop()
-        if self.debug:
-            self.indent -= 1
+        decorator_list = node.decorator_list
+        node.decorator_list = None
+        self.statement_list.append(node)
+        self.visit_node(node)
+        node.decorator_list = decorator_list
 
     def visit_Assert(self, node: ast.Assert)-> None:
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-            self.indent += 1
-        self.visitor_stack.append(node)
-        super().generic_visit(node)
-        self.visitor_stack.pop()
-        if self.debug:
-            self.indent -= 1
+        self.statement_list.append(node)
+        self.visit_node(node)
 
-    # Leaf node
     def visit_Name(self, node: ast.Name) -> None:
         name = node.id
+        parent_node = self.current_node
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {name} <{type(node.ctx).__name__}>, {node._fields}")
-        if self.first_pass and type(self.visitor_stack[-1]) in [ast.BinOp, ast.UnaryOp, ast.ListComp, ast.comprehension, ast.Compare, ast.Assign]:
+        # We don't visit child nodes because these are either Load, or Store, or Delete
+        if type(parent_node) in [ast.BinOp, ast.UnaryOp, ast.ListComp, ast.Compare, ast.Assign, ast.Call]:
             if name not in self.vars:
-                self.vars[name] = {'type': 'var'}
-
+                self.vars[name] = {'type': 'global'}
+        elif type(parent_node) == ast.comprehension:
+            self.vars[name] = {'type': 'local'}
+   
     # Leaf node
     def visit_Constant(self, node: ast.Constant) -> None:
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.value}, {node._fields}")
 
-    # Lef node
     def visit_Attribute(self, node: ast.Attribute) -> None:
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.value.id}.{node.attr} <{type(node.ctx).__name__}>, {node._fields}")
+        self.visit_node(node)
 
     def visit_UnaryOp(self, node: ast.UnaryOp)-> None:
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-            self.indent += 1
-        self.visitor_stack.append(node)
-        super().generic_visit(node)
-        self.visitor_stack.pop()
-        if self.debug:
-            self.indent -= 1
+        self.visit_node(node)
 
     def visit_Not(self, node: ast.Not)-> None:
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-            self.indent += 1
-        self.visitor_stack.append(node)
-        super().generic_visit(node)
-        self.visitor_stack.pop()
-        if self.debug:
-            self.indent -= 1
+        self.visit_node(node)
 
     def visit_Compare(self, node: ast.Compare)-> None:
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {list(map(lambda op: type(op).__name__, node.ops))}, {node._fields}")
-            self.indent += 1
-        self.visitor_stack.append(node)
-        super().generic_visit(node)
-        self.visitor_stack.pop()
-        if self.debug:
-            self.indent -= 1
+        self.visit_node(node)
 
     def visit_Eq(self, node: ast.Eq)-> None:
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-            self.indent += 1
-        self.visitor_stack.append(node)
-        super().generic_visit(node)
-        self.visitor_stack.pop()
-        if self.debug:
-            self.indent -= 1
+        self.visit_node(node)
 
     def visit_BinOp(self, node: ast.BinOp)-> None:
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-            self.indent += 1
-        self.visitor_stack.append(node)
-        super().generic_visit(node)
-        self.visitor_stack.pop()
-        if self.debug:
-            self.indent -= 1
+        self.visit_node(node)
 
     def visit_Add(self, node: ast.Add)-> None:
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-            self.indent += 1
-        self.visitor_stack.append(node)
-        super().generic_visit(node)
-        self.visitor_stack.pop()
-        if self.debug:
-            self.indent -= 1
+        self.visit_node(node)
 
     def visit_Call(self, node: ast.Call)-> None:
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-            self.indent += 1
-        self.visitor_stack.append(node)
-        super().generic_visit(node)
-        self.visitor_stack.pop()
-        if self.debug:
-            self.indent -= 1
+        self.visit_node(node)
 
     def visit_Assign(self, node: ast.Assign)-> None:
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-            self.indent += 1
-        self.visitor_stack.append(node)
-        super().generic_visit(node)
-        self.visitor_stack.pop()
-        if self.debug:
-            self.indent -= 1
+        self.statement_list.append(node)
+        self.visit_node(node)
 
     def visit_ListComp(self, node: ast.ListComp)-> None:
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-            self.indent += 1
-        self.visitor_stack.append(node)
-        super().generic_visit(node)
-        self.visitor_stack.pop()
-        if self.debug:
-            self.indent -= 1
+        self.statement_list.append(node)
+        self.visit_node(node)
 
     def visit_comprehension(self, node: ast.comprehension)-> None:
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-            self.indent += 1
-        self.visitor_stack.append(node)
-        super().generic_visit(node)
-        self.visitor_stack.pop()
+        self.visit_node(node)
+
+    # Lef node
+    def visit_Load(self, node: ast.Load)-> None:
         if self.debug:
-            self.indent -= 1
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+
+    # Lef node
+    def visit_Store(self, node: ast.Store)-> None:
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
 
 class Action:
     def __init__(self, action):
@@ -381,8 +340,7 @@ def attachfunc(func):
     return decorator
 
 def action(q: Queen, c: Cell):
-    pprint(q)
-    pprint(c)
+    pass
 
 @attachfunc(action)
 def place_queen(q: Queen, c: Cell):
