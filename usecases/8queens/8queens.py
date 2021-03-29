@@ -64,6 +64,11 @@ class FunctionArgAnnotationMissingException(Exception):
     def __init__(self, arg: str):
         Exception.__init__(self, f'Function argument {arg}: type annotation is missing')
 
+class NodeNotSupportedException(Exception):
+    def __init__(self, node: str):
+        Exception.__init__(self, node + ' is not supported in this context')
+
+
 class EvansNodeVisitor(ast.NodeVisitor):
     def __init__(self):
         self.indent = 0
@@ -126,11 +131,18 @@ class EvansNodeVisitor(ast.NodeVisitor):
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {name} <{type(node.ctx).__name__}>, {node._fields}")
         # We don't visit child nodes because these are either Load, or Store, or Delete
-        if type(parent_node) in [ast.BinOp, ast.UnaryOp, ast.ListComp, ast.Compare, ast.Assign, ast.Call]:
+        if type(node.ctx) == ast.Load and type(parent_node) in [ast.Attribute, ast.BinOp, ast.UnaryOp, ast.ListComp, 
+                                                                ast.Compare, ast.Call, ast.Expr, ast.List,
+                                                                ast.Dict, ast.Tuple, ast.Assign]:
             if name not in self.vars:
                 self.vars[name] = {'type': 'global'}
-        elif type(parent_node) == ast.comprehension:
+        elif type(node.ctx) == ast.Load and type(parent_node) == ast.arg:
+            pass
+        elif type(node.ctx) == ast.Store and type(parent_node) in [ast.comprehension, ast.Assign, ast.List, ast.Dict, ast.Tuple, ast.For]:
             self.vars[name] = {'type': 'local'}
+        else:
+            raise NodeNotSupportedException(type(node).__name__)
+
    
     # Leaf node
     def visit_Constant(self, node: ast.Constant) -> None:
