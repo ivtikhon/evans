@@ -77,6 +77,7 @@ class EvansNodeVisitor(ast.NodeVisitor):
         self.current_node = None
         self.vars = {}
         self.statement_list = []
+        self.globals = globals()
     
     def visit_node(self, node: ast.AST):
         if self.debug:
@@ -113,6 +114,7 @@ class EvansNodeVisitor(ast.NodeVisitor):
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.name}, {node._fields}")
         self.func = node.name
+        # We don't want to parse decorator lists
         decorator_list = node.decorator_list
         node.decorator_list = None
         self.statement_list.append(node)
@@ -129,20 +131,25 @@ class EvansNodeVisitor(ast.NodeVisitor):
         name = node.id
         parent_node = self.current_node
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {name} <{type(node.ctx).__name__}>, {node._fields}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {name} <{type(node.ctx).__name__}>, {node._fields}; line {node.lineno}")
         # We don't visit child nodes because these are either Load, or Store, or Delete
         if type(node.ctx) == ast.Load and type(parent_node) in [ast.Attribute, ast.BinOp, ast.UnaryOp, ast.ListComp, 
-                                                                ast.Compare, ast.Call, ast.Expr, ast.List,
+                                                                ast.Compare, ast.Expr, ast.List,
                                                                 ast.Dict, ast.Tuple, ast.Assign]:
-            if name not in self.vars:
-                self.vars[name] = {'type': 'global'}
+            if name not in self.vars: 
+                if name in self.globals:
+                    self.vars[name] = {'type': 'global'}
+                else:
+                    raise NameError(f"name '{name}' is not defined")
+        elif type(node.ctx) == ast.Load and type(parent_node) == ast.Call:
+            if name not in ['any', 'all']:
+                NodeNotSupportedException(type(node).__name__)
         elif type(node.ctx) == ast.Load and type(parent_node) == ast.arg:
             pass
         elif type(node.ctx) == ast.Store and type(parent_node) in [ast.comprehension, ast.Assign, ast.List, ast.Dict, ast.Tuple, ast.For]:
             self.vars[name] = {'type': 'local'}
         else:
             raise NodeNotSupportedException(type(node).__name__)
-
    
     # Leaf node
     def visit_Constant(self, node: ast.Constant) -> None:
@@ -197,13 +204,20 @@ class EvansNodeVisitor(ast.NodeVisitor):
 
     def visit_ListComp(self, node: ast.ListComp)-> None:
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields} {type(node._fields)}")
         self.statement_list.append(node)
+        # An ugly workaround to make the visitor parsing generators first.
+        # In list comrehensions, variables are used before formal definition.
+        fields = node._fields
+        node._fields = fields[::-1]
         self.visit_node(node)
+        node._fields = fields
 
     def visit_comprehension(self, node: ast.comprehension)-> None:
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+        if node.is_async == True:
+            NodeNotSupportedException(type(node).__name__)
         self.visit_node(node)
 
     # Lef node
