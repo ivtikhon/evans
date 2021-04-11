@@ -160,6 +160,9 @@ class EvansNodeVisitor(ast.NodeVisitor):
         if self.debug:
             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.value.id}.{node.attr} <{type(node.ctx).__name__}>, {node._fields}")
         self.visit_node(node)
+        if 'attr' not in self.vars[node.value.id]:
+            self.vars[node.value.id]['attr'] = {}
+        self.vars[node.value.id]['attr'][node.attr] = None
 
     def visit_UnaryOp(self, node: ast.UnaryOp)-> None:
         if self.debug:
