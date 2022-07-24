@@ -6,7 +6,7 @@ import ast
 from typing import Any
 # import astunparse
 import astpretty
-from pprint import pprint
+import pprint
 from functools import partial
 
 
@@ -85,33 +85,39 @@ class LipsNodeVisitor(ast.NodeVisitor):
             self.indent -= 1
 
     def generic_visit(self, node: ast.AST)-> None:
-        # raise NodeNotImplementedException(type(node).__name__)
-        if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
-        self.visit_node(node)
+        raise NodeNotImplementedException(type(node).__name__)
+        # if self.debug:
+        #     print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+        # self.visit_node(node)
 
     def visit_arguments(self, node: ast.arguments)-> None:
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}:")
         self.visit_node(node)
 
     def visit_arg(self, node: ast.arg) -> None:
-        if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.arg} {'<' + node.annotation.id + '>' if node.annotation else ''}, {node._fields}")
         # if not node.annotation:
         #     raise FunctionArgAnnotationMissingException(node.arg)
-        # if self.first_pass:
-        #     self.vars[node.arg] = {'class': node.annotation.id, 'type': 'arg'}
+        cls = None
+        if node.annotation:
+            if isinstance(node.annotation, ast.Constant):
+                cls = node.annotation.value
+            else:
+                cls = node.annotation.id
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.arg} <{cls if cls else 'None'}>")
+        if self.first_pass:
+            self.vars[node.arg] = {'class': cls, 'type': 'arg'}
         self.visit_node(node)
 
     def visit_Module(self, node: ast.Module)-> None:
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}")
         self.visit_node(node)
 
     def visit_FunctionDef(self, node: ast.FunctionDef)-> None:
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.name}, {node._fields}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.name}")
         self.func = node.name
         if self.first_pass:
             # There is no need to parse decorator lists
@@ -122,9 +128,14 @@ class LipsNodeVisitor(ast.NodeVisitor):
         if self.first_pass:
             node.decorator_list = decorator_list
 
+    def visit_ClassDef(self, node: ast.AST)-> None:
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.name}")
+        self.visit_node(node)
+
     def visit_Assert(self, node: ast.Assert)-> None:
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}:")
         if self.first_pass:
             self.statement_list.append(node)
         self.visit_node(node)
@@ -133,8 +144,7 @@ class LipsNodeVisitor(ast.NodeVisitor):
         name = node.id
         parent_node = self.current_node
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {name} <{type(node.ctx).__name__}>, {node._fields}; line {node.lineno}")
-        # We don't visit child nodes because these are either Load, or Store, or Delete
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {name} <{type(node.ctx).__name__}>")
         if self.first_pass:
             if type(node.ctx) == ast.Load and type(parent_node) in [ast.Attribute, ast.BinOp, ast.UnaryOp, ast.ListComp, 
                                                                     ast.Compare, ast.Expr, ast.List,
@@ -153,17 +163,18 @@ class LipsNodeVisitor(ast.NodeVisitor):
                 self.vars[name] = {'type': 'local'}
             else:
                 NodeNotSupportedException(type(node).__name__)
-        return None
+        self.visit_node(node)
    
     # Leaf node
     def visit_Constant(self, node: ast.Constant) -> None:
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.value}, {node._fields}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.value}")
+        self.visit_node(node)
 
     def visit_Attribute(self, node: ast.Attribute) -> None:
         parent_node = self.current_node
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.attr} <{type(node.ctx).__name__}>, {node._fields}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node.attr} <{type(node.ctx).__name__}>")
         self.visit_node(node)
         if self.first_pass:
             if 'attr' not in self.vars[node.value.id]:
@@ -172,53 +183,58 @@ class LipsNodeVisitor(ast.NodeVisitor):
 
     def visit_UnaryOp(self, node: ast.UnaryOp)-> None:
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}:")
         self.visit_node(node)
 
     def visit_Not(self, node: ast.Not)-> None:
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}:")
         self.visit_node(node)
 
     def visit_Compare(self, node: ast.Compare)-> None:
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {list(map(lambda op: type(op).__name__, node.ops))}, {node._fields}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {list(map(lambda op: type(op).__name__, node.ops))}")
         self.visit_node(node)
 
     def visit_Eq(self, node: ast.Eq)-> None:
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}:")
+        self.visit_node(node)
+
+    def visit_NotEq(self, node: ast.Eq)-> None:
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}:")
         self.visit_node(node)
 
     def visit_BinOp(self, node: ast.BinOp)-> None:
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}:")
         self.visit_node(node)
 
     def visit_Add(self, node: ast.Add)-> None:
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}:")
         self.visit_node(node)
 
     def visit_Call(self, node: ast.Call)-> None:
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}:")
         self.visit_node(node)
 
     def visit_Assign(self, node: ast.Assign)-> None:
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}:")
         if self.first_pass:
             self.statement_list.append(node)
         self.visit_node(node)
 
     def visit_ListComp(self, node: ast.ListComp)-> None:
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields} {type(node._fields)}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}:")
         if self.first_pass:
             self.statement_list.append(node)
-            # An ugly workaround to make the visitor parsing generators first.
-            # In list comrehensions, variables are used before formal definition.
+            # It's a workaround to make the visitor parsing generators first.
+            # Variables in list comrehensions are used before formal definition.
             fields = node._fields
             node._fields = fields[::-1]
         self.visit_node(node)
@@ -227,20 +243,33 @@ class LipsNodeVisitor(ast.NodeVisitor):
 
     def visit_comprehension(self, node: ast.comprehension)-> None:
         if self.debug:
-            print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}:")
         if node.is_async == True:
             NodeNotSupportedException(type(node).__name__)
         self.visit_node(node)
 
-#     # Leaf node
-#     def visit_Load(self, node: ast.Load)-> None:
-#         if self.debug:
-#             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+    # Leaf node
+    def visit_Load(self, node: ast.Load)-> None:
+        # if self.debug:
+        #     print(f"{'':<{self.indent * 2}}{type(node).__name__}")
+        self.visit_node(node)
 
-#     # Leaf node
-#     def visit_Store(self, node: ast.Store)-> None:
-#         if self.debug:
-#             print(f"{'':<{self.indent * 2}}{type(node).__name__}: {node._fields}")
+    # Leaf node
+    def visit_Store(self, node: ast.Store)-> None:
+        # if self.debug:
+        #     print(f"{'':<{self.indent * 2}}{type(node).__name__}")
+        self.visit_node(node)
+
+    def visit_Expr(self, node: ast.Load)-> None:
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}")
+        self.visit_node(node)
+
+    def visit_Return(self, node: ast.Load)-> None:
+        if self.debug:
+            print(f"{'':<{self.indent * 2}}{type(node).__name__}")
+        self.visit_node(node)
+
 
 #     # def visit_Subscript(self, node: ast.Subscript) -> Any:
 #     #     if self.debug:
@@ -270,13 +299,36 @@ class Plan:
         self.goal = goal
 
     def generate_plan(self):
-        for cl in set([type(o) for o in self.objects]):
-            source = inspect.getsource(cl)
-            tree = ast.parse(source)
-            astpretty.pprint(tree, show_offsets=False)
-            # v = LipsNodeVisitor()
-            # v.visit(tree)
-
+        for class_name in set([type(obj) for obj in self.objects]):
+            source_code = inspect.getsource(class_name)
+            class_tree = ast.parse(source_code).body[0]
+            # Get the Actions class
+            actions_class = None
+            for node in class_tree.body:
+                if isinstance(node, ast.ClassDef) and node.name == 'Actions':
+                    actions_class = node
+                    break
+            # Parse actions functions
+            if actions_class:
+                # astpretty.pprint(actions_class, show_offsets=False)
+                for node in actions_class.body:
+                    if isinstance(node, ast.FunctionDef):
+                        action_function = node
+                        # Action class can contain functions decorated with the classmethod decorator
+                        # Decorator function is expected to return a function
+                        if any(n.id == 'classmethod' for n in node.decorator_list):
+                            action_function = None
+                            return_object = node.body[-1]
+                            if isinstance(return_object, ast.Return) and isinstance(return_object.value, ast.Name):
+                                for item in node.body:
+                                    if isinstance(item, ast.FunctionDef) and item.name == return_object.value.id:
+                                        action_function = item
+                                        break
+                        if action_function:
+                            v = LipsNodeVisitor()
+                            v.first_pass = True
+                            v.visit(action_function)
+                            pprint.pprint(v.vars)
 
 class Cell:
     def __init__(self, name, column, row):
@@ -299,10 +351,9 @@ class Queen:
             def action(q: 'Queen', c: Cell):
                 assert not q.placed
                 assert c.queen == None
-                assert not any([c1.queen for c1 in c.reacheable])
+                assert not any([c1.queen != None for c1 in c.reacheable])
                 q.placed = True
                 c.queen = q
-                print(type(q))
                 func(q, c)
             return action
 
