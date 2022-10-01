@@ -41,6 +41,6 @@ class Plan:
                                         action_function = function_node
                                         break
                             if action_function:
-                                pass
-                                # pprint.pprint(chains.locals[action_function])
+                                for local_var in chains.locals[action_function]:
+                                    print(local_var.name())
 
