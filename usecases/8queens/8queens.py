@@ -19,7 +19,7 @@ class Queen:
     class Actions:
         @classmethod
         def place_queen(cls, func):
-            def action(q: 'Queen', c: 'Cell'):
+            def action(q: 'Queen', c: Cell):
                 assert not q.placed
                 assert c.queen == None
                 assert not any([c1.queen != None for c1 in c.reacheable])

@@ -2,9 +2,11 @@ import inspect
 import beniget
 import gast
 import pprint
+import json
+import astpretty
 
 class Action(gast.NodeVisitor):
-    def __init__(self, function_node, decorator_function, chains):
+    def __init__(self, function_node, decorator_function, chains, ancestors):
         self.name = decorator_function
         self.local_vars = {}
         self.chains = chains
@@ -13,13 +15,14 @@ class Action(gast.NodeVisitor):
 
         for var in chains.locals[function_node]:
             self.local_vars[var] = {'name': var.name}
+            print(ancestors.parents(var.node))
 
     def visit_Attribute(self, node):
         print(f'{node.value.id} . {node.attr}')
         for var in self.local_vars:
             if node.value != var.node:
                 for use in var.users():
-                    if node.value == use.node:
+                     if node.value == use.node:
                         print(f'Use of {node.value.id}')
         self.generic_visit(node)
 
@@ -36,8 +39,11 @@ class Class:
         
         source_code = inspect.getsource(name)
         module = gast.parse(source_code)
+        astpretty.pprint(module)
         chains = beniget.DefUseChains()
         chains.visit(module)
+        ancestors = beniget.Ancestors()
+        ancestors.visit(module)
 
         class_tree = module.body[0]
         # Get the Actions class
@@ -60,7 +66,7 @@ class Class:
                             ]
                             if action_function:
                                 function = action_function[0]
-                                action = Action(function, decorator_function.name, chains)
+                                action = Action(function, decorator_function.name, chains, ancestors)
                                 self.actions[decorator_function.name] = action
                                 action.visit(function)
 
