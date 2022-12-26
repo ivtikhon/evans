@@ -5,31 +5,54 @@ import pprint
 import json
 import astpretty
 
+class Var:
+    pass
+
+class Variable:
+    def __init__(self, name, node, parents):
+        self.name = name
+        self.node = node
+        self.type = None
+        if isinstance(node, gast.ListComp):
+            self.type = f'{Var.__module__}.{Var.__name__}'
+        elif isinstance(node, gast.Name):
+            # Function arguments
+            if isinstance(parents[-1], gast.arguments) and isinstance(parents[-2], gast.FunctionDef):
+                # are supposed to have type annotations
+                if node.annotation:
+                    # either a sting
+                    if isinstance(node.annotation, gast.Constant):
+                        self.type = node.annotation.value
+                    # or a class
+                    else:
+                        self.type = node.annotation.id
+        print(f'{name}: {self.type}')
+
 class Action(gast.NodeVisitor):
     def __init__(self, function_node, decorator_function, chains, ancestors):
         self.name = decorator_function
-        self.local_vars = {}
+        self.variables = {}
         self.chains = chains
+        self.ancestors = ancestors
         self.node = function_node
         print(decorator_function)
 
-        for var in chains.locals[function_node]:
-            self.local_vars[var] = {'name': var.name}
-            print(ancestors.parents(var.node))
+        for v in chains.locals[function_node]:
+            self.variables[v] = Variable(v.name(), v.node, ancestors.parents(v.node))
 
-    def visit_Attribute(self, node):
-        print(f'{node.value.id} . {node.attr}')
-        for var in self.local_vars:
-            if node.value != var.node:
-                for use in var.users():
-                     if node.value == use.node:
-                        print(f'Use of {node.value.id}')
-        self.generic_visit(node)
+    # def visit_Attribute(self, node):
+    #     print(f'{node.value.id} . {node.attr}')
+    #     for var in self.variables:
+    #         if node.value != var.node:
+    #             for use in var.users():
+    #                  if node.value == use.node:
+    #                     print(f'Use of {node.value.id}')
+    #     self.generic_visit(node)
 
     
     def visit_ListComp(self, node):
-        for var in self.chains.locals[node]:
-            self.local_vars[var] = {'name': var.name}
+        for v in self.chains.locals[node]:
+            self.variables[v] = Variable(v.name(), node, self.ancestors.parents(v.node))
         self.generic_visit(node)
 
 class Class:
@@ -39,7 +62,7 @@ class Class:
         
         source_code = inspect.getsource(name)
         module = gast.parse(source_code)
-        astpretty.pprint(module)
+        # astpretty.pprint(module)
         chains = beniget.DefUseChains()
         chains.visit(module)
         ancestors = beniget.Ancestors()
