@@ -16,16 +16,23 @@ class Variable:
         if isinstance(node, gast.ListComp):
             self.type = f'{Var.__module__}.{Var.__name__}'
         elif isinstance(node, gast.Name):
+            annotation = None
             # Function arguments
             if isinstance(parents[-1], gast.arguments) and isinstance(parents[-2], gast.FunctionDef):
                 # are supposed to have type annotations
                 if node.annotation:
-                    # either a sting
-                    if isinstance(node.annotation, gast.Constant):
-                        self.type = node.annotation.value
-                    # or a class
-                    else:
-                        self.type = node.annotation.id
+                    annotation = node.annotation
+            # Assignment
+            elif isinstance(parents[-1], gast.AnnAssign):
+                # with a type annotation
+                annotation = parents[-1].annotation
+            if annotation:
+                # Type annotation is either a sting
+                if isinstance(annotation, gast.Constant):
+                    self.type = annotation.value
+                # or a class name
+                else:
+                    self.type = annotation.id
         print(f'{name}: {self.type}')
 
 class Action(gast.NodeVisitor):
