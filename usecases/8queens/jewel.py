@@ -5,6 +5,30 @@ import pprint
 import json
 import astpretty
 
+class ActionVariables(gast.NodeVisitor):
+    def __init__(self, variables, chains, ancestors):
+        self.variables = variables
+        self.chains = chains
+        self.ancestors = ancestors
+
+    def visit_ListComp(self, node):
+        for v in self.chains.locals[node]:
+            self.variables[v] = Variable(v.name(), node, self.ancestors.parents(v.node))
+        self.generic_visit(node)
+
+class VariableAttributes(gast.NodeVisitor):
+    def __init__(self, variables):
+        self.variables = variables
+
+    def visit_Attribute(self, node):
+        print(f'{node.value.id} . {node.attr}')
+        for var in self.variables:
+            if node.value != var.node:
+                for use in var.users():
+                    if node.value == use.node:
+                        print(f'Use of {node.value.id}')
+        self.generic_visit(node)
+
 class Var:
     pass
 
@@ -13,6 +37,7 @@ class Variable:
         self.name = name
         self.node = node
         self.type = None
+        self.attributes = {}
         if isinstance(node, gast.ListComp):
             self.type = f'{Var.__module__}.{Var.__name__}'
         elif isinstance(node, gast.Name):
@@ -26,6 +51,7 @@ class Variable:
             elif isinstance(parents[-1], gast.AnnAssign):
                 # with a type annotation
                 annotation = parents[-1].annotation
+
             if annotation:
                 # Type annotation is either a sting
                 if isinstance(annotation, gast.Constant):
@@ -35,7 +61,7 @@ class Variable:
                     self.type = annotation.id
         print(f'{name}: {self.type}')
 
-class Action(gast.NodeVisitor):
+class Action:
     def __init__(self, function_node, decorator_function, chains, ancestors):
         self.name = decorator_function
         self.variables = {}
@@ -43,24 +69,14 @@ class Action(gast.NodeVisitor):
         self.ancestors = ancestors
         self.node = function_node
         print(decorator_function)
+        action_vars = ActionVariables(self.variables, chains, ancestors)
+        action_vars.visit(function_node)
 
         for v in chains.locals[function_node]:
             self.variables[v] = Variable(v.name(), v.node, ancestors.parents(v.node))
 
-    # def visit_Attribute(self, node):
-    #     print(f'{node.value.id} . {node.attr}')
-    #     for var in self.variables:
-    #         if node.value != var.node:
-    #             for use in var.users():
-    #                  if node.value == use.node:
-    #                     print(f'Use of {node.value.id}')
-    #     self.generic_visit(node)
-
-    
-    def visit_ListComp(self, node):
-        for v in self.chains.locals[node]:
-            self.variables[v] = Variable(v.name(), node, self.ancestors.parents(v.node))
-        self.generic_visit(node)
+        var_attributes = VariableAttributes(self.variables)
+        var_attributes.visit(function_node)
 
 class Class:
     def __init__(self, name):
@@ -96,9 +112,8 @@ class Class:
                             ]
                             if action_function:
                                 function = action_function[0]
-                                action = Action(function, decorator_function.name, chains, ancestors)
-                                self.actions[decorator_function.name] = action
-                                action.visit(function)
+                                self.actions[decorator_function.name] = Action(function, decorator_function.name, chains, ancestors)
+                                
 
 class Plan:
     def __init__(self, objects, goal):
