@@ -5,6 +5,8 @@ import pprint
 import json
 import astpretty
 
+DEBUG = True
+
 class ActionVariables(gast.NodeVisitor):
     def __init__(self, variables, chains, ancestors):
         self.variables = variables
@@ -21,12 +23,18 @@ class VariableAttributes(gast.NodeVisitor):
         self.variables = variables
 
     def visit_Attribute(self, node):
-        print(f'{node.value.id} . {node.attr}')
-        for var in self.variables:
-            if node.value != var.node:
-                for use in var.users():
-                    if node.value == use.node:
-                        print(f'Use of {node.value.id}')
+        if isinstance(node.value, gast.Name):
+            # Direct attribute
+            for var in self.variables:
+                # find the varialbe which attribute it is
+                if node.value in [use.node for use in var.users()]:
+                    self.variables[var].attributes.add(node.attr)
+                    break
+            else:
+                # not found in local variables
+                raise Exception(f"Global variables in action functions are not supported: {node.value.id}")
+        else:
+            raise Exception("Parsing of complex attributes is not implemented yet")
         self.generic_visit(node)
 
 class Var:
@@ -37,7 +45,7 @@ class Variable:
         self.name = name
         self.node = node
         self.type = None
-        self.attributes = {}
+        self.attributes = set()
         if isinstance(node, gast.ListComp):
             self.type = f'{Var.__module__}.{Var.__name__}'
         elif isinstance(node, gast.Name):
@@ -53,13 +61,12 @@ class Variable:
                 annotation = parents[-1].annotation
 
             if annotation:
-                # Type annotation is either a sting
+                # Type annotation is either a string
                 if isinstance(annotation, gast.Constant):
                     self.type = annotation.value
                 # or a class name
                 else:
                     self.type = annotation.id
-        print(f'{name}: {self.type}')
 
 class Action:
     def __init__(self, function_node, decorator_function, chains, ancestors):
@@ -68,7 +75,6 @@ class Action:
         self.chains = chains
         self.ancestors = ancestors
         self.node = function_node
-        print(decorator_function)
         action_vars = ActionVariables(self.variables, chains, ancestors)
         action_vars.visit(function_node)
 
@@ -77,6 +83,14 @@ class Action:
 
         var_attributes = VariableAttributes(self.variables)
         var_attributes.visit(function_node)
+
+        if DEBUG:
+            print(f'Function: {decorator_function}')
+            for v in self.variables.values():
+                print(f'{v.name}: {v.type}')
+                for a in v.attributes:
+                    print(f"  {a}")
+
 
 class Class:
     def __init__(self, name):

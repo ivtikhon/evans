@@ -24,10 +24,9 @@ class Queen:
                 assert c.queen == None
                 assert not any([c1.queen != None for c1 in c.reacheable])
                 q.placed = True
-                c.queen = q
-                func(q, c)
+                c.queen = q 
             return action
-
+ 
     @Actions.place_queen
     def place_queen(self, c):
         print(f'queen {self.number} placed at {c.name}')
