@@ -26,12 +26,12 @@ class VariableAttributes(gast.NodeVisitor):
         if isinstance(node.value, gast.Name):
             # Direct attribute
             for var in self.variables:
-                # find the varialbe which attribute it is
+                # Find the variable, the attibute belongs to
                 if node.value in [use.node for use in var.users()]:
                     self.variables[var].attributes.add(node.attr)
                     break
             else:
-                # not found in local variables
+                # Not found: it must be a global name
                 raise Exception(f"Global variables in action functions are not supported: {node.value.id}")
         else:
             raise Exception("Parsing of complex attributes is not implemented yet")
