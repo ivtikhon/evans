@@ -37,7 +37,7 @@ class VariableAttributes(gast.NodeVisitor):
             raise Exception("Parsing of complex attributes is not implemented yet")
         self.generic_visit(node)
 
-class Var:
+class ListCompVar:
     pass
 
 class Variable:
@@ -45,9 +45,10 @@ class Variable:
         self.name = name
         self.node = node
         self.type = None
+        self.function_agrument = False
         self.attributes = set()
         if isinstance(node, gast.ListComp):
-            self.type = f'{Var.__module__}.{Var.__name__}'
+            self.type = f'{ListCompVar.__module__}.{ListCompVar.__name__}'
         elif isinstance(node, gast.Name):
             annotation = None
             # Function arguments
@@ -55,6 +56,7 @@ class Variable:
                 # are supposed to have type annotations
                 if node.annotation:
                     annotation = node.annotation
+                self.function_agrument = True
             # Assignment
             elif isinstance(parents[-1], gast.AnnAssign):
                 # with a type annotation
@@ -69,12 +71,14 @@ class Variable:
                     self.type = annotation.id
 
 class Action:
-    def __init__(self, function_node, decorator_function, chains, ancestors):
+    def __init__(self, function_node, decorator_function, classname, chains, ancestors):
         self.name = decorator_function
         self.variables = {}
         self.chains = chains
         self.ancestors = ancestors
         self.node = function_node
+
+        # Extract local vars from list comprehension
         action_vars = ActionVariables(self.variables, chains, ancestors)
         action_vars.visit(function_node)
 
@@ -84,16 +88,45 @@ class Action:
         var_attributes = VariableAttributes(self.variables)
         var_attributes.visit(function_node)
 
+        self.pddl_code = [
+            f'(:action {classname}_{decorator_function}',
+            ':parameters ('
+        ]
+        for v in self.variables.values():
+            if v.function_agrument:
+                self.pddl_code.append(f'?{v.name} - {v.type}')
+        self.pddl_code.append(')')
+
+        precondition_body = [':precondition (and']
+        effect_body = [':effect (and']
+        for function_node in function_node.body:
+            if isinstance(function_node, gast.Assert):
+                precondition_body.append('(condition)')
+            else:
+                effect_body.append('(effect)')
+        
+        if len(precondition_body) > 1:
+            precondition_body.append(')')
+            self.pddl_code += precondition_body
+
+        if len(effect_body) > 1:
+            effect_body.append(')')
+            self.pddl_code += effect_body
+
+        self.pddl_code.append(')')
+
         if DEBUG:
             print(f'Function: {decorator_function}')
             for v in self.variables.values():
                 print(f'{v.name}: {v.type}')
                 for a in v.attributes:
                     print(f"  {a}")
-
+            
+            print("\n".join(self.pddl_code))
 
 class Class:
     def __init__(self, name):
+        self.classname = f'{name.__module__}-{name.__name__}'
         self.actions = {}
         self.attributes = {}
         
@@ -126,7 +159,7 @@ class Class:
                             ]
                             if action_function:
                                 function = action_function[0]
-                                self.actions[decorator_function.name] = Action(function, decorator_function.name, chains, ancestors)
+                                self.actions[decorator_function.name] = Action(function, decorator_function.name, self.classname, chains, ancestors)
                                 
 
 class Plan:
