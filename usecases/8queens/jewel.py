@@ -34,27 +34,55 @@ class VariableAttributes(gast.NodeVisitor):
                 # Not found: it must be a global name
                 raise Exception(f"Global variables in action functions are not supported: {node.value.id}")
         else:
-            raise Exception("Parsing of complex attributes is not implemented yet")
+            raise Exception("Parsing of complex attributes is not implemented")
         self.generic_visit(node)
 
 class ActionAssert(gast.NodeVisitor):
     def __init__(self, variables):
         self.variables = variables
-        self.pddl = ['(']
+        self.pddl = []
     
     def generic_visit(self, node):
         raise Exception(f'Not implemented: {type(node).__name__}')
     
     def visit_Assert(self, node):
-        gast.NodeVisitor.generic_visit(self, node)
+        self.pddl.append('(')
+        super().generic_visit(node)
+        self.pddl.append(')')
 
     def visit_UnaryOp(self, node):
-        gast.NodeVisitor.generic_visit(self, node)
+        super().generic_visit(node)
         if isinstance(node.op, gast.Not):
             self.pddl.append(')')
+        else:
+            # We're not supposed to be here
+            raise Exception('Internal error')
+
+    def visit_Compare(self, node):
+        super().generic_visit(node)
+
+    def visit_Attribute(self, node):
+        if not isinstance(node.ctx, gast.Load):
+            raise Exception(f'Attribute context {node.ctx} is not supported in asserts')
+        if isinstance(node.value, gast.Name):
+            for var in self.variables:
+                if node.value in [use.node for use in var.users()]:
+                    v = self.variables[var]
+                    self.pddl.append(f'{v.type}-{node.attr} ?{v.name}')
+                    break
+        else:
+            raise Exception("Parsing of complex attributes is not implemented")
+        super().generic_visit(node)
 
     def visit_Not(self, node):
         self.pddl.append('not(')
+
+    def visit_Name(self, node):
+        pass
+
+    def visit_Load(self, node):
+        pass
+
 
 class ListCompVar:
     pass
@@ -108,7 +136,7 @@ class Action:
         var_attributes.visit(function_node)
 
         self.pddl_code = [
-            f'(:action {classname}_{decorator_function}',
+            f'(:action {classname}-{decorator_function}',
             ':parameters ('
         ]
         for v in self.variables.values():
@@ -122,7 +150,7 @@ class Action:
             if isinstance(function_node, gast.Assert):
                 assert_node = ActionAssert(self.variables)
                 assert_node.visit(function_node)
-                precondition_body 
+                precondition_body += assert_node.pddl
             else:
                 effect_body.append('(effect)')
         
