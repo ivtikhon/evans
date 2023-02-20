@@ -37,6 +37,25 @@ class VariableAttributes(gast.NodeVisitor):
             raise Exception("Parsing of complex attributes is not implemented yet")
         self.generic_visit(node)
 
+class ActionAssert(gast.NodeVisitor):
+    def __init__(self, variables):
+        self.variables = variables
+        self.pddl = ['(']
+    
+    def generic_visit(self, node):
+        raise Exception(f'Not implemented: {type(node).__name__}')
+    
+    def visit_Assert(self, node):
+        gast.NodeVisitor.generic_visit(self, node)
+
+    def visit_UnaryOp(self, node):
+        gast.NodeVisitor.generic_visit(self, node)
+        if isinstance(node.op, gast.Not):
+            self.pddl.append(')')
+
+    def visit_Not(self, node):
+        self.pddl.append('not(')
+
 class ListCompVar:
     pass
 
@@ -101,7 +120,9 @@ class Action:
         effect_body = [':effect (and']
         for function_node in function_node.body:
             if isinstance(function_node, gast.Assert):
-                precondition_body.append('(condition)')
+                assert_node = ActionAssert(self.variables)
+                assert_node.visit(function_node)
+                precondition_body 
             else:
                 effect_body.append('(effect)')
         
