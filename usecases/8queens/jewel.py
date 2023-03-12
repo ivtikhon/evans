@@ -43,42 +43,62 @@ class ActionAssert(gast.NodeVisitor):
         self.pddl = []
     
     def generic_visit(self, node):
-        raise Exception(f'Not implemented: {type(node).__name__}')
+        raise Exception(f'Not supported node type: {type(node).__name__} in asserts')
     
     def visit_Assert(self, node):
-        self.pddl.append('(')
         super().generic_visit(node)
-        self.pddl.append(')')
 
     def visit_UnaryOp(self, node):
-        super().generic_visit(node)
         if isinstance(node.op, gast.Not):
+            self.pddl.append('(not')
+            super().generic_visit(node)
             self.pddl.append(')')
         else:
             # We're not supposed to be here
             raise Exception('Internal error')
 
     def visit_Compare(self, node):
+        if len(node.ops) > 1:
+            raise Exception('Only one comparison operation is supported for now')
+        if type(node.left) not in [gast.Name, gast.Attribute]:
+            raise Exception(f'Not supported node type {type(node.left).__name__} in comparisons')
+        if type(node.comparators[0]) not in [gast.Name, gast.Attribute, gast.Constant]:
+            raise Exception(f'Not supported node type {type(node.comparators[0]).__name__} in comparisons')
         super().generic_visit(node)
 
     def visit_Attribute(self, node):
         if not isinstance(node.ctx, gast.Load):
             raise Exception(f'Attribute context {node.ctx} is not supported in asserts')
         if isinstance(node.value, gast.Name):
+            super().generic_visit(node)
             for var in self.variables:
                 if node.value in [use.node for use in var.users()]:
                     v = self.variables[var]
-                    self.pddl.append(f'{v.type}-{node.attr} ?{v.name}')
+                    self.pddl.pop()
+                    attr_name = f'{v.name}_{node.attr}'
+                    self.pddl.append(f'(exists (?{attr_name} - attr_{v.type}) (and (is_attr ?{v.name} ?{attr_name})')
+                    self.pddl.append(f'(is_true ?{attr_name})))')
                     break
+            else:
+                # We're not supposed to be here
+                raise Exception('Internal error')
+
         else:
             raise Exception("Parsing of complex attributes is not implemented")
+
+    def visit_Eq(self, node):
+        pass
+
+    def visit_Constant(self, node):
+        value = 'None' if node.value == None else node.value
+        self.pddl.append(value)
         super().generic_visit(node)
 
     def visit_Not(self, node):
-        self.pddl.append('not(')
+        pass
 
     def visit_Name(self, node):
-        pass
+        self.pddl.append(f'(is_true ?{node.id})')
 
     def visit_Load(self, node):
         pass
