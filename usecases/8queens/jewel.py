@@ -7,6 +7,37 @@ import astpretty
 
 DEBUG = True
 
+class PddlObject:
+    def __init__(self, name: str, type: str = "object"):
+        self.name = name
+        self.type = type
+
+class PddlPredicate:
+    pass
+
+class PddlPredicateIsTrue(PddlPredicate):
+    def __init__(self, pddlobject: PddlObject):
+        self.object = pddlobject
+
+class PddlPredicateIsAttr(PddlPredicate):
+    def __init__(self, pddlobject: PddlObject, attributeobject: PddlObject):
+        self.object = pddlobject
+        self.attribute = attributeobject
+
+class PddlPredicateIsEq(PddlPredicate):
+    def __init__(self, leftpddlobject: PddlObject, rightpddlobject: PddlObject):
+        self.leftobject = leftpddlobject
+        self.rightobject = rightpddlobject
+
+class PddlExists:
+    def __init__(self, pddlobject: PddlObject, pddlpredicate: PddlPredicate):
+        self.object = pddlobject
+        self.predicates = [pddlpredicate]
+
+class PddlNot:
+    def __init__(self, pddlpredicate):
+        self.predicate = pddlpredicate
+
 class ActionVariables(gast.NodeVisitor):
     def __init__(self, variables, chains, ancestors):
         self.variables = variables
@@ -28,7 +59,8 @@ class VariableAttributes(gast.NodeVisitor):
             for var in self.variables:
                 # Find the variable, the attibute belongs to
                 if node.value in [use.node for use in var.users()]:
-                    self.variables[var].attributes.add(node.attr)
+                    v = self.variables[var]
+                    v.attributes[node.attr] = PddlObject(f'{v.name}_{node.attr}', f'attr_{v.type}')
                     break
             else:
                 # Not found: it must be a global name
@@ -50,9 +82,9 @@ class ActionAssert(gast.NodeVisitor):
 
     def visit_UnaryOp(self, node):
         if isinstance(node.op, gast.Not):
-            self.pddl.append('(not')
             super().generic_visit(node)
-            self.pddl.append(')')
+            predicate = self.pddl.pop()
+            self.pddl.append(PddlNot(predicate))
         else:
             # We're not supposed to be here
             raise Exception('Internal error')
@@ -75,9 +107,10 @@ class ActionAssert(gast.NodeVisitor):
                 if node.value in [use.node for use in var.users()]:
                     v = self.variables[var]
                     self.pddl.pop()
-                    attr_name = f'{v.name}_{node.attr}'
-                    self.pddl.append(f'(exists (?{attr_name} - attr_{v.type}) (and (is_attr ?{v.name} ?{attr_name})')
-                    self.pddl.append(f'(is_true ?{attr_name})))')
+                    attr_pddl_obj = v.attributes[node.attr]
+                    exists_obj = PddlExists(attr_pddl_obj, PddlPredicateIsAttr(v.pddlobject, attr_pddl_obj))
+                    exists_obj.predicates.append(PddlPredicateIsTrue(attr_pddl_obj))
+                    self.pddl.append(exists_obj)
                     break
             else:
                 # We're not supposed to be here
@@ -90,15 +123,20 @@ class ActionAssert(gast.NodeVisitor):
         pass
 
     def visit_Constant(self, node):
-        value = 'None' if node.value == None else node.value
-        self.pddl.append(value)
         super().generic_visit(node)
 
     def visit_Not(self, node):
         pass
 
     def visit_Name(self, node):
-        self.pddl.append(f'(is_true ?{node.id})')
+        for var in self.variables:
+            if node in [use.node for use in var.users()]:
+                v = self.variables[var]
+                self.pddl.append(PddlPredicateIsTrue(v.pddlobject))
+                break
+        else:
+            # We're not supposed to be here
+            raise Exception('Internal error')
 
     def visit_Load(self, node):
         pass
@@ -113,7 +151,7 @@ class Variable:
         self.node = node
         self.type = None
         self.function_agrument = False
-        self.attributes = set()
+        self.attributes = {}
         if isinstance(node, gast.ListComp):
             self.type = f'{ListCompVar.__module__}.{ListCompVar.__name__}'
         elif isinstance(node, gast.Name):
@@ -136,6 +174,7 @@ class Variable:
                 # or a class name
                 else:
                     self.type = annotation.id
+        self.pddlobject = PddlObject(self.name, self.type)
 
 class Action:
     def __init__(self, function_node, decorator_function, classname, chains, ancestors):
@@ -170,7 +209,8 @@ class Action:
             if isinstance(function_node, gast.Assert):
                 assert_node = ActionAssert(self.variables)
                 assert_node.visit(function_node)
-                precondition_body += assert_node.pddl
+                # precondition_body += assert_node.pddl
+                pprint.pprint(assert_node.pddl)
             else:
                 effect_body.append('(effect)')
         
