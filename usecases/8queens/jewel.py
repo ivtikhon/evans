@@ -12,6 +12,9 @@ class PddlObject:
         self.name = name
         self.type = type
 
+    def __str__(self):
+        return f'?{self.name} - {self.type}'
+
 class PddlPredicate:
     pass
 
@@ -19,24 +22,53 @@ class PddlPredicateIsTrue(PddlPredicate):
     def __init__(self, pddlobject: PddlObject):
         self.object = pddlobject
 
+    def __str__(self):
+        return f'(is_true ?{self.object.name})'
+
 class PddlPredicateIsAttr(PddlPredicate):
     def __init__(self, pddlobject: PddlObject, attributeobject: PddlObject):
         self.object = pddlobject
         self.attribute = attributeobject
+    
+    def __str__(self):
+        return f'(is_attr ?{self.object.name} ?{self.attribute.name})'
 
 class PddlPredicateIsEq(PddlPredicate):
     def __init__(self, leftpddlobject: PddlObject, rightpddlobject: PddlObject):
         self.leftobject = leftpddlobject
         self.rightobject = rightpddlobject
+    
+    def __str__(self):
+        return f'(is_eq ?{self.leftobject.name} ?{self.rightobject.name})'
 
 class PddlExists:
-    def __init__(self, pddlobject: PddlObject, pddlpredicate: PddlPredicate):
+    def __init__(self, pddlobject: PddlObject, expression):
         self.object = pddlobject
-        self.predicates = [pddlpredicate]
+        if type(expression) != list:
+            self.expression = [expression]
+        else:
+            self.expression = expression 
+
+    def __str__(self):
+        expr = ' '.join([str(p) for p in self.expression])
+        if len(self.expression) > 1:
+            expr = f'(and {expr})'
+        return f'(exists ({str(self.object)}) {expr})'
 
 class PddlNot:
     def __init__(self, pddlpredicate):
         self.predicate = pddlpredicate
+    
+    def __str__(self):
+        return f'(not {self.predicate})'
+
+class PddlConstant:
+    def __init__(self, name: str, value: str):
+        self.name = name
+        self.value = value
+    
+    def __str__(self):
+        return f'?{self.name}'
 
 class ActionVariables(gast.NodeVisitor):
     def __init__(self, variables, chains, ancestors):
@@ -90,6 +122,14 @@ class ActionAssert(gast.NodeVisitor):
             raise Exception('Internal error')
 
     def visit_Compare(self, node):
+        '''
+            Compare(left, ops, comparators)
+            Only one comparison operation is supported for now;
+            left is either gast.Name or gast.Attribute;
+            comparator[0] is either gast.Name, gast.Attribute, or gast.Constant;
+            ops[0] is either gast.Eq, or gast.NotEq;
+            nothing else is supported for now
+        '''
         if len(node.ops) > 1:
             raise Exception('Only one comparison operation is supported for now')
         if type(node.left) not in [gast.Name, gast.Attribute]:
@@ -97,6 +137,38 @@ class ActionAssert(gast.NodeVisitor):
         if type(node.comparators[0]) not in [gast.Name, gast.Attribute, gast.Constant]:
             raise Exception(f'Not supported node type {type(node.comparators[0]).__name__} in comparisons')
         super().generic_visit(node)
+        comparator = self.pddl.pop()
+        left = self.pddl.pop()
+        
+        # remove PddlPredicateIsTrue
+        if isinstance(node.left, gast.Attribute):
+            left.expression.pop() 
+        if isinstance(node.comparators[0], gast.Attribute):
+            comparator.expression.pop()
+
+        if isinstance(node.left, gast.Name) and (isinstance(node.comparators[0], gast.Name) or isinstance(node.comparators[0], gast.Constant)): # two PddlPredicateIsTrue
+            pddl_predicate = PddlPredicateIsEq(left.object, comparator.object)
+        elif isinstance(node.left, gast.Name) and isinstance(node.comparators[0], gast.Attribute): # PddlPredicateIsEq and PddlExists
+            pddl_predicate = comparator
+            pddl_predicate.expression.append(PddlPredicateIsEq(left.object, comparator.object))
+        elif isinstance(node.left, gast.Attribute) and (isinstance(node.comparators[0], gast.Name) or isinstance(node.comparators[0], gast.Constant)): # PddlExists and PddlPredicateIsTrue
+            pddl_predicate = left
+            pddl_predicate.expression.append(PddlPredicateIsEq(left.object, comparator.object))
+        elif isinstance(node.left, gast.Attribute) and isinstance(node.comparators[0], gast.Attribute): # two PddlExists
+            pddl_predicate = left
+            pddl_predicate.expression.append(comparator)
+            comparator.expression.append(PddlPredicateIsEq(left.object, comparator.object))
+        else:
+            # We're not supposed to be here
+            raise Exception('Internal error')
+
+        if isinstance(node.ops[0], gast.Eq):
+            self.pddl.append(pddl_predicate)
+        elif isinstance(node.ops[0], gast.NotEq):
+            self.pddl.append(PddlNot(pddl_predicate))
+        else:
+            # We're not supposed to be here
+            raise Exception('Internal error')
 
     def visit_Attribute(self, node):
         if not isinstance(node.ctx, gast.Load):
@@ -106,10 +178,9 @@ class ActionAssert(gast.NodeVisitor):
             for var in self.variables:
                 if node.value in [use.node for use in var.users()]:
                     v = self.variables[var]
-                    self.pddl.pop()
+                    self.pddl.pop() # Remove the attribute name
                     attr_pddl_obj = v.attributes[node.attr]
-                    exists_obj = PddlExists(attr_pddl_obj, PddlPredicateIsAttr(v.pddlobject, attr_pddl_obj))
-                    exists_obj.predicates.append(PddlPredicateIsTrue(attr_pddl_obj))
+                    exists_obj = PddlExists(attr_pddl_obj, [PddlPredicateIsAttr(v.pddlobject, attr_pddl_obj), PddlPredicateIsTrue(attr_pddl_obj)])
                     self.pddl.append(exists_obj)
                     break
             else:
@@ -118,15 +189,6 @@ class ActionAssert(gast.NodeVisitor):
 
         else:
             raise Exception("Parsing of complex attributes is not implemented")
-
-    def visit_Eq(self, node):
-        pass
-
-    def visit_Constant(self, node):
-        super().generic_visit(node)
-
-    def visit_Not(self, node):
-        pass
 
     def visit_Name(self, node):
         for var in self.variables:
@@ -138,9 +200,20 @@ class ActionAssert(gast.NodeVisitor):
             # We're not supposed to be here
             raise Exception('Internal error')
 
-    def visit_Load(self, node):
+    def visit_Constant(self, node):
+        self.pddl.append(PddlPredicateIsTrue(PddlObject(f'const_{node.value}')))    # TODO: revisit constant parsing
+
+    def visit_Eq(self, node):
         pass
 
+    def visit_NotEq(self, node):
+        pass
+
+    def visit_Not(self, node):
+        pass
+
+    def visit_Load(self, node):
+        pass
 
 class ListCompVar:
     pass
@@ -210,7 +283,7 @@ class Action:
                 assert_node = ActionAssert(self.variables)
                 assert_node.visit(function_node)
                 # precondition_body += assert_node.pddl
-                pprint.pprint(assert_node.pddl)
+                print(assert_node.pddl[0])
             else:
                 effect_body.append('(effect)')
         
