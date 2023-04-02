@@ -304,6 +304,40 @@ class ActionAssert(gast.NodeVisitor):
     def visit_Load(self, node):
         pass
 
+class ActionEffect(gast.NodeVisitor):
+    def __init__(self, variables, ancestors):
+        self.variables = variables
+        self.ancestors = ancestors
+        self.pddl = []
+
+    def visit_Assign(self, node):
+        '''
+            Assign(targets, value)
+            only one target is supported;
+            target is gast.Name or gast.Attribute;
+            value is gast.Name, gast.Attribute, gast.Constant
+        '''
+        if len(node.targets) > 1:
+            raise Exception('Only one target is supported in action effects')
+        super().generic_visit(node)
+
+        value = self.pddl.pop()
+        target = self.pddl.pop()
+        raise Exception(f'Not implemented yet')
+
+    def visit_Name(self, node):
+        '''
+            name is a variable or an attribute;
+        '''
+        for var in [v for v in self.variables if v.name() == node.id]:
+            if node is var.node or node in [use.node for use in var.users()]:
+                v = self.variables[var]
+                self.pddl.append(PddlPredicateIsTrue(v.pddlobject))
+                break
+        else:
+            # We're not supposed to be here
+            raise Exception(f'Internal error in visit_Name: {node.id}')
+
 class ListCompVar:
     pass
 
@@ -346,16 +380,19 @@ class Action:
         self.ancestors = ancestors
         self.node = function_node
 
-        # Extract local vars from list comprehension
+        # Extract local vars from list comprehensions
         action_vars = ActionVariables(self.variables, chains, ancestors)
         action_vars.visit(function_node)
 
+        # Collect local variables
         for v in chains.locals[function_node]:
             self.variables[v] = Variable(v.name(), v.node, ancestors.parents(v.node))
 
+        # Collect attributes
         var_attributes = VariableAttributes(self.variables)
         var_attributes.visit(function_node)
 
+        # Generate PDDL code
         self.pddl_code = [
             f'(:action {classname}-{decorator_function}',
             ':parameters ('
@@ -367,6 +404,8 @@ class Action:
 
         precondition_body = [':precondition (and']
         effect_body = [':effect (and']
+
+        # Parse asserts
         for function_node in function_node.body:
             if isinstance(function_node, gast.Assert):
                 assert_node = ActionAssert(self.variables, self.ancestors)
