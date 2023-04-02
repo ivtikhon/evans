@@ -41,6 +41,14 @@ class PddlPredicateIsEq(PddlPredicate):
     def __str__(self):
         return f'(is_eq ?{self.leftobject.name} ?{self.rightobject.name})'
 
+class PddlPredicateIsMember(PddlPredicate):
+    def __init__(self, pddlobject: PddlObject, memberobject: PddlObject):
+        self.object = pddlobject
+        self.member = memberobject
+    
+    def __str__(self):
+        return f'(is_member ?{self.object.name} ?{self.member.name})'
+
 class PddlExists:
     def __init__(self, pddlobject: PddlObject, expression):
         self.object = pddlobject
@@ -54,6 +62,20 @@ class PddlExists:
         if len(self.expression) > 1:
             expr = f'(and {expr})'
         return f'(exists ({str(self.object)}) {expr})'
+
+class PddlForAll:
+    def __init__(self, pddlobject: PddlObject, expression):
+        self.object = pddlobject
+        if type(expression) != list:
+            self.expression = [expression]
+        else:
+            self.expression = expression 
+
+    def __str__(self):
+        expr = ' '.join([str(p) for p in self.expression])
+        if len(self.expression) > 1:
+            expr = f'(and {expr})'
+        return f'(forall ({str(self.object)}) {expr})'
 
 class PddlNot:
     def __init__(self, pddlpredicate):
@@ -102,8 +124,9 @@ class VariableAttributes(gast.NodeVisitor):
         self.generic_visit(node)
 
 class ActionAssert(gast.NodeVisitor):
-    def __init__(self, variables):
+    def __init__(self, variables, ancestors):
         self.variables = variables
+        self.ancestors = ancestors
         self.pddl = []
     
     def generic_visit(self, node):
@@ -124,11 +147,10 @@ class ActionAssert(gast.NodeVisitor):
     def visit_Compare(self, node):
         '''
             Compare(left, ops, comparators)
-            Only one comparison operation is supported for now;
+            one comparison operation is supported;
             left is either gast.Name or gast.Attribute;
             comparator[0] is either gast.Name, gast.Attribute, or gast.Constant;
             ops[0] is either gast.Eq, or gast.NotEq;
-            nothing else is supported for now
         '''
         if len(node.ops) > 1:
             raise Exception('Only one comparison operation is supported for now')
@@ -191,17 +213,84 @@ class ActionAssert(gast.NodeVisitor):
             raise Exception("Parsing of complex attributes is not implemented")
 
     def visit_Name(self, node):
-        for var in self.variables:
-            if node in [use.node for use in var.users()]:
+        '''
+            name is a variable or an attribute;
+            function names are ignored
+        '''
+        if isinstance(self.ancestors.parents(node)[-1], gast.Call):
+            return
+        for var in [v for v in self.variables if v.name() == node.id]:
+            if node is var.node or node in [use.node for use in var.users()]:
                 v = self.variables[var]
                 self.pddl.append(PddlPredicateIsTrue(v.pddlobject))
                 break
         else:
             # We're not supposed to be here
-            raise Exception('Internal error')
+            raise Exception(f'Internal error in visit_Name: {node.id}')
 
     def visit_Constant(self, node):
         self.pddl.append(PddlPredicateIsTrue(PddlObject(f'const_{node.value}')))    # TODO: revisit constant parsing
+
+    def visit_Call(self, node):
+        '''Only any() or all() are supported with list comprehension as a single argument'''
+        if isinstance(node.func, gast.Name) and len(node.args) == 1 and isinstance(node.args[0], gast.ListComp):
+            if node.func.id == 'any':
+                pass 
+            elif node.func.id == 'all': # Replace PddlExists with PddlForAll;   NOTE: forall requires pddl impliation; not implemented yet
+                raise Exception('PddlForAll is not implemented yet')
+            else:
+                raise Exception(f'Not supported function {node.func.id} in asserts')
+        else:
+            raise Exception(f'Only any() or all() are supported with list comprehension as an argument in asserts')
+        super().generic_visit(node)
+
+    def visit_ListComp(self, node):
+        '''
+            ListComp(elt, generators[comprehension])
+            elt can be gast.Name, gast.Attribute, or gast.Compare
+            Only one iterator is supported
+        '''
+        if len(node.generators) > 1:
+            raise Exception('Only one iterator is supported in asserts')
+        if type(node.elt) not in [gast.Name, gast.Attribute, gast.Compare]:
+            raise Exception(f'Not supported element type {type(node.elt).__name__} in list comprehensions')
+        super().generic_visit(node)
+        comprehension = self.pddl.pop()
+        elt = self.pddl.pop()
+        comprehension.expression.append(elt)
+        self.pddl.append(comprehension)
+        
+    def visit_comprehension(self, node):
+        '''
+            comprehension(target, iter, ifs)
+            target is gast.Name;
+            iter is gast.Name or gast.Attribute;
+            only one ifs is supported;
+        '''
+        if len(node.ifs) > 1:
+            raise Exception('Only one if is supported in list comprehensions')
+        if type(node.iter) not in [gast.Name, gast.Attribute]:
+            raise Exception(f'Not supported iterator type {type(node.iter).__name__} in list comprehensions')
+        if not isinstance(node.target, gast.Name):
+            raise Exception(f'Not supported target type {type(node.target).__name__} in list comprehensions')
+        super().generic_visit(node)
+        ifs = None
+        if node.ifs:
+            ifs = self.pddl.pop()
+        iter = self.pddl.pop()
+        target = self.pddl.pop()
+        if isinstance(node.iter, gast.Name):
+            pddl_predicate = PddlPredicateIsMember(iter.object, target.object)
+        elif isinstance(node.iter, gast.Attribute):
+            iter.expression.pop() # Remove PddlPredicateIsTrue from PddlExists
+            pddl_predicate = iter
+            pddl_predicate.expression.append(PddlPredicateIsMember(iter.object, target.object))
+        else:
+            # We're not supposed to be here
+            raise Exception('Internal error')
+        if ifs:
+            pddl_predicate.expression.append(ifs)
+        self.pddl.append(PddlExists(target.object, [pddl_predicate]))
 
     def visit_Eq(self, node):
         pass
@@ -280,10 +369,9 @@ class Action:
         effect_body = [':effect (and']
         for function_node in function_node.body:
             if isinstance(function_node, gast.Assert):
-                assert_node = ActionAssert(self.variables)
+                assert_node = ActionAssert(self.variables, self.ancestors)
                 assert_node.visit(function_node)
-                # precondition_body += assert_node.pddl
-                print(assert_node.pddl[0])
+                precondition_body.append(str(assert_node.pddl[0]))
             else:
                 effect_body.append('(effect)')
         
@@ -355,4 +443,3 @@ class Plan:
 
     def generate_plan(self):
         pass
-
